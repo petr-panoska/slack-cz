@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="cs">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf8">
+    <LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/style.css">
+    <LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/paginator.css">
+    <LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/jquery.dataTables.css">
+    <LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/jquery-ui-1.8.24.custom.css">
+    <LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/colorbox.css">
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Script-Type" content="text/javascript">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+
+    <script type="text/javascript" language="javascript" src="{$baseUri}/js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript" language="javascript" src="{$baseUri}/js/jquery-ui-1.8.24.custom.min.js"></script>
+    <script type="text/javascript" language="javascript" src="{$baseUri}/js/netteForms.js"></script>
+    <script type="text/javascript" language="javascript" src="{$baseUri}/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" language="javascript" src="{$baseUri}/js/jquery.colorbox-min.js"></script>
+    <script type="text/javascript" language="javascript" src="{$baseUri}/js/ajaxForm.js"></script>
+    <script type="text/javascript" language="javascript">
+      $(document).ready(function () {
+        $('a.gallery').colorbox({
+          transition: "elastic",
+          maxWidth: "100%",
+          maxHeight: "100%",
+          previous: "Předchozí",
+          next: "Další",
+          close: "Zavřít"
+        });
+      });
+    </script>
+
+    {block #head}{/block}
+
+    <title>{block #title}{/block}| SLACK.cz
+    </title>
+</head>
+<body onload="initialize();">
+<div id="hlavni">
+    <div id="logo">
+    </div>
+    <div id="menu">
+        <ul>
+            <li class="main">
+                <a href="http://www.slack.cz/index.php?str=onas">o nás</a>
+                <ul class="sub">
+                    <li><a href="http://www.youtube.com/watch?v=Vw7AnAy4G6k">video</a></li>
+                    <li><a href="http://www.slack.cz/index.php?str=osobnosti">osobnosti</a></li>
+                    <li><a href="http://www.slack.cz/index.php?str=media_o_nas">media o nás</a></li>
+                    <li><a href="http://www.slacklive.cz/index.htm">archiv</a></li>
+                </ul>
+            </li>
+            <li class="main">
+                <h3>aktivity</h3>
+                <ul class="sub">
+                    <li><a href="http://www.slack.cz/index.php?str=festivaly">slackline festivaly</a></li>
+                    <li><a href="http://www.slack.cz/index.php?str=promo_akce">promo akce</a></li>
+                    <li><a href="http://www.slack.cz/index.php?str=komercni_akce">komerční akce</a></li>
+                </ul>
+            </li>
+
+            <li class="main">
+                <a n:href="Calendar:events">kalendář</a>
+            </li>
+            <li class="main">
+                <a href="http://www.slack.cz/forum-1">fórum</a>
+            </li>
+            <li class="main">
+                <a href="http://www.slack.cz/index.php?str=clanky">články</a>
+            </li>
+            <li class="main">
+                <a n:href="Users:">deníček</a>
+            </li>
+            <li class="main">
+                <a href="http://book.slack.cz/highlines/">Highlines Book</a>
+            </li>
+            <li class="main">
+                <a n:href="Video:">video</a>
+                <ul class="sub">
+                    <li><a n:href="Video: nase">naše</a></li>
+                    <li><a n:href="Video: zahranicni">zahraniční</a></li>
+                    <li><a n:href="Video: gibbon">gibbon</a></li>
+                </ul>
+            </li>
+            <li class="main">
+                <a href="/E-shop">E-shop</a>
+            </li>
+            <li class="main">
+                <a href="http://www.slack.cz/index.php?str=longlinersclub">100+</a>
+            </li>
+            <li class="main">
+                <a href="http://ceska-asociace-slackline.cz/" target="_blank">ČAS</a>
+            </li>
+        </ul>
+    </div>
+    <div id="stred">
+        <div id="ramec">
+            <div id="obsah">
+                {snippet flashMessages}
+                    <div n:foreach="$flashes as $flash" class="flash {$flash->type}">{$flash->message}</div>
+                {/snippet}
+                {include #content}
+            </div>
+        </div>
+        <div id="novinky">
+
+            <div id="banner-eshop">
+                <p class='nadpis'>VYBÍRÁME Z NAŠEHO E-SHOPU</p>
+                {foreach $product as $p}
+                    <p><a href='/E-shop/'>{$p->nazev}</a></p>
+                    <p><a href='/E-shop/'><img src='http://www.slack.cz/E-shop/galery/{$p->id}/{$p->obrshow}'
+                                               alt='{$p->nazev}'></a></p>
+                    <p>Cena: {$p->cena} Kč</p>
+                {/foreach}
+            </div>
+
+            <div id="banner-eshop">
+                <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+                        codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=8,0,0,0"
+                        width="250" height="177">
+                    <param name="movie" value="img/banner-slack.swf?clickTag=http://www.singingrock.cz/"/>
+                    <embed src="img/banner-slack.swf?clickTag=http://www.singingrock.cz/" width="250" height="177"/>
+                </object>
+            </div>
+            <div id="fotolive">
+                <h3>FOTO<span class="red">live</span></h3>
+                <a href="http://www.slack.cz/fotolive/fotolive_full.jpg" class="gallery" title=""><img
+                            src="http://www.slack.cz/fotolive/fotolive.jpg" alt="FOTOlive"></a>
+                <div class="popisekObr">
+                </div>
+            </div>
+            {snippet login}
+                <div id="prihlaseni">
+                    {if $user->isLoggedIn()}
+                        <fieldset>
+                            <legend id="prihlasenilegend">Přihlášení</legend>
+                            <p class="paddingMargin">Jste přihlášen jako:
+                                <a href="http://www.slack.cz/index.php?str=denicek&id_u={$user->id}">{$user->getIdentity()->nick}</a>
+                            </p>
+                            <p>{$user->getIdentity()->jmeno} {$user->getIdentity()->prijmeni}</p>
+                            <img src="http://www.slack.cz/uzivatel/{$user->id}/profil_foto.jpg"/>
+                            <br/>
+                            <a n:href="Sign:out">Odhlásit se</a>
+                        </fieldset>
+                    {else}
+                        <!--
+                                        ****************Přihlašovací form*********************
+                        -->
+                        {form loginForm}
+                            <fieldset id="prihlasenifield">
+                                <legend id="prihlasenilegend">Přihlášení do SLACK.CZ</legend>
+
+                                {control $form errors}
+
+                                <label class="formlabelM" for="username">Přezdívka:</label>
+                                <input id="username" type="text" name="username" value="">
+
+                                <br>
+                                <label class="formlabelM" for="pass">Heslo: </label>
+                                <input id="pass" type="password" name="password" value="">
+                                <br>
+
+                                <label id="trvale">Přihlásit se trvale na tomto PC: </label>
+                                <input name="trvale" type="checkbox">
+                                <br>
+
+                                <input id="prihlasit" name="prihlasit" type="submit" value="Přihlásit">
+                                <br>
+                                <br>
+                                <a class="zapomelHeslo" href="index.php?str=hesloNaMail">Zapomněli jste heslo?</a>
+                                <a class="registrovat" href="index.php?str=registrovat">Zaregistrovat</a>
+                            </fieldset>
+                        {/form}
+
+
+                    {/if}
+                </div>
+            {/snippet}
+            <div id="popisek">Lajny ve vašem okolí:</div>
+            <a href="http://www.slack.cz/index.php?str=skupiny">
+                <div id="facebook"></div>
+            </a>
+            <div id="odkazy">
+                <a href="http://www.slack.cz/index.php?str=odkazy">Odkazy na podobné stránky</a>
+            </div>
+
+        </div>
+    </div>
+    <div id="clear">
+    </div>
+    <div id="paticka">
+        <div id="patickaObsah">Contact:
+            <a href="mailto:receteam@slacklive.cz">receteam@slacklive.cz</a>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

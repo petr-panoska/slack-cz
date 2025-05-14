@@ -1,0 +1,34 @@
+{block #title}
+Administrace | stránky
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<a n:href="Admin:editpage" class="btn btn-default">Nová stránka</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Stránka</th>
+            <th>Poslední změna</th>
+            <th>URL:</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $pages as $p}
+            <tr class="active">
+                <td>{$p->caption}</td>
+                <td>{$p->lastChange}</td>
+                <td>{$baseUri}{link Homepage:page name=>$p->name}</td>
+                <td>
+                    <a n:href="Admin:editpage name => $p->name" class="btn btn-primary btn-xs">Upravit</a>
+                    <a n:href="Homepage:page name => $p->name" target="_blank" class="btn btn-warning btn-xs">Náhled</a>
+                </td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>
+{/block}

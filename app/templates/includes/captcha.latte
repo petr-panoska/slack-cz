@@ -1,0 +1,32 @@
+<script>
+    function onCaptchaSubmit() {
+        var submit = document.querySelector('.js-submit');
+        submit.removeAttribute('disabled');
+    }
+
+    function onloadCallback() {
+        grecaptcha.render(
+            'js-grecaptcha',
+            {
+                'sitekey': '6LddQNsUAAAAAHgX4yoVSWrfgDuxxXCXP-86NYs7',
+                'callback': 'onCaptchaSubmit'
+            }
+        )
+    }
+
+    var form = document.querySelector('.js-form');
+    form.onsubmit = function (e) {
+        e.preventDefault();
+        var captchaResponse = grecaptcha.getResponse();
+        if (captchaResponse === '') {
+            console.log('onError')
+        } else {
+            var captchaHidden = document.querySelector('.js-captcha');
+            captchaHidden.setAttribute('value', captchaResponse);
+            e.target.submit();
+        }
+    }
+</script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"
+        async defer>
+</script>

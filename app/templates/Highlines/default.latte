@@ -1,0 +1,240 @@
+{block #title}Highline book{/block}
+
+{block #head}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.min.css"/>
+{/block}
+
+{block content}
+    <div class="row equal">
+        <div class="col-xs-12 col-lg-6">
+            <h1>Highline Book</h1>
+        </div>
+        {if $user->isLoggedIn()}
+            <div class="col-xs-12 col-lg-6 flex--bottom flex--right mb-10 ">
+                <ul class="nav nav-pills">
+                    <li>
+                        <a n:href="Highlines:new">
+                            <div class="flex--center-vert">
+                                <i class="fas fa-mountain" style="margin-bottom: 2px"></i>
+                                <i class="fas fa-slash" style="margin-bottom: 2px; transform: rotate(-38deg);"></i>
+                                <i class="fas fa-mountain mr-10" style="margin-bottom: 2px"></i>
+                                <span class="nav-pills__text">Přidat lajnu</span>
+                            </div>
+                        </a>
+                    </li>
+                    {if $isUserHighlineAuthor || $user->isInRole('admin')}
+                        <li>
+                            <a n:href="Highlines:list">
+                                <div class="flex--center-vert">
+                                    <i class="fas fa-drafting-compass mr-10"></i>
+                                    <span class="nav-pills__text">Editovat lajnu</span>
+                                </div>
+                            </a>
+                        </li>
+                    {/if}
+                </ul>
+            </div>
+        {/if}
+    </div>
+    <div id="map" style="width: 100%; height: 400px; margin-bottom: 10px;"></div>
+    <button class="btn btn-primary mb-10" id="js-reset-map-button" disabled="disabled" onclick="resetMap()">
+        <i class="fa fa-eye" aria-hidden="true"></i>
+        &nbsp;Ukaž všechny lajny
+    </button>
+    <table style="width: 100%" class="table table-striped table-condensed table-hover hidden" id="js-highlines-table">
+        <thead>
+        <tr>
+            <th>Jméno</th>
+            <th>Délka</th>
+            <th>Výška</th>
+            <th>Hodnocení</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+{/block}
+
+{block scripts}
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.20/datatables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap.min.js"></script>
+    <script>
+      var highlineRoute = {$highlineRoute};
+      var highlines = {$highlinesWithGps};
+      const highlineCount = highlines.length
+      const tableId = 'js-highlines-table';
+      var map
+      var markers = []
+
+      function initMap() {
+        var mapOptions = {
+          zoom: 6,
+          center: {
+            lat: 49.843900,
+            lng: 15.474360
+          },
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+        map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        for (var i = 0; i < highlines.length; i++) {
+          markers.push(createHighlineMarker(highlines[i], map));
+        }
+        var sessionMapCenter = sessionStorage.getItem('mapCenter');
+        if (sessionMapCenter !== null) {
+          map.setCenter(JSON.parse(sessionMapCenter))
+          var mapZoom = sessionStorage.getItem('mapZoom') ? parseInt(sessionStorage.getItem('mapZoom')) : 6
+          map.setZoom(mapZoom)
+        } else {
+          fitMapBoundsToAllMarkers()
+        }
+        // var mcOptions = {
+        //     gridSize: 50,
+        //     maxZoom: 15
+        // };
+        new MarkerClusterer(map, markers);
+        map.addListener('idle', function (e) {
+          onChangeMap(map, markers)
+        });
+      }
+
+      function createHighlineMarker(highlineData, map) {
+        var marker = new google.maps.Marker({
+          position: new google.maps.LatLng(highlineData.point1.lat, highlineData.point1.lng),
+          data: highlineData
+        });
+        var dialogContent = "<h4 class='text-center'>" + highlineData.jmeno + "</h4>";
+        dialogContent += "<div class='text-center'>";
+        dialogContent += "<div class='line-stat__wrapper line-stat--inline'><i class=\"line-stat__icon fas fa-arrows-alt-h\"></i><span class='line-stat__text'>" + highlineData.delka + " m</span></div>";
+        dialogContent += "<div class='line-stat__wrapper line-stat--inline'><i class=\"line-stat__icon fas fa-arrows-alt-v\"></i><span class='line-stat__text'>" + highlineData.vyska + " m</span></div>";
+        dialogContent += "</div>";
+        dialogContent += "<div class='text-center'>" + getRatingHtml(highlineData.hodnoceni, ["stars--small"]) + "</div>";
+        var infowindow = new google.maps.InfoWindow({
+          content: dialogContent,
+          maxWidth: 300
+        });
+        google.maps.event.addListener(marker, 'mouseover', function () {
+          infowindow.open(map, marker);
+        });
+        google.maps.event.addListener(marker, 'mouseout', function () {
+          infowindow.close(map, marker);
+        });
+        google.maps.event.addListener(marker, 'click', function () {
+          window.location.replace(highlineRoute + '/' + marker.data.id)
+        });
+        return marker
+      }
+
+      function onChangeMap(map, markers) {
+        if ($.fn.DataTable.isDataTable('#' + tableId)) {
+          destroyDataTable()
+          initDataTable(map, markers)
+          sessionStorage.setItem('mapCenter', JSON.stringify(map.getCenter()))
+          sessionStorage.setItem('mapZoom', map.getZoom())
+        } else {
+          initDataTable(map, markers)
+        }
+
+        var visibleHighlineCount = 0
+        var bounds = map.getBounds();
+        for (var j = 0; j < markers.length; j++) {
+          if (bounds.contains(markers[j].getPosition())) {
+            visibleHighlineCount++
+          }
+        }
+        toggleResetMapButton(visibleHighlineCount < highlineCount)
+      }
+
+      function initDataTable(map, markers) {
+        setTableData(map, markers)
+        var datatable = $('#' + tableId);
+        datatable.DataTable({
+          autoWidth: false,
+          dom: '<"row"' +
+              '<"col-xs-12.col-md-6"l><"col-xs-12.col-md-6"f>' +
+              '<"col-xs-12.col-md-6"i><"col-xs-12.col-md-6"p>' +
+              '>rt',
+          pageLength: 50,
+          columnDefs: [
+            {
+              targets: [1, 2, 3],
+              className: 'text-center'
+            },
+            {"width": "50px", "targets": [1, 2]},
+            {
+              "width": "160px",
+              "render": function (data, type, row) {
+                if (type === "sort" || type === 'type') {
+                  return data;
+                } else {
+                  return getRatingHtml(data)
+                }
+              },
+              "targets": 3
+            }
+          ],
+          language: {include '../includes/dataTables/language.json'}
+        });
+        datatable.removeClass('hidden')
+      }
+
+      function destroyDataTable() {
+        document.getElementById(tableId).classList.add('hidden');
+        var api = new $.fn.dataTable.Api('#' + tableId)
+        api.clear().draw()
+        api.destroy()
+      }
+
+      function setTableData(map, markers) {
+        var table = document.getElementById(tableId)
+        var tBody = table.getElementsByTagName('tbody')[0]
+        for (var i = 1; i < tBody.children.length; i++) {
+          tBody.deleteRow(-1)
+        }
+        var bounds = map.getBounds();
+        for (var j = 0; j < markers.length; j++) {
+          if (bounds.contains(markers[j].getPosition())) {
+            var highline = markers[j].data
+            var row = tBody.insertRow()
+            var cellJmeno = row.insertCell()
+            var link = document.createElement('a');
+            link.href = highlineRoute + '/' + highline.id;
+            link.appendChild(document.createTextNode(highline.jmeno))
+            cellJmeno.appendChild(link)
+            var cellDelka = row.insertCell()
+            cellDelka.appendChild(document.createTextNode(highline.delka))
+            var cellVyska = row.insertCell()
+            cellVyska.appendChild(document.createTextNode(highline.vyska))
+            var cellHodnoceni = row.insertCell()
+            cellHodnoceni.appendChild(document.createTextNode(highline.hodnoceni))
+          }
+        }
+      }
+
+      function getRatingHtml(rating, classes = []) {
+        const newClasses = [
+          "stars",
+          ...classes
+        ]
+        return '<div class="' + newClasses.join(' ') + '" style="--rating:' + rating + ';"></div>'
+      }
+
+      function fitMapBoundsToAllMarkers() {
+        var bounds = new google.maps.LatLngBounds()
+        for (var k = 0; k < markers.length; k++) {
+          bounds.extend(markers[k].getPosition())
+        }
+        map.fitBounds(bounds);
+      }
+
+      function toggleResetMapButton(showButton) {
+        const resetMapButton = document.getElementById('js-reset-map-button')
+        resetMapButton.disabled = !showButton
+      }
+
+      function resetMap() {
+        fitMapBoundsToAllMarkers()
+      }
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJpKUy8Ko7uyISDtDEdJYb7Us8nRvY-Tc&callback=initMap">
+    </script>
+{/block}

@@ -1,0 +1,14 @@
+{block #title}
+{$article->getNazev()}
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<div class="page-header">
+    <h1>{$article->getNazev()}</h1>
+</div>
+{$article->getText()|noescape}
+{/block}

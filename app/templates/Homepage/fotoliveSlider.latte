@@ -1,0 +1,27 @@
+<html>
+<head>
+    {foreach $cssFiles as $css}
+        <link rel="stylesheet" type="text/css" media="screen" href="{$baseUri}/css/{$css}"/>
+    {/foreach}
+    {foreach $jsFiles as $js}
+        <script type="text/javascript" src="{$baseUri}/js/{$js}"></script>
+    {/foreach}
+</head>
+<body>
+<div>
+    <img style="width: 95%; height: 90%; object-fit: contain" src="{$actualFotolive->getFullFotoUrl()}">
+    <div class="row text-center" style="margin-top: 5px">
+        {$actualFotolive->popis|noescape}
+    </div>
+    <div class="row text-center">
+        {if $previousFotolive != null}
+            <a n:href="Homepage:fotoliveSlider fotolive=>$previousFotolive->id"
+                    class="btn btn-xs btn-default">Předchozí</a>
+        {/if}
+        {if $nextFotolive != null}
+            <a n:href="Homepage:fotoliveSlider fotolive=>$nextFotolive->id" class="btn btn-xs btn-default">Další</a>
+        {/if}
+    </div>
+</div>
+</body>
+</html>

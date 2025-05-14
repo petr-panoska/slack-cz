@@ -1,0 +1,56 @@
+{block #title}
+Nová highline
+{/block}
+
+{block #head}
+<link rel="stylesheet" type="text/css" media="screen" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/themes/smoothness/jquery-ui.css" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" ></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js"></script>
+
+
+<!-- ELFINDER -->
+<link rel="stylesheet" type="text/css" media="screen" href="{$baseUri}/3rdParty/elfinder/css/elfinder.min.css">
+<script type="text/javascript" src="{$baseUri}/3rdParty/elfinder/js/elfinder.min.js"></script>
+
+<!-- Mac OS X Finder style for jQuery UI smoothness theme (OPTIONAL) -->
+<link rel="stylesheet" type="text/css" media="screen" href="{$baseUri}/3rdParty/elfinder/css/theme.css">
+<script type="text/javascript" src="{$baseUri}/3rdParty/elfinder/js/i18n/elfinder.ru.js"></script>
+<!-- KONEC ELFINDER -->
+<!-- TINYMCE -->
+<script type="text/javascript" src="{$baseUri}/3rdParty/tinymce/tinymce.min.js"></script>
+<script type="text/javascript">
+    tinymce.init({
+    selector: 'textarea',
+            file_browser_callback: elFinderBrowser,
+            plugins: [
+                "advlist autolink lists link image charmap print preview anchor",
+                "searchreplace visualblocks code fullscreen",
+                "insertdatetime media table contextmenu paste"
+            ],
+        });
+
+        function elFinderBrowser(field_name, url, type, win) {
+  tinymce.activeEditor.windowManager.open({
+    file: '/Admin/elfinder', // use an absolute path!
+                title: 'elFinder 2.0',
+                width: 900,
+                height: 450,
+                resizable: 'yes'
+            }, {
+    setUrl: function(url) {
+      win.document.getElementById(field_name).value = url;
+                  }
+              });
+              return false;
+          }
+</script>
+<!-- KONEC TINYMCE -->
+{/block}
+
+{block content}
+<textarea></textarea>
+{/block}
+
+{block right}
+
+{/block}

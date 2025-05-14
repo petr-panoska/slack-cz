@@ -1,0 +1,38 @@
+{block #title}
+Nová highline
+{/block}
+
+{block #head}
+<style>
+    span.label {
+        margin: 0 2px 0 2px;
+    }
+</style>
+{/block}
+
+{block content}
+<a n:href="Admin:editArticle" class="btn btn-default">Nový článek</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Článek</th>
+            <th>Poslední změna</th>
+            <th>Tagy</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $articles as $article}
+            <tr class="{if $article->getViditelnost()}success{else}danger{/if}">
+                <td>{$article->getNazev()}</td>
+                <td></td>
+                <td>{foreach $article->getTags() as $t}<span class="label label-info">{$t->name}</span>{/foreach}</td>
+                <td>
+                    <a n:href="Admin:editArticle articleId=>$article->getId()" class="btn btn-primary btn-xs">Upravit</a>
+                    <a n:href="Homepage:article article=>$article->getId()" target="_blank" class="btn btn-warning btn-xs">Náhled</a>
+                </td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>
+{/block}

@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+
+<head>
+    <meta name="Description" content="Slackline web"/>
+    <meta name="Keywords" content="your, keywords"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="Distribution" content="Global"/>
+    <meta name="Robots" content="index,follow"/>
+
+    {foreach $cssFiles as $css}
+        <link rel="stylesheet" type="text/css" media="screen" href="{$baseUri}/css/{$css}"/>
+    {/foreach}
+
+    {foreach $jsFiles as $js}
+        <script type="text/javascript" src="{$baseUri}/js/{$js}"></script>
+    {/foreach}
+    <script src="http://code.jquery.com/jquery-migrate-1.2.1.js"></script>
+
+    <!-- ELFINDER -->
+    <link rel="stylesheet" type="text/css" href="{$baseUri}/3rdParty/elfinder/css/elfinder.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{$baseUri}/3rdParty/elfinder/css/theme.css"/>
+    <script src="{$baseUri}/3rdParty/elfinder/js/elfinder.min.js"></script>
+    <script src="{$baseUri}/3rdParty/elfinder/js/i18n/elfinder.cs.js"></script>
+    <!-- KONEC ELFINDER -->
+    <!-- TINYMCE -->
+    <script type="text/javascript" language="javascript" src="{$baseUri}/3rdParty/tinymce/tinymce.min.js"></script>
+    <!-- KONEC TINYMCE -->
+
+    <title>{block #title}{/block}| SLACK.cz </title>
+
+    <script type="text/javascript">
+      $(function () {
+        $("a[rel^='photo']").prettyPhoto();
+        $("input.datepicker").datepicker({
+          language: 'cs',
+          format: 'yyyy-mm-dd'
+        });
+      });
+    </script>
+    <style>
+        .media-object {
+            border-radius: 4px;
+        }
+
+        body {
+            background: rgb(199, 250, 187);
+        }
+    </style>
+    {block #head}{/block}
+</head>
+
+<body style="padding-top: 20px;">
+<div class="container">
+
+    <div class="row">
+
+        <div class="col-xs-12 col-md-12">
+            <div class="navbar navbar-default" role="navigation">
+                <!--                        <div class="navbar-header">
+                                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                                                <span class="sr-only">Toggle navigation</span>
+                                                <span class="icon-bar"></span>
+                                                <span class="icon-bar"></span>
+                                                <span class="icon-bar"></span>
+                                            </button>
+                                            <a class="navbar-brand" href="#"><img class="col-md-2" src="http://slack.cz/web/wp-content/uploads/2013/12/slack1.png"></a>
+                                        </div>-->
+                <div class="navbar-collapse collapse">
+                    <a n:href="Homepage:"><img class="col-md-3" style="padding-top: 9px;"
+                                               src="http://slack.cz/web/wp-content/uploads/2013/12/slack1.png"/></a>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class=""><a n:href="Sign:out">Odhlásit</a></li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+
+            <div class="row">
+                <div class="col-2 col-md-2 col-lg-2">
+                    <div class="list-group">
+                        <a n:href="Admin:resources"
+                                class="list-group-item {ifCurrent Admin:resources}active{/ifCurrent}">Média</a>
+                        <a n:href="Admin:" class="list-group-item {ifCurrent Admin:}active{/ifCurrent}">Články</a>
+                        <a n:href="Admin:pages" class="list-group-item {ifCurrent Admin:pages}active{/ifCurrent}">Stránky</a>
+                        <a n:href="Admin:fotolive" class="list-group-item {ifCurrent Admin:fotolive}active{/ifCurrent}">Fotolive</a>
+                        <a n:href="Admin:videos" class="list-group-item {ifCurrent Admin:videos}active{/ifCurrent}">Videa</a>
+                        <a n:href="Admin:tags" class="list-group-item {ifCurrent Admin:tags}active{/ifCurrent}">Tagy</a>
+                        <a n:href="Admin:users" class="list-group-item {ifCurrent Admin:users}active{/ifCurrent}">Uživatelé</a>
+                        <a n:href="Admin:longlinersclub"
+                                class="list-group-item {ifCurrent Admin:longlinersclub}active{/ifCurrent}">Longliners
+                            Klub</a>
+                        <a href="https://www.google.com/analytics" target="_blank" class="list-group-item">Google
+                            Analytics</a>
+                    </div>
+                </div><!--/span-->
+                <div class="col-10 col-md-10 col-lg-10">
+                    {snippet flashMessages}
+                        <div n:foreach="$flashes as $flash" class="alert alert-{$flash->type}">{$flash->message}</div>
+                    {/snippet}
+                    {include #content}
+
+
+                </div><!--/span-->
+            </div><!--/row-->
+        </div><!--/span-->
+
+
+    </div><!--/row-->
+
+    <hr>
+
+    <footer>
+        <p>© Slack 2013</p>
+    </footer>
+
+</div><!--/.container-->
+
+
+</body>
+</html>

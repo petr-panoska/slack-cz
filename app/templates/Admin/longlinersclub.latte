@@ -1,0 +1,39 @@
+{block #title}
+Administrace | stránky
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Pořadí</th>
+            <th>Datum</th>
+            <th>Jméno</th>
+            <th>Akce</th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $longliners100 as $longliner}
+            <tr class="active">
+                <td>{$iterator->getCounter()}</td>
+                <td>{$longliner->getDatum()|date:'%d.%m.%Y %Hhod'}</td>
+                <td>
+                    {if $longliner->getUser() != null}
+                        <a n:href="Users:detail user=>$longliner->getUser()->getId()">
+                            {$longliner->getUser()->getNick()}
+                        </a>
+                    {else}
+                        {$longliner->getJmeno()}
+                    {/if}
+                </td>
+                <td></td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>
+{control longlinerAddForm}
+{/block}

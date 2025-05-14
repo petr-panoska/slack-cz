@@ -1,0 +1,45 @@
+{block #title}
+Administrace | Fotolive
+{/block}
+
+{block #head}
+<script>
+    $(function() {
+        $("a.photo").prettyPhoto();
+                $("input.datepicker").datepicker();
+            });
+</script>
+{/block}
+
+{block content}
+{control fotoliveForm}
+
+{snippet fotoliveImages}
+    <div class="row">
+        {foreach $fotolives as $fotolive}
+            {if ($iterator->counter-1) % 4 == 0}
+            <div class="row">
+            {/if}
+                <div class="col-lg-3 col-md-3">
+                    <div class="thumbnail">
+                        <div style="height: 200px; overflow: hidden;">
+                            <a href="{$fotolive->getFullFotoUrl()}" class="photo">
+                                <img alt="{$fotolive->popis}" src="{$fotolive->getFotoUrl()}" >
+                            </a>
+                        </div>
+                        <div class="caption">
+                            <p style="font-size: 0.8em">
+                                {$fotolive->popis}<br /><br />
+                                Od: {$fotolive->fromDate|date:'%d.%m.%Y'}
+                            </p>
+                            <a n:href="deleteFotolive! $fotolive->id" class="btn btn-xs btn-primary" role="button">Smazat</a>
+                        </div>
+                    </div>
+                </div>
+            {if ($iterator->counter-1) % 4 == 3}
+            </div>
+            {/if}
+        {/foreach}
+    </div>
+{/snippet}
+{/block}

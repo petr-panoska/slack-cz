@@ -1,0 +1,20 @@
+{
+    "sEcho": "{$dataTablesSource->getResult()->getDraw()}",
+    "iTotalRecords": "{$dataTablesSource->getResult()->getITotalRecords()}",
+    "iTotalDisplayRecords": "{$dataTablesSource->getResult()->getITotalDisplayRecords()}",
+    "aaData": [
+	{foreach $dataTablesSource->getResult()->getData() as $row}
+    	    {
+    		{var idColumnOrder = $dataTablesSource->getColumnOrder($dataTablesSource->getIdColumn())}
+    		{var rowId = null}
+    		{foreach $row as $key => $column}
+                    {var columnObj = $dataTablesSource->getColumn($iterator->getCounter()-1)}
+                    "{$iterator->getCounter()-1}" : "{if $columnObj->getDateFormat() != null}{$column|date:'%d.%m.%Y'}{else}{$column}{/if}",
+                {if $iterator->getCounter()-1 == idColumnOrder}{var rowId  = column}{/if}
+                {/foreach}
+    		"DT_RowId" : "{$rowId}"
+    	    }
+            {if $iterator->isLast() != true},{/if}
+        {/foreach}
+    ]
+}

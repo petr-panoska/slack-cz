@@ -1,0 +1,11 @@
+{block #title}Editace highline{/block}
+
+{block content}
+    <ol class="breadcrumb mt-10">
+        <li><a n:href="Highlines:default"><i class="fas fa-book"></i>&nbsp;Highline Book</a></li>
+        <li class="active"><a n:href="Highlines:detail $highline->id">{$highline->jmeno}</a></li>
+        <li class="active">Editace</li>
+    </ol>
+    {include '../includes/highlineFormMap.latte', point1 => $highline->point1, point2 => $highline->point2, parking => $highline->parking}
+    {control newHighlineForm}
+{/block}

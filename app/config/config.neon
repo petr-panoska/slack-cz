@@ -1,0 +1,70 @@
+#
+# SECURITY WARNING: it is CRITICAL that this file & directory are NOT accessible directly via a web browser!
+#
+# If you don't protect this directory from direct web access, anybody will be able to see your passwords.
+# http://nette.org/security-warning
+#
+common:
+	parameters:
+		databasepath: app/models
+		database:
+			driver: pdo_mysql
+			host: localhost
+			dbname: slackcz
+			user: slackcz
+			password: Kunanesenanuk1
+			charset: utf8
+			collation: utf8_czech_ci
+
+	php:
+		date.timezone: Europe/Prague
+		# zlib.output_compression: yes
+
+
+	nette:
+		application:
+			errorPresenter: Error
+
+		session:
+			expiration: 14 days
+			autoStart: true
+
+		database:
+			default:
+				dsn: 'mysql:host=%database.host%;dbname=%database.dbname%'
+				user: %database.user%
+				password: %database.password%
+
+	services:
+		photoManager: Slack\Service\PhotoManager
+		captchaValidator: Slack\Service\CaptchaValidator
+		highlineDao: Slack\Dao\HighlinesDao
+		highlineAttemptDao: Slack\Dao\HighlineAttemptDao
+		userDao: Slack\Dao\UserDao
+		environmentManager: Slack\EnvironmentManager
+
+		authenticator: HighlinesBook\Authenticator
+		authorizator: HighlinesBook\Acl
+
+		highline: HighlinesBook\Highline
+		highlineOddil: HighlinesBook\HighlineOddil
+		highlinePrechod: HighlinesBook\HighlinePrechod
+		highlineMedia: HighlinesBook\HighlineMedia
+		highlineFoto: HighlinesBook\HighlineFoto
+		uzivatel: HighlinesBook\Uzivatel
+		forum: HighlinesBook\Forum
+		promenna: HighlinesBook\Promenna
+		event: HighlinesBook\Event
+		video: HighlinesBook\Video
+		videoHasTag: HighlinesBook\VideoHasTag
+		tag: HighlinesBook\Tag
+		gps: HighlinesBook\Gps
+		product: HighlinesBook\Eshop\Product
+		page: HighlinesBook\Page
+
+	factories:
+
+
+production < common:
+
+development < common:

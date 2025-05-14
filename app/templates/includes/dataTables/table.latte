@@ -1,0 +1,38 @@
+<div class="panel panel-default">
+    <table cellpadding="0" cellspacing="0" border="0" class="table table-striped" id="{$dataTablesSource->getName()|noescape}Table" style="width: 100%">
+        <thead>
+            {if $dataTablesSource->hasAnyColumnFilter()}
+                <tr>
+                    {foreach $dataTablesSource->getColumns() as $column}
+                        <th>
+                            {if $column->getFilter() != null}
+                                <select id="dataTablesCol{$dataTablesSource->getColumnOrder($column->getName())}">
+                                    <option value="" selected="selected">Vše</option>
+                                    {foreach $column->getFilter() as $key => $filterValue}
+                                        <option value="{$key}">{$filterValue}</option>
+                                    {/foreach}
+                                </select>
+                            {/if}
+                        </th>
+                    {/foreach}
+                </tr>
+            {/if}
+            <tr>
+                {foreach $dataTablesSource->getColumns() as $column}
+                    {if $column->getWidth() != null}
+                        <th width="{$column->getWidth()}">{$column->getCaption()}</th>
+                        {else}
+                        <th>{$column->getCaption()}</th>
+                        {/if}
+                    {/foreach}
+            </tr>
+
+        </thead>
+        <tbody>
+
+        </tbody>
+        <tfoot>
+
+        </tfoot>
+    </table>
+</div>

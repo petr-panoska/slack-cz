@@ -1,0 +1,31 @@
+{block #title}
+Administrace | Videa
+{/block}
+
+{block #head}
+<link href="//raw.github.com/jharding/typeahead.js-bootstrap.css/master/typeahead.js-bootstrap.css" rel="stylesheet" media="screen">
+<script src="http://timschlechter.github.io/bootstrap-tagsinput/examples/bower_components/typeahead.js/dist/typeahead.min.js"></script>
+<style>
+
+</style>
+{/block}
+
+{block content}
+<ol class="breadcrumb">
+    <li><a n:href="Admin:videos">Videa</a></li>
+    <li class="active">{if $video == null}Nové video{else}{$video->nazev}{/if}</li>
+</ol>
+{if $video != null}
+    <div class="row">
+        <div class="col-xs-6 col-md-3">
+            <a href="#" class="thumbnail">
+                <img src="/{$video->getThumbnailUrl()|noescape}" alt="Náhledový obrázek" />
+            </a>
+        </div>
+    </div>
+{/if}
+
+{control videoAddForm}
+
+
+{/block}

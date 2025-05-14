@@ -1,0 +1,11 @@
+{foreach $articles as $a}
+        <div class="media">
+            <a class="pull-left" n:href="Homepage:article article=>$a->id">
+                <img class="media-object" alt="{$a->nazev}" style="width: 130px;" src="/{$a->getThumbnailUrl()}">
+            </a>
+            <div class="media-body">
+                <h4 class="media-heading">{$a->nazev}</h4>
+                {$a->popis}
+            </div>
+        </div>
+{/foreach}

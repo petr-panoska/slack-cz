@@ -1,0 +1,92 @@
+{block #title}
+    {$page->caption}
+{/block}
+
+{block #head}
+    <style>
+        .news__wrapper {
+            display: flex;
+            margin-bottom: 10px;
+            align-content: flex-start;
+        }
+
+        .news__wrapper:hover {
+            text-decoration: none;
+        }
+
+        .news__img {
+            max-width: 25%;
+        }
+
+        .news__img img {
+            width: 100%;
+            max-width: 100px;
+            border-radius: 4px;
+        }
+
+        .news__text {
+            padding-left: 10px;
+            max-width: 75%;
+        }
+
+        .news__date {
+            font-size: 14px;
+            padding-left: 5px;
+            color: #333;
+        }
+
+        .news__heading {
+            padding-left: 2px;
+            padding-top: 3px;
+        }
+    </style>
+{/block}
+
+{block content}
+    {ifCurrent Homepage:page name=>'vitejte'}
+        <div class="section-header">Novinky</div>
+        {foreach $news as $new}
+            <a class="news__wrapper" n:href="Homepage:showNews type=>$new->typ,idNew=>$new->id">
+                <div class="news__img">
+                    <img alt="" src="/{$new->thumbnailUrl}"/>
+                </div>
+                <div class="news__text">
+                    <div>
+                        <span class="label label-primary">{$new->getTypeCaption()}</span>
+                        <span class="news__date">{$new->datum|date:'d.m.Y'}</span>
+                    </div>
+                    <div class="news__heading">{$new->nazev}</div>
+                </div>
+            </a>
+        {/foreach}
+    {/ifCurrent}
+    <div class="page-header">
+        <h1>{$page->caption}</h1>
+    </div>
+    {$page->text|noescape}
+    {if $page->name == 'stoplus'}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Pořadí</th>
+                <th>Přezdívka</th>
+                <th>Délka</th>
+                <th>Místo</th>
+                <th>Datum</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach $longliners as $longliner}
+                <tr>
+                    <th>{$iterator->getCounter()}.</th>
+                    <td>{if $longliner->user == null}{$longliner->jmeno}{else}
+                            <a n:href="Users:detail user=>$longliner->user->id">{$longliner->user->nick}</a>{/if}</td>
+                    <td>{$longliner->delka} m</td>
+                    <td>{$longliner->misto}</td>
+                    <td>{$longliner->datum|date:'%d.%m.%Y'}</td>
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    {/if}
+{/block}

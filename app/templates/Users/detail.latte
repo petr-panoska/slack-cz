@@ -1,0 +1,186 @@
+{block #title}Detail uživatele{/block}
+
+{block #head}
+    {if $tab === "longline" || $tab === "highline"}
+        <link rel="stylesheet" type="text/css"
+              href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.min.css"/>
+    {/if}
+{/block}
+
+{block content}
+    <div class="page-header">
+        <h3>{$uzivatel->jmeno} {$uzivatel->prijmeni}</h3>
+    </div>
+    <ul class="nav nav-tabs">
+        <li {if $tab=='profil'}class="active"{/if}>
+            <a n:href="Users:detail user=>$uzivatel->id, tab=>'profil'">Profil</a></li>
+        <li {if $tab=='highline'}class="active"{/if}>
+            <a n:href="Users:detail user=>$uzivatel->id, tab=>'highline'">Highline deník</a>
+        </li>
+        <li {if $tab=='longline'}class="active"{/if}>
+            <a n:href="Users:detail user=>$uzivatel->id, tab=>'longline'">Longline deník</a>
+        </li>
+        {if $user->isLoggedIn() && $user->id == $uzivatel->id}
+            <li class="pull-right"><a n:href="User:edit, $uzivatel->id">Upravit profil</a></li>{/if}
+    </ul>
+    <div class="row" style="margin-top: 20px">
+        {if $tab == "profil"}
+            <div class="col-lg-3">
+                {if $uzivatel->getFullFotoUrl() == null}
+                    <img src="/{$uzivatel->getThumbnailUrl()}" alt="{$uzivatel->nick}" class="thumbnail"/>
+                {else}
+                    <a href="/{$uzivatel->getFullFotoUrl()}" rel="photo">
+                        <img src="/{$uzivatel->getThumbnailUrl()}" alt="{$uzivatel->nick}" class="thumbnail"/>
+                    </a>
+                {/if}
+            </div>
+            <div class="col-lg-9">
+                <div class="panel panel-default">
+                    <table class="table">
+                        <tr>
+                            <td>Přezdívka:</td>
+                            <td>{$uzivatel->nick}</td>
+                        </tr>
+                        <tr>
+                            <td>Město:</td>
+                            <td>{$uzivatel->mesto}</td>
+                        </tr>
+                        <tr>
+                            <td>E-mail:</td>
+                            <td><a href="mailto:{$uzivatel->getEmail()}">{$uzivatel->getEmail()}</a></td>
+                        </tr>
+                        <tr>
+                            <td>Telefon:</td>
+                            <td>{$uzivatel->telefon}</td>
+                        </tr>
+                        <tr>
+                            <td>Rok narození:</td>
+                            <td>{$uzivatel->rok_nar}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        {elseif $tab == "longline"}
+            <div class="col-xs-12">
+                {if $user->isLoggedIn() && $user->id == $uzivatel->id}
+                    <h4>Nový přechod</h4>
+                    <hr>
+                    {control newLonglineForm}
+                {/if}
+                <table style="width: 100%" id="js-datatable-longlines"
+                       class="table table-striped table-condensed table-hover hidden">
+                    <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Místo</th>
+                        <th>Délka</th>
+                        <th>Styl</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {foreach $longlineAttempts as $attempt}
+                        <tr>
+                            <td data-sort="{$attempt->datum|date:'Ymd'}">{$attempt->datum|date:'d.m.Y'}</td>
+                            <td>{$attempt->misto}</td>
+                            <td>{$attempt->delka}</td>
+                            <td>{$attempt->styl}</td>
+                        </tr>
+                    {/foreach}
+                    </tbody>
+                </table>
+            </div>
+        {elseif $tab == "highline"}
+            <div class="col-xs-12">
+                <table style="width: 100%" id="js-datatable-highlines"
+                       class="table table-striped table-condensed table-hover hidden">
+                    <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Highline</th>
+                        <th>Délka</th>
+                        <th>Výška</th>
+                        <th>Styl</th>
+                        <th>Hodnocení</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {foreach $highlineAttempts as $attempt}
+                        <tr>
+                            <td data-sort="{$attempt->datum|date:'Ymd'}">{$attempt->datum|date:'d.m.Y'}</td>
+                            <td><a n:href="Highlines:detail $attempt->highline->id">{$attempt->highline->jmeno}</a></td>
+                            <td>{$attempt->highline->delka}</td>
+                            <td>{$attempt->highline->vyska}</td>
+                            <td>{$attempt->styl}</td>
+                            <td>{$attempt->hodnoceni}</td>
+                        </tr>
+                    {/foreach}
+                    </tbody>
+                </table>
+            </div>
+        {/if}
+    </div>
+{/block}
+
+{block scripts}
+    {if $tab === "longline" || $tab === "highline"}
+        <script type="text/javascript"
+                src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.20/datatables.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap.min.js"></script>
+        <script>
+            {if $tab === "longline"}
+            var tableSelector = '#js-datatable-longlines';
+            var columnDefs = [
+                {
+                    width: '80px',
+                    targets: 0
+                },
+                {
+                    targets: [2, 3],
+                    className: 'text-center'
+                },
+            ];
+            {else}
+            var tableSelector = '#js-datatable-highlines';
+            var columnDefs = [
+                {
+                    width: '80px',
+                    targets: 0
+                },
+                {
+                    targets: [2, 3, 4, 5],
+                    className: 'text-center'
+                },
+                {
+                    width: "50px",
+                    targets: [2, 3]
+                },
+                {
+                    width: "160px",
+                    render: function (data, type, row) {
+                        if (type === "sort" || type === 'type') {
+                            return data;
+                        } else {
+                            return '<div class="stars" style="--rating:' + data + ';"></div>'
+                        }
+                    },
+                    targets: 5
+                }
+            ];
+            {/if}
+            document.addEventListener('DOMContentLoaded', function () {
+                var datatable = $(tableSelector);
+                datatable.DataTable({
+                    autoWidth: false,
+                    dom: '<"row"' +
+                        '<"col-xs-12.col-md-6"l><"col-xs-12.col-md-6"f>' +
+                        '<"col-xs-12.col-md-6"i><"col-xs-12.col-md-6"p>' +
+                        '>rt',
+                    pageLength: 50,
+                    columnDefs: columnDefs,
+                    language: {include '../includes/dataTables/language.json'}
+                });
+                datatable.removeClass('hidden')
+            })
+        </script>
+    {/if}
+{/block}

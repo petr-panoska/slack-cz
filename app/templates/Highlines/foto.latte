@@ -1,0 +1,50 @@
+{block #title}
+    foto | Highline
+{/block}
+
+{block #head}
+    <script>
+      $(document).ready(function () {
+        $('a.gallery').colorbox();
+      });
+    </script>
+    <style>
+        #photosTable td {
+            vertical-align: middle;
+        }
+    </style>
+{/block}
+
+{block content}
+    <ol class="breadcrumb mt-10">
+        <li><a n:href="Highlines:default"><i class="fas fa-book"></i>&nbsp;Highline Book</a></li>
+        <li class="active"><a n:href="Highlines:detail $highline->id">{$highline->jmeno}</a></li>
+        <li class="active">Editace galerie</li>
+    </ol>
+    <div class="page-header"><h1>Editace fotografií k HL: {$highline->jmeno}</h1></div>
+    {control newFoto}
+
+    {snippet fotoEdit}
+        <table id="photosTable" class="table table-striped">
+            <tbody>
+            {foreach $highline->photos as $f}
+                <tr>
+                    <td>
+                        <a href="/line/high/{$highline->id}/foto/{$f->file}" rel="photo" title="{$f->text}">
+                            <img src="/line/high/{$highline->id}/foto/thumb_{$f->file}">
+                        </a>
+                    </td>
+                    <td>
+                        {$f->text}
+                    </td>
+                    <td>
+                        <a n:href="deleteFoto! $f->id" class="ajax btn btn-primary">
+                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Smazat
+                        </a>
+                    </td>
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    {/snippet}
+{/block}

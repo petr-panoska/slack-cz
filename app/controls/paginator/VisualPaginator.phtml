@@ -1,0 +1,53 @@
+{*
+* @version    $Id: template.phtml 2 2009-07-13 20:58:52Z david@grudl.com $
+* @param Paginator $paginator
+* @param array     $steps
+*}
+
+{if (($paginator->pageCount > 1) && ($paginator->pageCount <= 10))}
+<ul class="pagination">
+        {if $paginator->isFirst()}
+        <li class="disabled"><a href="#">&laquo;</a></li>
+        {else}
+        <li><a href="{link this, 'page' => $paginator->page - 1}">&laquo;</a></li>
+        {/if}
+
+        {foreach $steps as $step}
+        {if $step == $paginator->page}
+        <li class="active"><a href="#">{$step}</a></li>
+        {else}
+        <li><a href="{link this, 'page' => $step}">{$step}</a></li>
+        {/if}
+        {if $iterator->nextValue > $step + 1}<li class="disabled"><a href="#">…</a></li>{/if}
+        {/foreach}
+
+        {if $paginator->isLast()}
+        <li class="disabled"><a href="#">&raquo;</a></li>
+        {else}
+        <li><a href="{link this, 'page' => $paginator->page + 1}">&raquo;</a></li>
+        {/if}
+</ul>
+{elseif (($paginator->pageCount > 1) && ($paginator->pageCount > 10)) }
+<ul class="pagination">
+        {if $paginator->isFirst()}
+        <li class="disabled"><a href="#">&laquo;</a></li>
+        {else}
+        <li><a href="{link this, 'page' => $paginator->page - 1}">«</a></li>
+        {/if}
+
+        {foreach $steps as $step}
+        {if $step == $paginator->page}
+        <li class="active"><a href="#">{$step}</a></li>
+        {else}
+        <li><a href="{link this, 'page' => $step}">{$step}</a></li>
+        {/if}
+        {if $iterator->nextValue > $step + 1}<li class="disabled"><a href="#">…</a></li>{/if}
+        {/foreach}
+
+        {if $paginator->isLast()}
+        <li class="disabled"><a href="#">Next »</a></li>
+        {else}
+        <li><a href="{link this, 'page' => $paginator->page + 1}">»</a></li>
+        {/if}
+</ul>
+{/if}

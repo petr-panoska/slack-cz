@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+<head>
+    <meta charset=UTF-8>
+    <meta name="Description" content="Slackline nás baví"/>
+    <meta name="Keywords" content="slackline, longline, highline, lajny"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>{block #title}{/block} | Slackline nás baví</title>
+
+    {*GA*}
+    {if $hostUrl !== 'localhost'}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-167170242-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+
+          function gtag() {
+            dataLayer.push(arguments)
+          }
+
+          gtag('js', new Date());
+
+          gtag('config', 'UA-167170242-1');
+        </script>
+    {/if}
+    {*/GA*}
+
+
+    <link href="/img/favicon.ico" rel="icon" type="image/png"/>
+
+    {foreach $cssFiles as $css}
+        <link rel="stylesheet" type="text/css" media="screen" href="{$baseUri}/css/{$css}"/>
+    {/foreach}
+    {foreach $jsFiles as $js}
+        <script type="text/javascript" src="{$baseUri}/js/{$js}"></script>
+    {/foreach}
+
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css"
+          integrity="sha256-FAOaXTpl90/K8cXmSdsskbQN3nKYulhCpPbcFzGTWKI=" crossorigin="anonymous"/>
+
+<!-- ELFINDER -->
+    <link rel="stylesheet" type="text/css" href="{$baseUri}/3rdParty/elfinder/css/elfinder.min.css"/>
+
+    <link rel="stylesheet" type="text/css" href="{$baseUri}/3rdParty/elfinder/css/theme.css"/>
+
+<script type="text/javascript" src="{$baseUri}/3rdParty/elfinder/js/elfinder.min.js"></script>
+
+<script type="text/javascript" src="{$baseUri}/3rdParty/elfinder/js/i18n/elfinder.cs.js"></script>
+<!-- KONEC ELFINDER -->
+<!-- CKEDITOR -->
+<script src="//cdn.ckeditor.com/4.5.2/standard/ckeditor.js"></script>
+
+    {block #head}{/block}
+</head>
+
+<body>
+<header class="container--large">
+    <nav class="navigation" role="navigation">
+        <a n:href="Homepage:page name => vitejte">
+            <img class="logo__img" src="/img/slack1.png" alt="logo"/>
+        </a>
+        <ul class="nav nav-pills">
+            {if $user->isLoggedIn()}
+                <li><a n:href="Users:detail user=>$user->id"><i class="far fa-user mr-5"></i>Profil</a></li>
+                <li><a n:href="Sign:out"><i class="fas fa-sign-out-alt mr-5"></i>Odhlásit</a></li>
+                {if $user->isInRole('admin')}
+                    <li><a href="/admin/">Administrace</a></li>
+                {/if}
+            {else}
+                <li><a n:href="Sign:in">Přihlásit</a></li>
+            {/if}
+        </ul>
+    </nav>
+    <div class="logo-banner__wrapper">
+        <img class="logo-banner__img" src="/images/banner_2017_04.jpg" alt="banner">
+    </div>
+</header>
+<div class="container--large">
+    <div class="row">
+        <div class="col-xs-12 {if $showNav}col-md-7 col-md-push-2{else}col-md-9{/if}">
+            {snippet flashMessages}
+                <div n:foreach="$flashes as $flash" class="alert alert-{$flash->type}">{$flash->message|noescape}</div>
+            {/snippet}
+            {include #content}
+        </div>
+        {if $showNav}
+            <div class="col-xs-12 col-md-2 col-md-pull-7">
+                <div class="list-group">
+                    <a n:href="Homepage:page name => vitejte"
+                            class="list-group-item {ifCurrent Homepage:page name => vitejte}active{/ifCurrent}">Domů</a>
+                    <a n:href="Homepage:page name => o_nas"
+                            class="list-group-item {ifCurrent Homepage:page name => o_nas}active{/ifCurrent}">O
+                        nás</a>
+                    <a href="http://shop.slack.cz/" class="list-group-item">E-shop</a>
+                    <a n:href="Homepage:page name => slackline_v_kostce"
+                            class="list-group-item {ifCurrent Homepage:page name => slackline_v_kostce}active{/ifCurrent}">Slackline
+                        v kostce</a>
+                    <a n:href="Homepage:page name => slackline_girls"
+                            class="list-group-item {ifCurrent Homepage:page name => slackline_girls}active{/ifCurrent}">Slackline
+                        girls</a>
+                    <a n:href="Homepage:page name => aktivity"
+                            class="list-group-item {ifCurrent Homepage:page name => aktivity}active{/ifCurrent}">Aktivity</a>
+                    <a n:href="Forum:" class="list-group-item  {ifCurrent Forum:}active{/ifCurrent}">Fórum</a>
+                    <a n:href="Homepage:page name => kalendar"
+                            class="list-group-item {ifCurrent Homepage:page name => kalendar}active{/ifCurrent}">Kalendář</a>
+                    <a n:href="Video:tags"
+                            class="list-group-item {ifCurrent Video:tags}active{/ifCurrent}">Video</a>
+                    <a n:href="Article:tags"
+                            class="list-group-item {ifCurrent Article:tags}active{/ifCurrent}">Články</a>
+                    <a n:href="Highlines:default"
+                            class="list-group-item {ifCurrent Highlines:}active{/ifCurrent}">
+                        Highline Book<i class="fas fa-book ml-10"></i></i></a>
+                    <a n:href="Users:" class="list-group-item  {ifCurrent Users:}active{/ifCurrent}">Deníčky</a>
+                    <a n:href="Homepage:page name => stoplus"
+                            class="list-group-item {ifCurrent Homepage:page name => stoplus}active{/ifCurrent}">100+</a>
+                    <a href="http://www.slacklive.cz/index.htm" class="list-group-item">Archiv</a>
+                    <a href="http://ceska-asociace-slackline.cz/" class="list-group-item">ČAS</a>
+                    <a href="http://www.ubytovanisingltrek.cz/" class="list-group-item">Hacienda<span
+                                class="label label-warning pull-right">New</span></a>
+                </div>
+            </div>
+        {/if}
+        <div class="col-xs-12 col-md-3">
+            <div class="section-header">
+                <p style="font-weight: bold">FOTO<span style="color: red">live</span></p>
+            </div>
+            <a href="{link Homepage:fotoliveSlider fotolive=>$fotolive->id, iframe=>"true", width=>"100%", height=>"100%"}"
+               rel="photo">
+                <img style="border-radius: 4px; width: 100%" src="{$fotolive->getFotoUrl()}" alt="FotoLIVE"/>
+            </a>
+            <div class="fotolive-caption">
+                {$fotolive->popis|noescape}
+            </div>
+            <div class="section-header">Nejnovější highline</div>
+            <table class="table table-condensed">
+                <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Délka</th>
+                    <th>Výška</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $newHighlines as $highline}
+                    <tr>
+                        <td><a n:href="Highlines:detail id=>$highline->id,tab=>'info'">{$highline->jmeno}</a>
+                        </td>
+                        <td>{$highline->delka} m</td>
+                        <td>{$highline->vyska} m</td>
+                    </tr>
+                {/foreach}
+                </tbody>
+            </table>
+            <div class="section-header">Nejnovější přechody hl</div>
+            <table class="table table-condensed">
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Lajner</th>
+                    <th>Highline</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $newAttempts as $attempt}
+                    <tr>
+                        <td><small>{$attempt->datum|date:'d.m.Y'}</small></td>
+                        <td><a n:href="Users:detail user=>$attempt->uzivatel->id">{$attempt->uzivatel->nick}</a>
+                        </td>
+                        <td>
+                            <a n:href="Highlines:detail id=>$attempt->highline->id,tab=>'info'">{$attempt->highline->jmeno}</a>
+                        </td>
+                    </tr>
+                {/foreach}
+                </tbody>
+            </table>
+            <div class="section-header">Nejnovější přechody longline</div>
+            <table class="table table-condensed">
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Lajner</th>
+                    <th>Délka</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $newAttemptsLong as $attempt}
+                    <tr>
+                        <td><small>{$attempt->datum|date:'d.m.Y'}</small></td>
+                        <td><a n:href="Users:detail user=>$attempt->uzivatel->id">{$attempt->uzivatel->nick}</a>
+                        </td>
+                        <td>{$attempt->delka}&nbsp;m</td>
+                    </tr>
+                {/foreach}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    <hr>
+    <footer class="text-center">
+        <p style="margin-bottom: 20px">© Slack <?php echo date("Y"); ?></p>
+    </footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"
+        integrity="sha256-bqVeqGdJ7h/lYPq6xrPv/YGzMEb6dNxlfiTUHSgRCp8=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+  $("a[rel^='photo']").prettyPhoto();
+
+  $("input.datepicker").datepicker({
+    language: 'cs',
+    format: 'yyyy-mm-dd'
+  });
+</script>
+{block scripts}{/block}
+</body>
+</html>

@@ -1,0 +1,26 @@
+{block #title}
+    Přihlášení
+{/block}
+
+{block #content}
+<h1>Přihlášení</h1>
+<div class="col col-xs-12">
+    {form loginForm}
+        <ul class="errors" n:if="$form->hasErrors()">
+            <li n:foreach="$form->errors as $error">{$error}</li>
+        </ul>
+        <div class="form-group">
+            {label username /}
+            {input username}
+        </div>
+        <div class="form-group">
+            {label password /}
+            {input password}
+        </div>
+        <div class="form-group">
+            {input submit}
+        </div>
+        <p class="text-center">Nemáš účet? <a n:href="Sign:up">Registruj se!</a></p>
+        <p class="text-center">Zapomněl jsi heslo? <a n:href="User:resetPassword">Připomeneme ti ho.</a></p>
+    {/form}
+</div>

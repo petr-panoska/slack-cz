@@ -1,0 +1,38 @@
+{block #title}
+Oddily hl
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<div class="table">
+    <img src="img/bg-th-left.gif" width="8" height="7" alt="" class="left" />
+    <img src="img/bg-th-right.gif" width="7" height="7" alt="" class="right" />
+    <table class="listing" cellpadding="0" cellspacing="0">
+        <tr>
+            <th class="first" width="350">Highline</th>
+            <th>Id</th>
+            <th class="last">vybrat</th>
+        </tr>
+
+        {foreach $highlines as $h}
+        {if $iterator->isOdd()}<tr>{else}<tr class="bg">{/if}
+                <td class="first style1"><a n:href="Highlines:detail $h->id" id="" target="_blank">{$h->jmeno}</a></td>
+                <td>{$h->id}</td>
+                <td class="last">
+                    <a n:href="setOddil! $h->id, 1">Highline</a>
+                    <a n:href="setOddil! $h->id, 2">TOP</a>
+                    <a n:href="setOddil! $h->id, 3">Midline</a>
+                    <a n:href="setOddil! $h->id, 4">UrbanLine</a>
+                </td>
+            </tr>
+            {/foreach}
+    </table>
+</div>
+{/block}
+
+{block right}
+
+{/block}

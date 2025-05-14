@@ -1,0 +1,11 @@
+{foreach $videos as $v}
+        <div class="media">
+            <a class="pull-left" href="{$v->adresa}" target="_blank">
+                <img class="media-object" alt="{$v->nazev}" style="width: 130px;" src="/{$v->getThumbnailUrl()}">
+            </a>
+            <div class="media-body">
+                <h4 class="media-heading">{$v->nazev}</h4>
+                {$v->popis}
+            </div>
+        </div>
+{/foreach}

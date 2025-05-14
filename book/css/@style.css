@@ -1,0 +1,718 @@
+/* CSS Document */
+body {
+    font-family: Calibri,Verdana,sans-serif;                                                                                                  
+    font-size:100%;
+    color: white;
+    background:black;
+    margin:0;
+    padding:0 0;
+    text-align:center;
+    min-width: 970px;
+}
+
+#hlavni {
+    width:970px;
+    margin: 0 auto;
+    text-align:left;
+}
+
+#logo {
+    width: 930px;
+    height: 150px;
+    padding: 25px;
+    background:url(../images/logo.jpg);
+    text-align: right;
+}
+#hl_novinka{
+    width: 200px;
+    height: 150px;
+    /*border: 1px solid red;*/
+    text-align: center;
+    background-color: rgb(73,119,168);
+    float:right;
+}
+
+#banner{
+    margin-left:35px;
+    margin-top:15px;
+}
+
+#banner-eshop{
+    margin-left:30px;
+    text-align:center;
+}
+
+#novinky .nadpis{
+    color:#fff974;
+    font-weight:bold;
+    border-bottom:1px solid #fff974;
+    text-align:left;
+}
+#novinky .nadpis img{
+    float: right;
+}
+
+#banner-eshop a.link, #banner-eshop a.visited, #banner-eshop a.active{
+    color:#ffffff !important;
+}
+
+#banner-eshop a:hover{
+    color:#fff974;
+}
+
+#facebook
+{
+    height: 40px;
+    width: 250px;
+    margin: 0px 5px 0px 37px;
+    background-image: url('../images/facebook-logo.jpg');
+}
+
+#popisek
+{
+    width: 250px;
+    padding: 15px 5px 0px 35px;
+}
+
+
+#menu {width: 100%; padding-left: 10px; float: left; clear: right; border: 1px solid white; border-width:1px 0; background : url(../images/menu1.jpg) repeat-x;}
+#menu ul {width: 100%; margin:0;}
+#menu ul ul{width: 200px;}
+#menu ul {list-style-type:none; padding: 0; }
+#menu ul.sub {list-style-type:none; padding: 0; border: 1px solid white; border-width:1px 0 0 0;}
+#menu li {float: left; color: white;}
+#menu li, #menu ul.sub li {padding: 0;}
+#menu h3 {font-size: 100%;  padding: 2px 17px 2px 17px; margin:0; font-weight:normal;}
+#menu h3:hover {background: url(../images/menu2.jpg)repeat-x; color: #d9241b;}
+#menu a {padding: 2px 17px 2px 17px; text-decoration: none; color:white; display:block;}
+#menu a:hover {background: url(../images/menu2.jpg)repeat-x; color: #d9241b;}
+ul.sub {position: absolute; z-index: 10; visibility:hidden; background: url(../images/menu3.jpg) repeat-x;} /*pokud vynecháme tento øádek budeme mít pøi vypnutém JavaScriptu pøístupné menu pod sebou*/
+#menu ul.sub li {display: block; width: 100%; margin:0; padding: 0;}
+#menu ul.sub li a {display: block; margin: 0; padding: 5px 0px 5px 5px; width: 195px; color:white; text-decoration: none;}
+/*#menu ul.sub li > a {width: 140px;}*/
+#menu ul.sub li a:hover {background: url(../images/menu2.jpg)repeat-x; color: #d9241b;}
+
+/*#menu ul li.main:hover{background: url(img/menu2.jpg)repeat-x; color: inherit;}*/
+#menu ul li.main {position: relative;}
+#menu ul li > ul.sub {position: absolute; z-index:10; visibility: hidden;}
+#menu ul li.main:hover ul.sub {visibility: visible;}
+
+
+#maciwebmenu {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    margin: 0; 
+    padding: 0;}
+
+.menu_eshop{
+    float: left;
+    color: white;
+}
+
+.menu_eshop a:hover{
+    color: red !important;
+}
+
+#ramec {
+    float: left;
+    width:690px;
+    background-color: #3D6184;
+
+}
+
+#obsah{
+    padding: 15px 30px 30px 20px;
+    min-height: 1400px;
+    background: url(img/prechod.jpg) repeat-x;
+    background-color: #3d6184;
+}
+
+#obsah .nadpis1{
+    color:#fff974;
+    font-size: 1.3em;
+    font-weight:bold;
+    border-bottom:1px solid #fff974;
+    text-align:left;
+}
+
+#obsah .nadpis1 img{
+    float: right;
+}
+
+#obsah .nadpis2{
+    color:#fff974;
+    font-weight:bold;
+    border-bottom:1px solid #fff974;
+    text-align:left;
+}
+
+#obsah .nadpis2 img{
+    float: right;
+}
+
+#stred {
+    width: 970px;
+    float: left;
+    min-height: 300px;
+    position: relative;
+}
+
+#novinky {   
+    position: absolute; 
+    top:0px;
+    left: 670px;       
+    width:300px;
+    background: transparent url(../images/okraj.png) repeat-y;
+    height:100%;
+}
+
+#prihlaseni{
+    width: 250px;
+    padding: 15px 5px 0px 35px;
+
+}
+
+div#odkazy{
+    width: 250px;
+    padding: 15px 5px 0px 35px;
+
+}
+
+#fotolive {
+    width: 250px;
+    padding: 15px 5px 0px 35px; 
+}
+
+div#nejnovejsiHighline {
+    width: 250px;
+    padding: 15px 5px 0px 35px; 
+}
+div#rekordy {
+    width: 250px;
+    padding: 15px 5px 0px 35px; 
+}
+
+.red{color: #d9241b;}
+.popisekObr{color:black;background-color:#fff974;}
+
+#paticka{
+    width: 970px;
+    height: 20px;
+    background: url(../images/menu1.jpg) center center repeat-x;
+    border: 1px solid white;
+    border-width: 1px 0;
+}
+
+#clear{
+    clear: both;
+}
+.clear{
+    clear: both;
+}
+
+a{
+    color: #fff974;
+}
+
+.bez_podtrzeni{
+    text-decoration: none;
+}
+
+a:hover{
+    color:#d9241b;
+}
+
+#obsah h3{
+
+    color: #fff974;
+    font-size: 20px;
+    margin: 0px 10px 5px 10px;
+}
+#obsah h2{
+    color: #fff974;
+    font-size: 23px;
+    padding: 0px;
+    margin:  0px;
+}
+
+#aktualita {
+    margin: 0px 10px 10px 10px;
+    padding: 0px 0px 10px 0px;
+    color: white;
+    font-family: Times New Roman;
+    border-bottom: solid white;
+    border-width: 1px;
+}
+
+table.prispevek {
+    width: 550px;
+    color: white;
+    padding: 0px;
+
+    padding: 0 0 5px 5px;
+}
+table.clanky {
+    width: 600px;
+    background-color: #08456e;
+    color: white;
+    border: 1px solid black;
+    margin: 5px auto;
+    padding: 0px;
+}
+
+/*input, textarea, select {
+background-color: #08456e;
+color: white;
+border: 1px solid black;
+margin: 0px;
+}
+*/
+legend{color:white;}
+.formlabelM{
+
+    float:left;
+    width: 5em;
+}
+
+#username{width:90px;}
+#pass{width:90px;}
+#trvale{width:180px;
+        font-size: 0.9em;
+} 
+#prihlasit{margin-left: 6em;}
+
+.registrovat{
+    float:right;
+    font-size: 0.9em;
+    color: #fff974;
+    text-decoration:none;
+}
+.zapomelHeslo{float:left; font-size: 0.9em; color: #fff974; text-decoration:none;}
+
+#novinky h3{
+    padding:0; margin:0;
+} 
+
+.floatRightObr{
+    float:right;
+    padding: 10px 10px 5px 10px;
+}
+span.chyba{
+    color: #d9241b;
+}
+
+.alignCenter{
+    text-align:center;
+}
+
+.alignLeft{
+    text-align: right;
+}
+
+.oddelovac{
+    margin : 5px 0 0 0;
+    width: 610px;
+    height: 6px;
+    background: url(img/oddelovac.jpg) no-repeat;
+}
+
+.vice{
+    float: right;
+    text-align: right; 
+    color: #d9241b;
+}
+
+#vystup
+{
+    width: 50px;
+    margin: 0 auto; 
+    height: 23px;
+    color: white;
+}
+
+/***************** FORM ************************/
+form label {
+    display: block;
+    width: 150px;
+    float: left;
+    margin: 2px 4px 6px 4px;
+    text-align: right;
+}
+
+form input[type=text] { 
+    border: 1px solid black;
+}
+form input[type=password] { 
+    border: 1px solid black;
+}
+form input[type=file] {  
+    border: 1px solid black;
+}
+form textarea{
+    border: 1px solid black;     
+} 
+label.forum {
+    display: block;
+    width: 60px;
+    float: left;
+    margin: 2px 4px 6px 4px;
+    text-align: right;
+}
+form br { clear: left; }
+
+.odsazeniForm{
+    margin: 0 0 0 144px;
+}
+
+.sirka400{
+    float: left;
+    width: 350px;
+}
+
+/***************** FORUM ***********************/
+.forum_info{
+    background-color: gray ;
+}
+
+div#vkladani{
+    width: 500px;
+    text-align: center;
+    margin: 0 auto;
+}
+div#smajlici{
+    width: 140px;
+    margin: 0 auto;
+    float: left;
+    padding: 4px;
+}
+div#smajlici img{
+    border: 0;
+}
+div#forum_form{
+    margin: 0 auto;
+    float: left;
+    padding: 0px;
+}
+
+a img{
+    border: none;
+}
+
+/* forum prispevky */
+
+.forum_prispevek{
+    padding: 10px 0 10px 0;
+}
+
+.forum_fotka{
+    float:left;
+}
+
+
+.forum_jmeno{
+    float:left;
+    text-align: left;
+    padding: 2px;
+}
+.forum_datum{  
+    float: right;
+    text-align: right;
+    padding: 2px;
+}
+
+hr{
+    margin: 5px 0 0 0;
+}
+
+
+
+
+
+
+/*************** CLANEK_ADD ****************/
+div.clanek_add_1{
+    width: 400px;
+}
+
+/*************** VIDEO **********************/
+div.video{
+    width: 600px;
+    background-color: #08456e;
+    color: white;
+    border: 1px solid black;
+    margin: 10px auto;
+    padding: 10px;
+    clear: both;
+}
+div.video img{
+    float: left;
+    border: 0px;
+    margin: 0 10px 0 0;
+}
+div.video p.admin a{
+    font-size: 12px;
+}
+div.video p.admin{
+    margin: 0;
+    padding: 0;
+}
+
+/*************** NOVINKY **********************/
+
+div.novinka{
+    width: 610px;
+    color: white;
+    margin: 10px auto;
+    padding: 5px 5px 5px 0;
+    clear: both;
+}
+div.novinka p{
+    float: left;  
+    margin: 0;
+    padding: 0;
+}
+div.novinka img{
+    float:left;  
+    border: 1px solid black;
+    margin: 3px 10px 0 5px;
+}
+
+div.novinka a{
+    float:left;
+} 
+
+.paddingMargin{
+    padding:0;
+    margin:0;
+}
+
+div.novinka img.ico{
+    border: 0px;
+}
+
+/*************** DENICEK **********************/ 
+.denik{
+    padding: 5px 0px 0px 5px;
+    height:100px;
+}
+
+.obr_n{
+    border: 1px solid black;      
+}
+
+
+div.thumbnail {
+    float: left;
+    width: 148px;
+    height: 180px;
+    margin: 5px;
+    padding: 10px 0 0 0;
+    text-align: center;
+    border: 1px solid black;
+}
+p.thumbnail {
+    margin: 0px;
+    font-size: 0.8em;
+}  
+
+/**************** STRANKA FACEBOOK *************/
+.stranka_chyby
+{
+    width: 190px;
+    height: auto;
+    border: 1px solid black;
+    margin: 0 auto;
+    padding: 4px 10px;
+}
+
+.stranka_form
+{
+    width: 190px;
+    height: 322px;
+    border: 1px solid black;
+    padding: 10px;
+    margin: 0 auto;
+}
+
+.stranka_soubor
+{
+    width:180px;
+}
+
+.stranka_textbox
+{
+    width: 100px;
+}
+
+.stranka_form label
+{
+    width: 70px;
+    text-align: left;
+}
+
+.stranka_tlacitko
+{
+    width:60px;
+    height: 22px;
+    margin: 10px 55px;
+}
+
+.stranka_area
+{
+    height: 150px;
+    width: 180px;
+}
+
+/**************** STRANKOVANI ******************/
+.odstrankovani
+{
+    margin: 10px 0 0 140px;
+    padding: 2px;
+}
+.odstrankovani ul
+{
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    font-size: 16px;
+}
+.odstrankovani li
+{
+    list-style-type: none;
+    display: inline;
+    padding-bottom: 1px;
+}
+.odstrankovani a, .odstrankovani a:visited
+{
+    padding: 0 5px;
+    border: 1px solid #9aafe5;
+    text-decoration: none;
+    /*color: #2e6ab1;*/
+    color: white;
+}
+.odstrankovani a:hover, .odstrankovani a:active
+{
+    border: 1px solid #2b66a5;
+    color: #000;
+    background-color: lightyellow;
+}
+.odstrankovani li.aktualni-stranka
+{
+    font-weight: bold;
+    padding: 0 5px;
+    border: 1px solid #9aafe5;
+    background-color: #2e6ab1;
+    color: #FFF;
+}
+.odstrankovani li.zruseny-odkaz
+{
+    padding: 0 5px;
+    border: 1px solid #929292;
+    color: #929292;
+}
+.odstrankovani li.dalsi-stranka
+{
+    font-weight: bold;
+}
+* html .odstrankovani li.aktualni-stranka, * html .odstrankovani li.zruseny-odkaz
+{
+    margin-right: 5px;
+    padding-right: 0;
+}
+
+/* HIGHLINE */
+
+.padding0 {
+    padding:0;
+}
+.highsloup{
+    width: 350px;
+    float:left;
+}
+
+.highsloup{
+    width: 350px;
+    float:left;
+}
+
+#vystup
+{
+    width: 400px;
+    margin: 0 auto; 
+    height: 23px;
+    color: white; 
+    float: left;
+}
+
+.tlacitka
+{
+    cursor: pointer;
+}
+
+#highline_add_nahled
+{
+    border: 1px solid black;
+    width: 100px;
+    height: 100px;    
+
+}
+
+/* Ratting */
+
+.rate-star {
+    width: 16px;
+    height: 16px;
+    background: url('../images/ratting/star-empty.png') no-repeat;
+    border: 0;
+}
+a .rate-star {
+    cursor: pointer;
+}
+.rate-star span {
+    visibility: hidden;
+}
+.rate-star.star-full {
+    background-image: url('../images/ratting/star-full.png');
+} 
+
+/* FlashMessages */
+.flash {
+    color: black;
+    border: 1px solid;
+    margin: 10px 0px;
+    padding:15px 10px 15px 65px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    font-size: 125%;
+}
+div.info {
+    /* color: #00529B; */
+    border-color: #00529B;
+    background-color: #BDE5F8;
+    background-image: url('../images/message/info.png');
+}
+div.tip {
+    /* color: #00529B; */
+    border-color: #00529B;
+    background-color: #BDE5F8;
+    background-image: url('../images/message/tip.png');
+}
+div.success {
+    /* color: #4F8A10; */
+    border-color: #4F8A10;
+    background-color: #DFF2BF;
+    background-image:url('../images/message/success.png');
+}
+div.warning {
+    /* color: #9F6000; */
+    border-color: #9F6000;
+    background-color: #FFFABF;
+    background-image: url('../images/message/warning.png');
+}
+div.error {
+    /* color: #D8000C; */
+    border-color: #D8000C;
+    background-color: #FFBABA;
+    background-image: url('../images/message/error.png');
+}

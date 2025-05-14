@@ -1,0 +1,14 @@
+{
+  "lengthMenu": "_MENU_ záznamů na stránku",
+  "search": "Hledání:",
+  "zeroRecords": "Nic nenalezeno :-(",
+  "info": "Záznamy _START_ - _END_ z _TOTAL_",
+  "infoEmpty": "Žádné výsledky",
+  "infoFiltered": "(z celkových _MAX_ záznamů)",
+  "paginate": {
+    "first": "První",
+    "last": "Poslední",
+    "next": "Další",
+    "previous": "Předchozí"
+  }
+}

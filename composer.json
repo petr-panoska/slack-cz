@@ -1,0 +1,9 @@
+{
+    "name": "panda098/slack.cz",
+    "type": "project",
+    "require": {
+        "nette/nette": "2.1.12",
+        "doctrine/orm": "2.4.1",
+        "ps/image-optimizer": "^1.2"
+    }
+}

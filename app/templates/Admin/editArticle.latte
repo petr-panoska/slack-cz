@@ -1,0 +1,21 @@
+{block #title}
+    Administrace | Editace stránky
+{/block}
+
+{block #head}
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>tinymce.init({
+        selector: 'textarea',
+        height: "600",
+        plugins: "code"
+      });
+    </script>
+{/block}
+
+{block content}
+    <ol class="breadcrumb">
+        <li><a n:href="Admin:">Články</a></li>
+        <li class="active">{if $article == null}Nový článek{else}{$article->nazev}{/if}</li>
+    </ol>
+    {control editArticleForm}
+{/block}

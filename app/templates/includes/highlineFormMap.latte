@@ -1,0 +1,132 @@
+{block content}
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div id="map" style="width: 100%; height: 400px;margin-bottom: 15px"></div>
+            <p>
+                <strong>Délka lajny: &nbsp;<span id="line_distance"></span></strong>
+            </p>
+            <button id="js-button-center-parking" class="btn btn-sm btn-primary">
+                <span class="glyphicon glyphicon-move" aria-hidden="true"></span>&nbsp;Parkoviště do středu mapy
+            </button>
+            <button id="js-button-center-line" class="btn btn-sm btn-primary">
+                <span class="glyphicon glyphicon-move" aria-hidden="true"></span>&nbsp;Lajnu do středu mapy
+            </button>
+        </div>
+    </div>
+{/block}
+
+{block scripts}
+    <script>
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'));
+        var markerPoint1 = new google.maps.Marker({
+          position: {
+            lat: {if isset($point1) && $point1 != null}parseFloat({$point1->lat}){else}49.8439{/if},
+            lng: {if isset($point1) && $point1 != null}parseFloat({$point1->lng}){else}12.063105117187433{/if}
+          },
+          icon: '/images/ico/maps/number_1.png',
+          map: map,
+          draggable: true
+        });
+        var markerPoint2 = new google.maps.Marker({
+          position: {
+            lat: {if isset($point2) && $point2 != null}parseFloat({$point2->lat}){else}49.8439{/if},
+            lng: {if isset($point2) && $point2 != null}parseFloat({$point2->lng}){else}18.885614882812433{/if}
+          },
+          icon: '/images/ico/maps/number_2.png',
+          map: map,
+          draggable: true
+        });
+        var markerParking = new google.maps.Marker({
+          position: {
+            lat: {if isset($parking) && $parking != null}parseFloat({$parking->lat}){else}49.8439{/if},
+            lng: {if isset($parking) && $parking != null}parseFloat({$parking->lng}){else}15.47436{/if}
+          },
+          icon: '/images/ico/maps/car.png',
+          map: map,
+          draggable: true
+        });
+        var line = new google.maps.Polyline({
+          map: map,
+          path: [markerPoint1.getPosition(), markerPoint2.getPosition()],
+          geodesic: true,
+          strokeColor: '#3a82bf',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(markerParking.getPosition());
+        bounds.extend(markerPoint1.getPosition());
+        bounds.extend(markerPoint2.getPosition());
+        map.fitBounds(bounds);
+        printInformation(markerPoint1, markerPoint2)
+        setFormGpsValues(markerPoint1, markerPoint2, markerParking)
+
+        markerPoint1.addListener('drag', function () {
+          drawLine(line, markerPoint1, markerPoint2)
+        })
+        markerPoint1.addListener('dragend', function () {
+          printInformation(markerPoint1, markerPoint2);
+          setFormGpsValues(markerPoint1, markerPoint2, markerParking)
+        });
+        markerPoint2.addListener('dragend', function () {
+          printInformation(markerPoint1, markerPoint2);
+          setFormGpsValues(markerPoint1, markerPoint2, markerParking)
+        });
+        markerPoint2.addListener('drag', function () {
+          drawLine(line, markerPoint1, markerPoint2);
+        });
+        markerParking.addListener('dragend', function () {
+          setFormGpsValues(markerPoint1, markerPoint2, markerParking)
+        });
+        document.getElementById('js-button-center-line').addEventListener('click', function () {
+          centerLine(map, markerPoint1, markerPoint2, line)
+          setFormGpsValues(markerPoint1, markerPoint2, markerParking)
+        })
+        document.getElementById('js-button-center-parking').addEventListener('click', function () {
+          centerParking(map, markerParking)
+          setFormGpsValues(markerPoint1, markerPoint2, markerParking)
+        })
+      }
+
+      function centerParking(map, markerParking) {
+        markerParking.setPosition(map.getCenter());
+      }
+
+      function centerLine(map, markerPoint1, markerPoint2, line) {
+        markerPoint1.setPosition({
+          lat: map.getCenter().lat(),
+          lng: map.getCenter().lng() - ((map.getCenter().lng() - map.getBounds().getSouthWest().lng()) / 2)
+        });
+        markerPoint2.setPosition({
+          lat: map.getCenter().lat(),
+          lng: map.getCenter().lng() + ((map.getCenter().lng() - map.getBounds().getSouthWest().lng()) / 2)
+        });
+        drawLine(line, markerPoint1, markerPoint2)
+        printInformation(markerPoint1, markerPoint2)
+      }
+
+      function drawLine(line, markerPoint1, markerPoint2) {
+        line.setPath([markerPoint1.getPosition(), markerPoint2.getPosition()]);
+      }
+
+      function calcDistance(p1, p2) {
+        return (google.maps.geometry.spherical.computeDistanceBetween(p1, p2)).toFixed(0);
+      }
+
+      function setFormGpsValues(markerPoint1, markerPoint2, markerParking) {
+        $("#frm-newHighlineForm-gps_point1_lat").val(markerPoint1.getPosition().lat());
+        $("#frm-newHighlineForm-gps_point1_lng").val(markerPoint1.getPosition().lng());
+        $("#frm-newHighlineForm-gps_point2_lat").val(markerPoint2.getPosition().lat());
+        $("#frm-newHighlineForm-gps_point2_lng").val(markerPoint2.getPosition().lng());
+        $("#frm-newHighlineForm-gps_parking_lat").val(markerParking.getPosition().lat());
+        $("#frm-newHighlineForm-gps_parking_lng").val(markerParking.getPosition().lng());
+      }
+
+      function printInformation(markerPoint1, markerPoint2) {
+        $("#line_distance").html(calcDistance(markerPoint1.getPosition(), markerPoint2.getPosition()) + " m");
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJpKUy8Ko7uyISDtDEdJYb7Us8nRvY-Tc&callback=initMap&libraries=geometry"
+            async defer></script>
+{/block}

@@ -1,0 +1,34 @@
+{block #title}
+Administrace | stránky
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Náhled</th>
+            <th>Tag</th>
+            <th>Popisek</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $tags as $t}
+            <tr class="active">
+                <td><img src="/data/tags/{$t->name}.jpg" alt="{$t->name}" /></td>
+                <td>{$t->name}</td>
+                <td>{$t->caption}</td>
+                <td>
+                    <a n:href="Admin:editTag tagName=>$t->name" class="btn btn-warning btn-xs">Upravit tag</a>
+                    <a n:href="Homepage:page" target="_blank" class="btn btn-danger btn-xs">Smazat tag</a>
+                </td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>
+{control tagForm}
+{/block}

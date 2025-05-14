@@ -1,0 +1,20 @@
+<table class="table" id="listHighlinesTable">
+    <thead>
+        <tr>
+            <th>Název</th>
+            <th>Délka [m]</th>
+            <th>Výška [m]</th>
+            <th>Hodnocení</th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $highlines as $highline}
+            <tr>
+                <td><a n:href="Highlines:detail $highline->id, tab=>info">{$highline->jmeno}</a></td>
+                <td><strong>{$highline->delka}</strong></td>
+                <td>{$highline->vyska}</td>
+                <td>{control rating, $highline->hodnoceni}</td>
+            </tr>
+        {/foreach}
+    </tbody>
+</table>

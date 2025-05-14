@@ -1,0 +1,26 @@
+{block #title}
+Články
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<div class="page-header">
+    <h1>Články - sekce</h1>
+</div>
+
+{foreach $tags as $t}
+    <div class="media">
+        <a class="pull-left" n:href="Article: tag=>$t->name ">
+            <img class="media-object" alt="{$t->caption}" style="width: 130px;" src="/data/tags/{$t->name}.jpg" />
+        </a>
+        <div class="media-body">
+            <h4 class="media-heading">{$t->name}</h4>
+            {$t->caption}
+        </div>
+    </div>
+{/foreach}
+
+{/block}

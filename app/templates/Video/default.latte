@@ -1,0 +1,32 @@
+{block #title}
+Videa
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<div class="page-header">
+  <h1>Videa - {$tag}</h1>
+</div>
+
+<ol class="breadcrumb">
+  <li><a n:href="Video:tags">Videa - Sekce</a></li>
+  <li class="active">{$tag}</li>
+</ol>
+
+{foreach $videos as $v}
+        <div class="media">
+            <a class="pull-left" href="/{$v->adresa}" target="_blank">
+                <img class="media-object" alt="{$v->nazev}" style="width: 130px;" src="{$v->getThumbnailUrl()}">
+            </a>
+            <div class="media-body">
+                <h4 class="media-heading">{$v->nazev}</h4>
+                {$v->popis}
+            </div>
+        </div>
+{/foreach}
+
+<a href="http://www.slacklive.cz/videa/videa.htm">Starší videa</a>
+{/block}

@@ -1,0 +1,23 @@
+{block #title}
+Administrace | média
+{/block}
+
+{block #head}
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+                        $('#elfinder').elfinder({
+                                url: '/admin/elfinderData',
+                                            lang: 'cs'                    // language (OPTIONAL)
+                                        });
+                                    });
+</script>
+<style>
+    .elfinder-cwd-filename.ui-draggable input{
+        color: black;
+    }
+</style>
+{/block}
+
+{block content}
+<div id="elfinder"></div>
+{/block}

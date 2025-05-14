@@ -1,0 +1,56 @@
+{block #title}
+Kalendář 2013
+{/block}
+
+{block #head}
+<LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/calendar.css">
+{/block}
+
+{block content}
+<p class="nadpis1">Kalendář<a n:href="Admin:events" n:if="$user->isLoggedIn() && $user->isAllowed('Admin:events', 'edit')" title="Editovat události"><img src="{$baseUri}/images/ico/edit.png"></a></p>
+<div class="ListCanvas" >
+    <center>
+        <table class="ListTable" >
+            <tr> 
+                <td colspan=2 class=ListMonth  >2013</td>
+            </tr>
+            {foreach $events as $e}
+            <tr class="events" >
+                <td>
+                    <table width=100% class="ListTableDay"  >
+                        <tr>
+                            <td class="ListDate" >
+                                <div class="Small_Calendar">
+                                    <div class=Canvas >
+                                        <table class=calendar  cellspacing="0" >
+                                            <caption class=monthcaption ><center>{$presenter->cesky_mesic($e->start)} {$e->start|date:'%Y'}</center></div></caption>
+                                            <th width=100% class="Weekdays">{$presenter->cesky_den($e->start)}</th>
+                                            <tr class="events">
+                                                <td valign="top"  class="events" id="that">
+                                                   <div class="Date" ><center>{$e->start|date:'%d'}</center></div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="ListEvent2" >
+                                <p class="nadpis"><a n:href="Calendar:event $e->id">{$e->nazev}</a></p>
+                                {!$presenter->truncate($e->text, 300)}
+                                <div class="calendar_date">
+                                    <div class="start"><b>Od:</b> {$e->start|date:'%d.%m. %H:%M'} <b>Do:</b> {$e->stop|date:'%d.%m. %H:%M'}</div>
+                                    <div class="cena"><b>Vstupné:</b> {$e->cena} Kč</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            {/foreach}
+        </table>
+    </center>
+</div>
+
+<a href="http://www.slack.cz/index.php?str=kalendar">Kalendář na rok 2012</a><br/><br/>
+<a n:href="Calendar:new" n:if="$user->isLoggedIn()">Přidat novou událost</a>
+{/block}

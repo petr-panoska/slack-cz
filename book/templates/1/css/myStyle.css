@@ -1,0 +1,29 @@
+/* 
+    Document   : myStyle
+    Created on : 31.1.2013, 15:02:55
+    Author     : Vejvis
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+
+/*
+    Forum
+*/
+
+.message{
+    
+}
+.message_header{
+    margin: 10px 0 0 0;
+}
+
+.message img{
+    float: left;
+    margin: 0px 10px 10px 10px;
+    border: 1px solid black;
+}
+
+.message_header .nick{
+    font-size: 1.2em;
+}

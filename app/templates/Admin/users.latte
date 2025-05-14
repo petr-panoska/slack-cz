@@ -1,0 +1,37 @@
+{block #title}
+Nová highline
+{/block}
+
+{block #head}
+<style>
+    span.label {
+        margin: 0 2px 0 2px;
+    }
+</style>
+{/block}
+
+{block content}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Fotka</th>
+            <th>Přezdívka</th>
+            <th>Jméno</th>
+        </tr>
+    </thead>
+    <tbody>
+        {snippet AdminUsersList}
+            {foreach $users as $u}
+                <tr>
+                    <td>{if $u->getFullFotoUrl() != null}<a href="/{$u->getFullFotoUrl()|noescape}" rel="photo">{/if}<img src="/{$u->getThumbnailUrl()|noescape}" class="thumbnail">{if $u->getFullFotoUrl() != null}</a>{/if}</td>
+                    <td><a n:href="Users:detail user=>$u->getId()" target="_blank">{$u->getNick()}</a></td>
+                    <td>{$u->getJmeno()} {$u->getPrijmeni()}</td>
+                    <td>
+                        <a n:href="deleteUser! user=>$u->getId()" class="btn btn-primary btn-xs">Smazat</a>
+                    </td>
+                </tr>
+            {/foreach}
+        {/snippet}
+    </tbody>
+</table>
+{/block}

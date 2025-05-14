@@ -1,0 +1,37 @@
+{block #title}
+Události
+{/block}
+
+{block #head}
+
+{/block}
+
+{block content}
+<div class="table">
+    <img src="img/bg-th-left.gif" width="8" height="7" alt="" class="left" />
+    <img src="img/bg-th-right.gif" width="7" height="7" alt="" class="right" />
+    <table class="listing" cellpadding="0" cellspacing="0">
+        <tr>
+            <th class="first">Událost</th>
+            <th>Od</th>
+            <th>Do</th>
+            <th class="last">Smazat</th>
+        </tr>
+
+        {foreach $events as $e}
+        {if $iterator->isOdd()}<tr>{else}<tr class="bg">{/if}
+                <td class="first style1">{$e->nazev}</td>
+                <td>{$e->start}</td>
+                <td>{$e->stop}</td>
+                <td class="last">
+                    <a n:href="delEvent! $e->id">Smaž</a>
+                </td>
+            </tr>
+            {/foreach}
+    </table>
+</div>
+{/block}
+
+{block right}
+
+{/block}

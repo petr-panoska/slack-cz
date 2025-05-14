@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+    <head>
+        <title>{block #title}{/block} | Admin | SLACK.cz </title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <LINK REL="stylesheet" TYPE="text/css" HREF="{$baseUri}/css/admin/all.css">
+
+            <style media="all" type="text/css"></style>
+            {include #head}
+    </head>
+    <body>
+        <div id="main">
+            <div id="header">
+                <a href="index.html" class="logo"><img src="{$baseUri}/images/admin/logo.gif" width="101" height="29" alt="" /></a>
+            </div>
+            <div id="middle">
+                <div id="left-column">
+                    {if $user->isAllowed('Admin:rekordy', 'edit')}
+                    <h3>Rekordy</h3>
+                    <ul class="nav">
+                        <li><a n:href="Admin:rekordy">Editace</a></li>
+                    </ul>
+                    {/if}
+
+                    {if $user->isAllowed('Admin:highline', 'oddily')}
+                    <h3>Highline</h3>
+                    <ul class="nav">
+                        <li><a n:href="Admin:oddily">Oddíly</a></li>
+                    </ul>
+                    {/if}
+
+                    {if $user->isAllowed('Admin:events', 'edit')}
+                    <h3>Události</h3>
+                    <ul class="nav">
+                        <li><a n:href="Admin:events">mazání</a></li>
+                    </ul>
+                    {/if}
+                </div>
+                <div id="center-column">
+                    {snippet flashMessages}
+                    <div n:foreach="$flashes as $flash" class="flash {$flash->type}">{$flash->message}</div>
+                    {/snippet}
+                    {include #content}
+                </div>
+                <div id="right-column">
+                    {include #right}
+                </div>
+            </div>
+            <div id="footer"></div>
+        </div>
+
+
+    </body>
+</html>

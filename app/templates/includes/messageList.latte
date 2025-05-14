@@ -1,0 +1,30 @@
+<style>
+    .media {
+        box-shadow: rgba(128, 128, 128, 0.5) 0 0 10px;
+        padding: 5px;
+        border-radius: 5px;
+    }
+</style>
+{foreach $messages as $m}
+    <div class="media">
+        {if $m->getUser() != null}
+            <img class="media-object pull-left" src="/{$m->getUser()->getThumbnailUrl()}" alt="user_photo"/>
+        {else}
+            <img class="media-object pull-left" src="http://slack.cz/img/ico/profil.jpg" alt="user_photo"/>
+        {/if}
+        <div class="media-body">
+            {if $user->isLoggedIn() && $user->isInRole('admin')}<a n:href="removeMessage! message=>$m->getId()"
+                class="btn btn-danger btn-xs pull-right">smazat</a>{/if}
+            <h4 class="media-heading">
+                {if $m->getUser() != null}
+                    <a n:href="Users:detail $m->getUser()->getId()">{$m->getJmeno()}</a>
+                {else}
+                    {$m->getJmeno()}
+                {/if}
+                {if $m->getEmail() != null}<i> ({$m->getEmail()})</i>{/if}
+            </h4>
+            <div><i>{$m->getDatum()|date:'%d.%m.%Y'}</i></div>
+            {!$presenter->strip($m->getText())}
+        </div>
+    </div>
+{/foreach}

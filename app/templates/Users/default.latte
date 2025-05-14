@@ -1,0 +1,51 @@
+{block #title}Deníčky{/block}
+
+{block #head}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.min.css"/>
+{/block}
+
+{block content}
+    <h1>Deníčky</h1>
+    <div class="panel panel-default">
+        <table style="width: 100%" id="js-datatable-users"
+               class="table table-striped table-hover hidden">
+            <thead>
+            <tr>
+                <th>Přezdívka</th>
+                <th>Jméno</th>
+                <th>Příjmení</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach $users as $user}
+                <tr>
+                    <td><a n:href="Users:detail $user->id, tab=>highline">{$user->nick}</a></td>
+                    <td>{$user->jmeno}</td>
+                    <td>{$user->prijmeni}</td>
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    </div>
+{/block}
+
+{block scripts}
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.20/datatables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var datatable = $('#js-datatable-users');
+            datatable.DataTable({
+                dom: '<"row pa-10"' +
+                    '<"col-xs-12 col-md-6"l><"col-xs-12 col-md-6"f>' +
+                    '<"col-xs-12 col-md-6"i><"col-xs-12 col-md-6"p>' +
+                    '>rt',
+                pageLength: 50,
+                language: {include '../includes/dataTables/language.json'}
+            });
+            datatable.removeClass('hidden')
+        })
+    </script>
+{/block}

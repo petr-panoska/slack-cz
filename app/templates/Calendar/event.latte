@@ -1,0 +1,51 @@
+{block #title}
+{$event->nazev}
+{/block}
+
+{block #head}
+{if $event->gps_id}
+<script type="text/javascript" src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=AIzaSyDMcmbhTgVtL-EG7PAyeUrhTodKH5HYXMw"></script>
+<script type="text/javascript" language="javascript" src="{$baseUri}/js/jquery.gmap-min.js"></script>
+<script type="text/javascript" language="javascript">
+    $(document).ready(function() {
+        $("#maps").gMap({ markers: [{ latitude: {$event->ref('gps')->lat},
+                    longitude: {$event->ref('gps')->lng} }] });
+    });
+</script>
+{/if}
+{/block}
+
+{block content}
+<p class="nadpis1">{$event->nazev}</p>
+<table>
+    <tr>
+        <td>Od:</td>
+        <td>{$event->start|date:'%d.%m.%Y %H:%M'}</td>
+    </tr>
+    <tr>
+        <td>Do:</td>
+        <td>{$event->stop|date:'%d.%m.%Y %H:%M'}</td>
+    </tr>
+    <tr>
+        <td>Kontakt:</td>
+        <td>{$event->kontakt}</td>
+    </tr>
+    <tr>
+        <td>Adresa:</td>
+        <td>{$event->adresa}</td>
+    </tr>
+    <tr>
+        <td>Vstupné:</td>
+        <td n:if="$event->cena != 0">{$event->cena} Kč</td>
+        <td n:if="$event->cena == 0">zdarma</td>
+    </tr>
+    <tr>
+        <td>Text:</td>
+        <td>{!$event->text}</td>
+    </tr>
+</table>
+{if $event->gps_id}
+<p class="nadpis2">Mapa</p>
+<div id="maps" style="height: 500px;"></div>
+{/if}
+{/block}

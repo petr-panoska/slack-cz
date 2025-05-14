@@ -1,0 +1,14 @@
+<script type="text/javascript" src="js/imageCropper.js?1.1.5"></script>
+<div id="orez">
+	<div class="picture"><img id="obrazek" src="img/boxsters.jpg" width="800" height="600" alt="" /></div>
+	
+	<form name="cropForm" action="result.php" method="post">
+		<p><input type="submit" name="submit" value="Oøíznout" /></p>
+	</form>
+	
+	<script type="text/javascript">
+		imageCropper.useForm('cropForm');
+		imageCropper.addCroper('obrazek','120','92','fixed');
+	</script>
+	
+</div>

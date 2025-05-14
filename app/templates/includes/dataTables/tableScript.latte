@@ -1,0 +1,180 @@
+<link rel="stylesheet" type="text/css" href="{$baseUri}/3rdParty/datatables/dataTables.bootstrap.min.css" />
+<style>
+    .table-bordered>thead>tr>th,
+    .table-bordered>thead>tr>td{
+        border-bottom-width: 0px
+    }
+    .table {
+        border-bottom: 1px solid #ddd;
+        border-top: 1px solid #ddd;
+    }
+    div.dataTables_info{
+        margin-left: 8px;
+    }
+    div.dataTables_length{
+        margin: 8px 0 0 8px;
+    }
+    div.dataTables_filter{
+        margin: 8px 8px 0 0;
+    }
+    div.dataTables_paginate{
+        margin-right:8px !important;
+    }
+    #{$dataTablesSource->name|noescape}Table{
+        border-radius: 5px;
+    }
+</style>
+<script type="text/javascript" src="{$baseUri}/3rdParty/datatables/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{$baseUri}/3rdParty/datatables/dataTables.bootstrap.min.js"></script>
+<script>
+    var {$dataTablesSource->name|noescape}Table;
+            var {$dataTablesSource->name|noescape}TableOpenedRow = new Array();
+            $(document).ready(function() {
+    /*
+     * Inicializace tabulky
+     */
+    {$dataTablesSource->name|noescape}Table = $("#{$dataTablesSource->name|noescape}Table").DataTable({
+        "iDisplayLength": 25,
+                "autoWidth": true,
+                "sPaginationType": "simple_numbers",
+                "bProcessing": true,
+                "bServerSide": true,
+                "sServerMethod": "POST",
+                "oLanguage": {
+                "sLengthMenu": "Zobrazeno _MENU_ záznamů na stránku",
+                        "sZeroRecords": "Žádný záznam nenalezen.",
+                        "sInfo": "Záznamy _START_ - _END_ z _TOTAL_",
+                        "sInfoEmpty": "Showing 0 to 0 of 0 records",
+                        "sInfoFiltered": "",
+                        "sSearch": "Hledání: "
+                },
+    {if $dataTablesSource->getDetailColumn() != null}
+        "fnPreDrawCallback": function(oSettings)
+        {
+        fnSaveOpenedRow{$dataTablesSource->name|noescape}();
+        },
+                "fnDrawCallback": function(oSettings)
+                {
+                fnRestoreOpenedRow{$dataTablesSource->name|noescape}();
+                },
+    {/if}
+        "sAjaxSource": "{if $dataTablesSource->dataUrl != null}{$dataTablesSource->dataUrl|url}{/if}",
+    {if dataTablesSource.defaultSortColumn != null and dataTablesSource.defaultSort != null}
+            "aaSorting": [[ {$dataTablesSource->getDefaultSortColumnIndex()|noescape}, {$dataTablesSource->getDefaultSort()} ]],
+    {/if}
+    {if dataTablesSource.rowCallback != null}
+            "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull){ {$dataTablesSource->rowCallback|noescape}(nRow, aData, iDisplayIndex, iDisplayIndexFull, {$dataTablesSource->name}); },
+    {/if}
+            "aoColumns":
+                    [
+    {foreach $dataTablesSource->getColumns() as $column}
+                    {
+                    "bSortable" : {if $column->getSortable()}true{else}false{/if},
+                                        "bVisible" : {if $column->getVisible()}true{else}false{/if}
+        {if $dataTablesSource->getDetailColumn() == $column->getName()}
+                                                    , "render" : function(data, type, row){
+                                                    return "<img src={$dataTablesSource->getDetailOpenIcon()|url} class='detail' style='cursor: pointer;' title='Zobrazit detail' />";
+                                                    }
+        {elseif $column->getRender() != null}
+                                                    , "render" : function(data, type, row){ console.log(row); return {$column->getRender()|noescape}({ data: data, type: type, row:row }, {$dataTablesSource->getName()}); }
+        {/if}
+                                                    }{if $iterator->isLast() == false},{/if}
+    {/foreach}
+                                                    ]
+                                            });
+    {foreach $dataTablesSource->getColumns() as $column}
+        {if $column->getFilter() != null}
+                                            $('#dataTablesCol{$dataTablesSource->getColumnOrder($column->getName())}').change(function(){
+            {$dataTablesSource->getName()|noescape}Table.fnFilter($(this).val(), {$dataTablesSource->getColumnOrder($column->getName())});
+                });
+        {/if}
+    {/foreach}
+
+                });
+                        var {$dataTablesSource->getName()|noescape}TableColumns = [{foreach $dataTablesSource->getColumns() as $column}{$column->getName()}{if $iterator->isLast() == false},{/if}{/foreach}];
+    {if $dataTablesSource->getDetailColumn() != null}
+                            function fnFormatDetails{$dataTablesSource->getName()|noescape} (oTable, nTr)
+                            {
+                            var aData = oTable.fnGetData(nTr);
+                                    var result = null;
+                                    $.ajax({
+                                    url: {$dataTablesSource->getDetailUrl()|raw},
+                                            type: 'POST',
+                                            data: { id: aData[{$dataTablesSource->getColumnOrder($dataTablesSource->getIdColumn())}] },
+                                            dataType: 'html',
+                                            async: false,
+                                            success: function(data){
+                                            result = data;
+                                            }
+                                    });
+                                    return result;
+                            }
+
+                            function fnSaveOpenedRow{$dataTablesSource.name|noescape}()
+                            {
+                            if ({$dataTablesSource.name|noescape}Table == null)
+                            {
+                            return true;
+                            }
+                            var rows = {$dataTablesSource.name|noescape}Table.fnGetNodes();
+                                    for (i = 0; i < rows.length; ++i)
+                            {
+                            var nTr = rows[i];
+                                    if ({$dataTablesSource.name|noescape}Table.fnIsOpen(nTr))
+                            {
+        {$dataTablesSource.name|noescape}TableOpenedRow.push(nTr.id);
+            }
+            }
+            return true;
+            }
+
+            function fnRestoreOpenedRow{$dataTablesSource.name|noescape}()
+            {
+            //console.log("fnRestoreOpenedRow:");
+            var rows = {$dataTablesSource.name|noescape}Table.fnGetNodes();
+                    var openedRows = {$dataTablesSource.name|noescape}TableOpenedRow;
+                    for (var i = 0; i < rows.length; i++)
+            {
+            var nTr = rows[i];
+                    var opened = false;
+                    for (var j = 0; j < openedRows.length; j++)
+            {
+            if (nTr.id == openedRows[j])
+            {
+            fnOpenCloseRow{$dataTablesSource.name|noescape}(nTr);
+            }
+            }
+            }
+        {$dataTablesSource.name|noescape}TableOpenedRow = [];
+            }
+
+            function fnOpenCloseRow{$dataTablesSource.name|noescape}(nTr)
+            {
+            var detailImage = $(nTr).find("td:eq({$dataTablesSource.columnOrder(dataTablesSource.detailColumn)|noescape}) img");
+                    if ({$dataTablesSource.name|noescape}Table.fnIsOpen(nTr))
+            {
+            /* This row is already open - close it */
+            detailImage.attr("src", {$dataTablesSource.detailOpenIcon|url});
+                    detailImage.parent().css("border", "0px");
+                    detailImage.parent().nextAll().css("border", "0px");
+        {$dataTablesSource.name}Table.fnClose(nTr);
+            }
+            else
+            {
+            /* Open this row */
+            detailImage.attr("src", {$dataTablesSource.detailCloseIcon|url});
+                    detailImage.parent().css("border-top", "2px solid gray");
+                    detailImage.parent().css("border-left", "2px solid gray");
+                    detailImage.parent().nextAll().last().css("border-right", "2px solid gray");
+                    detailImage.parent().nextAll().css("border-top", "2px solid gray");
+        {$dataTablesSource.name|noescape}Table.fnOpen(nTr, fnFormatDetails{$dataTablesSource.name|noescape}({$dataTablesSource.name|noescape}Table, nTr), 'details');
+            }
+            }
+
+            $(function(){
+            $('#{$dataTablesSource.name|noescape}Table tbody td img.detail').live('click', function () {
+            fnOpenCloseRow{$dataTablesSource.name|noescape}($(this).parents('tr')[0]);
+            });
+            });
+    {/if}
+</script>

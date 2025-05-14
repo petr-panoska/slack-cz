@@ -1,0 +1,320 @@
+
+.ListEvent2 p.nadpis{
+    color: black;
+    font-size: 15px;
+    font-weight: Bold;
+    text-decoration: underline;
+}
+p.nadpis a{
+    color: black;
+}
+
+.calendar_date{
+    margin: 10px 0 0 0;
+    width: 95%;
+}
+.start{
+    float: left;
+}
+.cena{
+    float: right;
+}
+
+.Canvas {
+    width: 97%;
+    border-color: #000000;
+    border-width: 0pt;
+    border-style: Solid;
+    text-align:Center;
+    background-color: #FFFFFF;
+    margin: 0px;}
+
+
+table.calendar {
+    width: 100%;
+    border-color: #000000;
+    border-width: 1pt;
+    border-style: Solid;
+    text-align:Center;
+    border-collapse: collapse;
+    background-color: #FFFFFF;
+    margin: 0px;
+}
+
+
+.monthcaption {
+    background: URL('../images/calendar/Caption.jpg');
+
+    font-family: Arial;
+    font-size: 10pt;
+    font-weight: Bold;
+    font-style: Normal;
+    color: #000000;
+    text-decoration: None;
+    border-color: #000000;
+    border-width: 1pt;
+    border-style: Solid;
+    text-align: Right;
+    background-color: #FFFFFF;
+    padding: 5px;
+    margin: 0px;
+}
+
+
+.Weekdays {
+    background: URL('../images/calendar/Weekday.jpg');
+
+    font-family: Arial;
+    font-size: 17pt;
+    font-weight: Normal;
+    font-style: Normal;
+    color: #FFFFFF;
+    text-decoration: None;
+    border-color: #000000;
+    border-width: 1pt;
+    border-style: Solid;
+    text-align: Center;
+    background-color: #000000;
+}
+
+
+.Date {
+
+    font-family: Helvetica;
+    font-size: 14pt;
+    font-weight: Bold;
+    font-style: Oblique;
+    color: #000000;
+    text-decoration: None;
+    border-color: #000000;
+    border-width: 0pt;
+    border-style: Solid;
+    text-align: Right;
+    background-color: #FFFFFF;background: transparent;
+}
+
+
+.Events {
+
+    font-family: Arial;
+    font-size: 8pt;
+    font-weight: Normal;
+    font-style: Normal;
+    color: #000000;
+    text-decoration: None;
+    border-color: #000000;
+    border-width: 1pt;
+    border-style: Solid;
+    text-align: Left;
+    padding: 5px;
+    background-color: #FFFFFF;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.Canvas { width: 97%;  
+          margin-right : 5px; 
+          margin-right  : auto; 
+          margin-left  : auto; 
+          text-align:center;
+}
+
+.Date { font-size:37pt; }
+.monthcaption { font-size: 8pt; }
+.Weekdays { font-size:7pt; }
+Small_Calendar .Calendar { 
+    width: 43px;
+    display: box;
+    margin-right  : auto; 
+    margin-left  : 1px; 
+} 
+.ListDate { 
+    width: 68px;
+} 
+Small_Calendar .Canvas { 
+    width: 43px;
+    margin-right  : 15px; 
+    margin-left  : 1px; 
+} 
+
+.ListCanvas { 
+    width: 492px;
+    margin-top:0px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+} 
+.ListTable { 
+    width: 491px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+} 
+td.events {  border-width:0px; } 
+tr.events {  border-width:0px; } 
+.ListDate {  border-width:0px; } 
+.ListEvent {  border-width:0px; } 
+.ListEvent2 {  border-width:0px; } 
+.ListDate {  border-color:silver; } 
+.ListEvent {  border-color:silver; } 
+.ListEvent2 {  border-color:silver; } 
+.ListDate {  border-bottom-width:1px; } 
+.ListEvent {  border-bottom-width:1px; } 
+.ListEvent2 {  border-bottom-width:1px; } 
+.ListEvent,.ListEvent2,.ListDate,.ListDate2  {  padding:10px; } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ListCanvas {
+    background-color: #FFFFFF;
+    border-collapse: collapse;
+    border-color: #C0C0C0;
+    border-style: Solid;
+    border-width: 1pt;
+    margin-left: auto;
+    margin-right: auto;
+    margin: 15px;
+    text-align: Center;
+    width: 98%;
+}
+
+.ListDate {
+    background-color: #EFEFEF;
+    border-bottom: 1pt;
+    border-collapse: collapse;
+    border-color: #808080;
+    border-style: Solid;
+    border-width: 0pt;
+    color: #808080;
+    font-family: Geneva;
+    font-size: 10pt;
+    font-style: Normal;
+    font-weight: Bolder;
+    text-align: center;
+    text-decoration: None;
+    width: 100px;
+}
+
+.ListDate a:hover {
+    color: #615F5F;
+    font-size: 32pt;
+    text-decoration: none;
+}
+
+.ListDate a {
+    color: #615F5F;
+    font-size: 32pt;
+    text-decoration: none;
+}
+
+.ListDate a:visited {
+    color: #615F5F;
+    font-size: 32pt;
+    text-decoration: none;
+}
+
+.ListDate a:active {
+    color: #615F5F;
+    font-size: 32pt;
+    text-decoration: none;
+}
+
+.ListEvent {
+    background-color: #FCFCFC;
+    border-bottom: 1pt;
+    border-collapse: collapse;
+    border-color: #C0C0C0;
+    border-style: Solid;
+    border-width: 0pt;
+    color: #808080;
+    font-family: Helvetica;
+    font-size: 9pt;
+    font-style: Normal;
+    font-weight: Normal;
+    padding: 1px;
+    text-align: Left;
+    text-decoration: None;
+}
+
+.ListEvent2 {
+    background-color: #FFFFFF;
+    border-bottom: 1pt;
+    border-color: #C0C0C0;
+    border-style: Solid;
+    border-width: 0pt;
+    color: #808080;
+    font-family: Helvetica;
+    font-size: 9pt;
+    font-style: Normal;
+    font-weight: Normal;
+    padding: 1px;
+    text-align: Left;
+    text-decoration: None;
+}
+
+.ListMonth {
+    background-color: #BABABA;
+    border-collapse: collapse;
+    border-color: #596B7E;
+    border-style: Solid;
+    border-width: 0pt;
+    color: #F7F7F7;
+    font-family: Georgia, Times New Roman, Serif;
+    font-size: 24pt;
+    font-style: Normal;
+    font-weight: Bolder;
+    letter-spacing: 2pt;
+    line-height: 125%;
+    text-align: center;
+    text-decoration: None;
+}
+
+.ListTable {
+    background-color: #FFFFFF;
+    border-collapse: collapse;
+    border-color: #000000;
+    border-spacing: 0px;
+    border-style: Solid;
+    border-width: 0pt;
+    margin-left: auto;
+    margin-right: auto;
+    margin: 0px;
+    text-align: Center;
+    width: 100%;
+}
+
+.ListTableDay {
+    border-collapse: collapse;
+    border-spacing: 0px;
+    border-bottom: 1px solid #BABABA;
+    font-size: 12pt;
+    text-decoration: none;
+}
+

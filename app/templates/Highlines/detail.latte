@@ -1,0 +1,302 @@
+{block #title}
+    {$highline->jmeno}
+{/block}
+
+{block content}
+    <ol class="breadcrumb">
+        <li><a n:href="Homepage:default"><i class="fas fa-home"></i>&nbsp;Domů</a></li>
+        <li><a n:href="Highlines:default"><i class="fas fa-book"></i>&nbsp;Highline Book</a></li>
+        <li class="active"><a n:href="Highlines:detail $highline->id">{$highline->jmeno}</a></li>
+    </ol>
+    <h1>{$highline->jmeno}</h1>
+    <nav class="mb-10" role="navigation">
+        <ul class="nav nav-tabs">
+            <li {ifCurrent Highlines:detail id=>$highline->id,tab=>'info'}class="active"{/ifCurrent}>
+                <a n:href="Highlines:detail id=>$highline->id,tab=>'info'">Informace</a></li>
+            <li {ifCurrent Highlines:detail id=>$highline->id,tab=>'attempts'}class="active"{/ifCurrent}>
+                <a n:href="Highlines:detail id=>$highline->id,tab=>'attempts'">
+                    <span class="mr-5">Přechody</span>
+                    <span class="badge bg--primary">{$highline->attempts|length}</span>
+                </a>
+            </li>
+            <li {ifCurrent Highlines:detail id=>$highline->id,tab=>'gallery'}class="active"{/ifCurrent}>
+                <a n:href="Highlines:detail id=>$highline->id,tab=>'gallery'">
+                    <span class="mr-5">Galerie</span><span class="badge bg--primary">{$highline->photos|length}</span>
+                </a>
+            </li>
+            {if $user->isInRole('admin') || ($highline->uzivatel != null && $highline->uzivatel->id == $user->id)}
+                <li class="pull-right">
+                    <a n:href="Highlines:edit id=>$highline->id"><i class="fas fa-drafting-compass"></i> Upravit</a>
+                </li>
+            {/if}
+        </ul>
+    </nav>
+    {ifCurrent Highlines:detail id=>$highline->id,tab=>'info'}
+        <div class="row">
+            <div class="col col-lg-9 col-lg-push-3">
+                <img src="/line/high/{$highline->id}/foto.jpg" class="img-thumbnail mb-10" style="width: 100%">
+            </div>
+            <div class="col col-lg-3 col-lg-pull-9">
+                <div class="panel panel-default mb-10">
+                    <div class="panel-body">
+                        <table class="line-stat--large center--horizontal mb-10">
+                            <tr>
+                                <td class="text-center mb-10"><i class="line-stat__icon fas fa-arrows-alt-h"></i></td>
+                                <td><span class='line-stat__text'>{$highline->delka}&nbsp;m</span></td>
+                            </tr>
+                            <tr class="table-space-10">
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><i class="line-stat__icon fas fa-arrows-alt-v"></i></td>
+                                <td><span class='line-stat__text'>{$highline->vyska}&nbsp;m</span></td>
+                            </tr>
+                        </table>
+                        <div class="text-center">
+                            <div class="stars stars--large" style="--rating:{$highline->hodnoceni}"></div>
+                        </div>
+                    </div>
+                </div>
+                {if $user->isLoggedIn()}
+                    <div class="panel panel-default mb-10">
+                        <div class="panel-body">
+                            <a n:href="Highlines:detail id=>$highline->id,tab=>'attempts'"><i
+                                        class="fab fa-hotjar line-stat__icon"></i><span>Zapiš přechod</span></a>
+                        </div>
+                    </div>
+                {/if}
+                {if $lastAttempts|length > 0}
+                    <div class="panel panel-default mb-10">
+                        <div class="panel-body">
+                            <h4>Poslední přechody</h4>
+                            {foreach $lastAttempts as $attempt}
+                                <div class="mb-10">
+                                    <a n:href="Users:detail $attempt->uzivatel->id">
+                                        <span class="hl-attempt__name">{$attempt->uzivatel->jmeno}&nbsp;{$attempt->uzivatel->prijmeni}</span>
+                                        <span class="hl-attempt__nick">@{$attempt->uzivatel->nick}</span>
+                                    </a>
+                                    <div class="hl-attempt__date">{$attempt->datum|date:'j. n. Y'}
+                                        - {$attempt->styl}</div>
+                                    <span class="hl-attempt__comment">{$attempt->poznamka}</span>
+                                </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-lg-12">
+                <table class="table">
+                    <tr>
+                        <td class="col-xs-3 col-sm-3 col-lg-3"><strong>Další informace:</strong></td>
+                        <td>{$highline->getInfo()|noescape}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kotvení bodu 1:</strong></td>
+                        <td>{$highline->getPointOneInfo()|noescape}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kotvení bodu 2:</strong></td>
+                        <td>{$highline->getPointTwoInfo()|noescape}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Doba napínání [min]:</strong></td>
+                        <td>{$highline->timeTensioning}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Doba přístupu [min]:</strong></td>
+                        <td>{$highline->timeApproach}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Historie názvu:</strong></td>
+                        <td>{$highline->getNameHistory()|noescape}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Autor:</strong></td>
+                        <td>{$highline->autor|noescape}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Datum 1. napnutí:</strong></td>
+                        <td>{$highline->datum|date:'d.m.Y'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Přidal:</strong></td>
+                        <td><a n:href="Users:detail $highline->uzivatel->id">{$highline->uzivatel->nick}</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {if $highline->point1}
+            <div class="row">
+                <div id="map-canvas" class="thumbnail col-12 col-lg-12" style="min-height: 400px"></div>
+            </div>
+        {/if}
+    {/ifCurrent}
+    {ifCurrent Highlines:detail id=>$highline->id,tab=>'attempts'}
+        {if $user->isLoggedIn()}
+            <h3>Přidat lajnu do deníčku</h3>
+            <hr>
+            <div class="row">
+                <div class="col-xs-12 col-md-6">
+                    {control newAttemptForm}
+                </div>
+                <div class="col-xs-12 col-md-6">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">Styly přechodu</div>
+                        <div class="panel-body">
+                            <div><b>OSFM (onsight full man)</b> – přechod highline tam a zpět na první pokus</div>
+                            <div><b>OS, FM (onsight, full man)</b> – přechod na první pokus tam, cesta zpátky čistě, ale
+                                na více pokusů
+                            </div>
+                            <div><b>OS (onsight)</b> – přechod lajny jedním směrem na první pokus</div>
+                            <div><b>FM (full man)</b> – čistý přechod obou směrů</div>
+                            <div><b>AF (all free)</b> – přechod lajny od začátku na konec, ale s pády</div>
+                            <div><b>OW (one way)</b> – přechod čistě bez pádů, ale jen jedním směrem</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/if}
+        {snippet tablePrechody}
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Lajner</th>
+                    <th>Styl</th>
+                    <th>Poznámka</th>
+                    <th style="width: 105px">Hodnocení</th>
+                    <th n:if="$user->isLoggedIn()">Smaž</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $highline->getAttempts() as $p}
+                    {if $p->getUzivatel()->getEnabled()}
+                        <tr>
+                            <td>{$p->datum|date:'%d.%m.%Y'}</td>
+                            <td>
+                                <a n:href="Users:detail user=>$p->getUzivatel()->getId()">{$p->getUzivatel()->getNick()}</a>
+                            </td>
+                            <td class="center">{$p->styl}</td>
+                            <td>{$p->poznamka}</td>
+                            <td class="center">{control rating, $p->hodnoceni}</td>
+                            <td n:if="$user->isLoggedIn()" class="center">
+                                {if $p->uzivatel->id==$user->getIdentity()->id}
+                                    <a n:href="deleteAttempt! $p->id" class="ajax">
+                                        <img src="{$baseUri}/images/ico/trash.png"/>
+                                    </a>
+                                {/if}
+                            </td>
+                        </tr>
+                    {/if}
+                {/foreach}
+                </tbody>
+            </table>
+        {/snippet}
+    {/ifCurrent}
+    {ifCurrent Highlines:detail id=>$highline->id,tab=>'gallery'}
+        <div class="row">
+            {foreach $highline->photos as $p}
+                <div class="col-xs-3 col-md-3">
+                    <a href="/line/high/{$highline->id}/foto/{$p->file|noescape}" rel="photo" class="thumbnail">
+                        <img src="/line/high/{$highline->id}/foto/thumb_{$p->file|noescape}" alt="{$p->text|noescape}">
+                    </a>
+                </div>
+            {/foreach}
+        </div>
+
+
+        <p class="nadpis2">Galerie<a n:href="Highlines:foto $highline->id"><img
+                        src="{$baseUri}/images/ico/edit.png"/></a></p>
+    {/ifCurrent}
+{/block}
+
+{block scripts}
+    <script type="text/javascript">
+      var markerParking = null;
+      var markerPoint1 = null;
+      var markerPoint2 = null;
+      var line = null;
+      var map = null;
+
+      var point1 = JSON.parse({$point1});
+      var point2 = JSON.parse({$point2})
+      var parking = JSON.parse({$parking})
+
+      function initMap() {
+        if (point1.lat && point1.lng) {
+          var lat = point1.lat;
+          var lng = point1.lng;
+
+          var mapOptions = {
+            zoom: 10,
+            center: {
+              lat: parseFloat(lat),
+              lng: parseFloat(lng)
+            },
+            mapTypeId: google.maps.MapTypeId.HYBRID
+          }
+          map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+          markerPoint1 = new google.maps.Marker({
+            position: {
+              lat: parseFloat(point1.lat),
+              lng: parseFloat(point1.lng)
+            },
+            icon: '/images/ico/maps/number_1.png',
+            map: map
+          });
+
+          if (point2.lat && point2.lng) {
+            markerPoint2 = new google.maps.Marker({
+              position: {
+                lat: parseFloat(point2.lat),
+                lng: parseFloat(point2.lng)
+              },
+              icon: '/images/ico/maps/number_2.png',
+              map: map
+            });
+          }
+
+          if (parking.lat && parking.lng) {
+            markerParking = new google.maps.Marker({
+              position: {
+                lat: parseFloat(parking.lat),
+                lng: parseFloat(parking.lng)
+              },
+              icon: '/images/ico/maps/car.png',
+              map: map
+            });
+          }
+
+          if (point1.lat && point2.lat) {
+            line = new google.maps.Polyline({
+              map: map,
+              path: [markerPoint1.getPosition(), markerPoint2.getPosition()],
+              geodesic: true,
+              strokeColor: '#FF0000',
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+            });
+          }
+
+          var bounds = new google.maps.LatLngBounds();
+          if (markerParking !== null) {
+            bounds.extend(new google.maps.LatLng(markerParking.getPosition().lat(), markerParking.getPosition().lng()));
+          }
+          if (markerPoint1 !== null) {
+            bounds.extend(new google.maps.LatLng(markerPoint1.getPosition().lat(), markerPoint1.getPosition().lng()));
+          }
+          if (markerPoint2 !== null) {
+            bounds.extend(new google.maps.LatLng(markerPoint2.getPosition().lat(), markerPoint2.getPosition().lng()));
+          }
+          map.fitBounds(bounds);
+        }
+      }
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJpKUy8Ko7uyISDtDEdJYb7Us8nRvY-Tc&callback=initMap">
+    </script>
+{/block}

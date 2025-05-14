@@ -1,0 +1,15 @@
+{block #title}Tvoje lajny{/block}
+
+{block content}
+    <ol class="breadcrumb mt-10">
+        <li><a n:href="Highlines:default"><i class="fas fa-book"></i>&nbsp;Highline Book</a></li>
+        <li class="active">Tvoje lajny</li>
+    </ol>
+    {foreach $highlines as $highline}
+        <p>
+            <span>{$highline->jmeno}</span>
+            <a class="mr-5" n:href="Highlines:detail id=>$highline->id"><i class="far fa-eye"></i> Detail</a>
+            <a n:href="Highlines:edit id=>$highline->id"><i class="fas fa-drafting-compass"></i> Edituj</a>
+        </p>
+    {/foreach}
+{/block}

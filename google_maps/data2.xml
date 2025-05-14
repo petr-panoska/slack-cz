@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<hotels>
+  <hotel
+    lat="49.5822260446217"
+    lng="14.9908447265625"
+    label="Hotel U Zlatého jelena"
+    image="u-zlateho-jelena.jpg"
+    url="http://www.hotel-u-zlateho-jelena.cz/cz-index.php" />
+  <hotel
+    lat="50.07082360418433"
+    lng="14.442579746246338"
+    label="Pension Beetle"
+    image="pension-beetle.jpg"
+    url="http://www.pension-beetle.cz/cz-index.php" />
+  <hotel
+    lat="50.08458"
+    lng="14.416553"
+    label="Hotel U Červené Židle"
+    image="u-cervene-zidle.jpg"
+    url="http://www.beetle-tour.cz/cz-red-chair-pension.php" />
+</hotels>
