@@ -24,6 +24,6 @@ jobs:
         port: 22
         script: |
           cd /var/www/html/slack-cz
-          git pull origin master
+          git pull origin main
           git status
           composer install
