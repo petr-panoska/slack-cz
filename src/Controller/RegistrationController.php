@@ -33,7 +33,7 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var string $plainPassword */
-            $plainPassword = $form->get('plainPassword')->getData();
+            $plainPassword = $form->get('password')->get('plainPassword')->getData();
 
             // encode the plain password
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
@@ -89,6 +89,8 @@ class RegistrationController extends AbstractController
         // @TODO Change the redirect on success and handle or remove the flash message in your templates
         $this->addFlash('success', 'Your email address has been verified.');
 
-        return $security->login($user, 'form_login', 'main');
+        $security->login($user, 'form_login', 'main');
+
+        return $this->redirectToRoute('app_profile');
     }
 }
