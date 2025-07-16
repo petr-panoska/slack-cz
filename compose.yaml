@@ -39,7 +39,18 @@ services:
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: old
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+
 volumes:
 ###> doctrine/doctrine-bundle ###
   database_data:
+  mysql_data:
 ###< doctrine/doctrine-bundle ###

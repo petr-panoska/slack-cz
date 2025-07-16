@@ -18,3 +18,14 @@ check symfony environment status:
 ```
 docker compose run php symfony check:requirements
 ```
+
+## Old database
+
+### Import data
+- mysql database should be created automatically when running docker container
+- database can be created with Doctrine (e.g. `docker compose run php bin/console doctrine:database:create --connection=old`)
+- access database via [adminer](http://localhost:8080/?server=mysql&username=root&db=old)
+- use adminer to import source dump (`*.sql.gz`)
+
+### Entities
+- entities are mapped with Doctrine and lives in `src/Entity/Old` dir

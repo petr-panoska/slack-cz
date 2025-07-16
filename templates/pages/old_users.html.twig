@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}All old users{% endblock %}
+
+{% block body %}
+<div>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>id</th>
+                <th>nick</th>
+                <th>heslo</th>
+                <th>jmeno</th>
+                <th>prijmeni</th>
+                <th>rok_nar</th>
+                <th>email</th>
+                <th>telefon</th>
+                <th>mesto</th>
+                <th>pohlavi</th>
+                <th>role</th>
+                <th>enabled</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ user.id }}</td>
+                <td>{{ user.nick }}</td>
+                <td>{{ user.heslo }}</td>
+                <td>{{ user.jmeno }}</td>
+                <td>{{ user.prijmeni }}</td>
+                <td>{{ user.rok_nar }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.telefon }}</td>
+                <td>{{ user.mesto }}</td>
+                <td>{{ user.pohlavi }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.enabled }}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="13">No users found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
