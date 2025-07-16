@@ -4,6 +4,7 @@
 
 ### Install
 ```
+docker compose up -d
 make dcSetup
 make dcInitDb
 ```

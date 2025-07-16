@@ -2,7 +2,7 @@
 <div style="display: flex; justify-content: flex-end; align-items: center; padding: 10px 20px; background: #f5f5f5; border-bottom: 1px solid #ddd;">
     {% if app.user %}
         <span style="margin-right: 16px;">
-            Hello, <a href="{{ path('app_profile') }}">{{ app.user.username }}</a>
+            {# Hello, <a href="{{ path('app_profile') }}">{{ app.user.username }}</a> #}
         </span>
         <form method="post" action="{{ path('app_logout') }}" style="display: inline;">
             <button type="submit" style="margin-right: 8px;">Logout</button>
