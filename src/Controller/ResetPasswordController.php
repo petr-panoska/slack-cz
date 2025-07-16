@@ -126,7 +126,7 @@ class ResetPasswordController extends AbstractController
 
             $security->login($user);
 
-            return $this->redirectToRoute('app_index'); //todo redirect to user profile page
+            return $this->redirectToRoute('app_profile');
         }
 
         return $this->render('reset_password/reset.html.twig', [
