@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Old Highlines{% endblock %}
+
+{% block body %}
+    <h1>Old Highlines</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>typ</th>
+                <th>uzivatel</th>
+                <th>jmeno</th>
+                <th>delka</th>
+                <th>vyska</th>
+                <th>stat</th>
+                <th>oblast</th>
+                <th>kraj</th>
+                <th>gps</th>
+                <th>hodnoceni</th>
+                <th>kotveni</th>
+                <th>info</th>
+                <th>pointOneInfo</th>
+                <th>pointTwoInfo</th>
+                <th>autor</th>
+                <th>datum</th>
+                <th>lat</th>
+                <th>lng</th>
+                <th>parking</th>
+                <th>point1</th>
+                <th>point2</th>
+                <th>nameHistory</th>
+                <th>timeApproach</th>
+                <th>timeTensioning</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for highline in highlines %}
+                <tr>
+                    <td>{{ highline.id }}</td>
+                    <td>{{ highline.typ.id }}</td>
+                    <td>{{ highline.uzivatel.id }}</td>
+                    <td>{{ highline.jmeno }}</td>
+                    <td>{{ highline.delka }}</td>
+                    <td>{{ highline.vyska }}</td>
+                    <td>{{ highline.stat }}</td>
+                    <td>{{ highline.oblast }}</td>
+                    <td>{{ highline.kraj }}</td>
+                    <td>{{ highline.gps }}</td>
+                    <td>{{ highline.hodnoceni }}</td>
+                    <td>{{ highline.kotveni }}</td>
+                    <td>{{ highline.info }}</td>
+                    <td>{{ highline.pointOneInfo }}</td>
+                    <td>{{ highline.pointTwoInfo }}</td>
+                    <td>{{ highline.autor }}</td>
+                    <td>{{ highline.datum ? highline.datum|date('Y-m-d') : '' }}</td>
+                    <td>{{ highline.lat }}</td>
+                    <td>{{ highline.lng }}</td>
+                    <td>{{ highline.parking ? highline.parking.id : '' }}</td>
+                    <td>{{ highline.point1 ? highline.point1.id : '' }}</td>
+                    <td>{{ highline.point2 ? highline.point2.id : '' }}</td>
+                    <td>{{ highline.nameHistory }}</td>
+                    <td>{{ highline.timeApproach }}</td>
+                    <td>{{ highline.timeTensioning }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="25">No highlines found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

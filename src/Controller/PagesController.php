@@ -36,4 +36,15 @@ final class PagesController extends AbstractController
             'users' => $users
         ]);
     }
+
+    #[Route('/old-highlines', name: 'app_old_highlines')]
+    public function oldHighlines(ManagerRegistry $doctrine): Response
+    {
+        $oldEm = $doctrine->getManager('old');
+        $highlines = $oldEm->getRepository(\App\Entity\Old\Highline::class)->findAll();
+
+        return $this->render('pages/old_highlines.html.twig', [
+            'highlines' => $highlines
+        ]);
+    }
 }

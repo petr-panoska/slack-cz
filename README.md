@@ -23,7 +23,7 @@ docker compose run php symfony check:requirements
 
 ### Import data
 - mysql database should be created automatically when running docker container
-- database can be created with Doctrine (e.g. `docker compose run php bin/console doctrine:database:create --connection=old`)
+- database can be created with Doctrine (`make dcInitDbOld`)
 - access database via [adminer](http://localhost:8080/?server=mysql&username=root&db=old)
 - use adminer to import source dump (`*.sql.gz`)
 
