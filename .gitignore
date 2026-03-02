@@ -1,2 +1,4 @@
 log/*
-temp/cache/*
+!log/.gitkeep
+temp/*
+!temp/.gitkeep
