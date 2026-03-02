@@ -2,3 +2,4 @@ log/*
 !log/.gitkeep
 temp/*
 !temp/.gitkeep
+vendor
