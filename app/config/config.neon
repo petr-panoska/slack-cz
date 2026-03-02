@@ -9,10 +9,10 @@ common:
 		databasepath: app/models
 		database:
 			driver: pdo_mysql
-			host: localhost
-			dbname: slackcz
-			user: slackcz
-			password: Kunanesenanuk1
+			host: db
+			dbname: gslackczdb
+			user: slackcz.44953
+			password: user
 			charset: utf8
 			collation: utf8_czech_ci
 
@@ -52,7 +52,6 @@ common:
 		highlineMedia: HighlinesBook\HighlineMedia
 		highlineFoto: HighlinesBook\HighlineFoto
 		uzivatel: HighlinesBook\Uzivatel
-		forum: HighlinesBook\Forum
 		promenna: HighlinesBook\Promenna
 		event: HighlinesBook\Event
 		video: HighlinesBook\Video

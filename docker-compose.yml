@@ -1,4 +1,3 @@
-version: '3'
 services:
   php-apache:
     build: ./docker/php
@@ -15,7 +14,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_DATABASE: 'gslackczdb'
-      MYSQL_USER: 'user'
+      MYSQL_USER: 'slackcz.44953'
       MYSQL_PASSWORD: 'user'
       MYSQL_ROOT_PASSWORD: 'password'
     ports:

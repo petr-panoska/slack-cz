@@ -49,10 +49,10 @@ class EnvironmentManager extends Object
       //todo
       $dbParams = array(
           'driver' => 'pdo_mysql',
-          'host' => 'localhost',
-          'user' => 'slackcz',
-          'password' => 'Kunanesenanuk1',
-          'dbname' => 'slackcz',
+          'host' => 'db',
+          'user' => 'slackcz.44953',
+          'password' => 'user',
+          'dbname' => 'gslackczdb',
           'charset' => 'utf8',
           'driverOptions' => array(
               1002 => 'SET NAMES utf8'
