@@ -17,6 +17,12 @@
 	# prevents files starting with dot to be viewed by browser
 	RewriteRule /\.|^\.(?!well-known/) - [F]
 
+	# hard-disable forum endpoints (Nette route + legacy PHP scripts)
+	RewriteRule ^forum(?:/.*)?$ - [R=404,L,NC]
+	RewriteRule ^forum-[0-9]+/?$ - [R=404,L,NC]
+	RewriteRule ^(?:include|naseptavace)/forum(?:_kod)?\.php$ - [F,L,NC]
+	RewriteRule ^(?:3rdParty|book/3rdParty)/captcha/forum_kod\.php$ - [F,L,NC]
+
 	# front controller
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
