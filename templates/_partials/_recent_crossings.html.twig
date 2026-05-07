@@ -1,0 +1,25 @@
+{# Renders a list of recent highline crossings.
+   Params:
+     crossings  – iterable of HighlineCrossing
+     layout     – 'panel' (default, vertical list) or 'stripe' (horizontal scroll) #}
+{% set layout = layout|default('panel') %}
+{% if crossings|length > 0 %}
+<ul class="crossings-list crossings-list-{{ layout }}">
+    {% for c in crossings %}
+        <li class="crossings-item">
+            <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
+            <span class="crossings-user">{{ c.user.displayName }}</span>
+            <span class="crossings-line">{{ c.highline.name }}</span>
+            <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
+                {% if c.rating %}
+                    {% for s in 1..5 %}
+                        <span class="crossings-star{% if s <= c.rating %} on{% endif %}">★</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="crossings-rating-none">–</span>
+                {% endif %}
+            </span>
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}

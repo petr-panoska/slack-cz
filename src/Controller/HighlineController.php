@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\HighlineCrossingRepository;
 use App\Repository\HighlineRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,5 +21,11 @@ final class HighlineController extends AbstractController
     public function data(HighlineRepository $repository): JsonResponse
     {
         return new JsonResponse($repository->findAllForMap());
+    }
+
+    #[Route('/mapa/recent-crossings', name: 'app_highline_map_recent_crossings', methods: ['GET'])]
+    public function recentCrossings(HighlineCrossingRepository $repository): JsonResponse
+    {
+        return new JsonResponse($repository->findRecentForMap(5));
     }
 }

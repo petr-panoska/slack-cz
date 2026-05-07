@@ -34,6 +34,11 @@ export default class extends Controller {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         }).addTo(this.map);
 
+        await this.loadHighlines();
+        await this.afterMapReady();
+    }
+
+    async loadHighlines() {
         const response = await fetch(this.dataUrlValue, { headers: { Accept: 'application/json' } });
         if (!response.ok) {
             console.error('Failed to load highlines', response.status);
@@ -41,7 +46,8 @@ export default class extends Controller {
         }
 
         const highlines = await response.json();
-        const markers = [];
+        this.markers = [];
+        this.markersByHighlineId = new Map();
         for (const h of highlines) {
             const lat = parseFloat(h.latitude);
             const lng = parseFloat(h.longitude);
@@ -49,13 +55,18 @@ export default class extends Controller {
 
             const marker = L.marker([lat, lng]).bindPopup(this.popupHtml(h));
             marker.addTo(this.map);
-            markers.push(marker);
+            this.markers.push(marker);
+            this.markersByHighlineId.set(h.id, marker);
         }
 
-        if (markers.length > 0) {
-            const group = L.featureGroup(markers);
+        if (this.markers.length > 0) {
+            const group = L.featureGroup(this.markers);
             this.map.fitBounds(group.getBounds().pad(0.1));
         }
+    }
+
+    async afterMapReady() {
+        // hook for subclasses
     }
 
     disconnect() {
@@ -79,7 +90,7 @@ export default class extends Controller {
     }
 }
 
-function escapeHtml(value) {
+export function escapeHtml(value) {
     if (value == null) return '';
     return String(value)
         .replaceAll('&', '&amp;')

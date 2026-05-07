@@ -149,9 +149,16 @@ a {
     margin: 0 auto;
     padding: 32px 24px 64px;
     display: grid;
-    grid-template-columns: 280px 1fr 360px;
+    grid-template-columns: 1fr 360px;
     gap: 20px;
     align-items: start;
+}
+
+.page-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
 }
 
 @media (max-width: 1100px) {
@@ -234,8 +241,26 @@ a {
     font-size: 0.85rem;
 }
 
-.crossings-item:last-child {
+.crossings-list-panel .crossings-item:last-child {
     border-bottom: none;
+}
+
+/* Horizontal stripe variant (used under the featured map on index) */
+.crossings-list-stripe {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+}
+
+.crossings-list-stripe .crossings-item {
+    flex: 0 0 240px;
+    border-bottom: none;
+    border-right: 1px solid var(--color-line);
+    scroll-snap-align: start;
+}
+
+.crossings-list-stripe .crossings-item:last-child {
+    border-right: none;
 }
 
 .crossings-date {
@@ -299,15 +324,73 @@ a {
 /* ---------- Map panel (index) ---------- */
 
 .panel-map-canvas {
-    height: 520px;
+    height: 560px;
     width: 100%;
+}
+
+/* Pulsing magenta dot rendered over the highline marker of a recent crossing */
+.crossing-pulse {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    pointer-events: auto;
+}
+
+.crossing-pulse-dot,
+.crossing-pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.crossing-pulse-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--color-accent);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+.crossing-pulse-ring {
+    width: 12px;
+    height: 12px;
+    background: var(--color-accent);
+    opacity: 0.6;
+    z-index: 1;
+    animation: crossing-pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes crossing-pulse-ring {
+    0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.55; }
+    100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+
+.crossing-popup strong {
+    font-size: 1.05em;
+}
+
+.crossing-popup-line {
+    font-style: italic;
+}
+
+.crossing-popup .muted {
+    color: var(--color-muted);
+    font-size: 0.9em;
+}
+
+.crossing-popup-stars {
+    color: var(--color-accent);
+    letter-spacing: -0.05em;
 }
 
 .tv-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    max-height: 520px;
+    max-height: 760px;
     overflow-y: auto;
 }
 
@@ -479,6 +562,174 @@ a {
     opacity: 0.85;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
+}
+
+/* ---------- Intro splash overlay ---------- */
+
+.intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at center, #1a0010 0%, #050005 75%);
+    color: #fff;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.intro-dismissing {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.05);
+    visibility: hidden;
+    transition: opacity 0.7s ease, transform 0.7s ease, visibility 0s linear 0.7s;
+}
+
+.intro-content {
+    text-align: center;
+    transform: translateY(-4vh);
+}
+
+.intro-button {
+    background: transparent;
+    border: 2px solid var(--color-accent);
+    color: var(--color-accent);
+    padding: 22px 72px;
+    font-family: inherit;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+    text-shadow: 0 0 24px rgba(225, 0, 91, 0.7);
+    box-shadow:
+        0 0 36px rgba(225, 0, 91, 0.45),
+        inset 0 0 24px rgba(225, 0, 91, 0.1);
+    animation: intro-button-pulse 1.8s ease-in-out infinite;
+}
+
+.intro-button:hover,
+.intro-button:focus-visible {
+    background: var(--color-accent);
+    color: #0a0005;
+    text-shadow: none;
+    box-shadow:
+        0 0 60px rgba(225, 0, 91, 0.8),
+        inset 0 0 12px rgba(255, 255, 255, 0.3);
+    outline: none;
+}
+
+.intro-button:active {
+    transform: scale(0.97);
+}
+
+.intro-tagline {
+    margin: 28px 0 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+}
+
+@keyframes intro-button-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 36px rgba(225, 0, 91, 0.45),
+            inset 0 0 24px rgba(225, 0, 91, 0.1);
+    }
+    50% {
+        box-shadow:
+            0 0 56px rgba(225, 0, 91, 0.75),
+            inset 0 0 24px rgba(225, 0, 91, 0.2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intro-button {
+        animation: none;
+    }
+    .intro-overlay {
+        transition: opacity 0.2s ease;
+    }
+}
+
+/* ---------- Music menu (visible after splash dismissed) ---------- */
+
+.music-menu {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px 6px 8px;
+    background: rgba(20, 0, 12, 0.85);
+    border: 1px solid rgba(225, 0, 91, 0.35);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.78rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.5s ease 0.4s, transform 0.5s ease 0.4s;
+}
+
+.intro-wrapper.intro-started .music-menu {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.music-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 1rem;
+    line-height: 1;
+    border-radius: 999px;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+}
+
+.music-btn:hover,
+.music-btn:focus-visible {
+    background: rgba(225, 0, 91, 0.35);
+    outline: none;
+}
+
+.music-mute .music-icon {
+    display: inline-block;
+    transition: opacity 0.15s;
+}
+
+.music-mute .music-icon-off { display: none; }
+.music-mute.is-muted .music-icon-on { display: none; }
+.music-mute.is-muted .music-icon-off { display: inline-block; color: rgba(255, 255, 255, 0.5); }
+
+.music-mute.is-muted ~ .music-label {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.music-label {
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 0 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+    .music-label { max-width: 130px; }
 }
 
 /* ---------- Article (about) ---------- */

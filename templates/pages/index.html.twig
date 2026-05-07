@@ -3,53 +3,76 @@
 {% block title %}slack.cz{% endblock %}
 
 {% block body %}
-<div class="page-grid">
-    {% if recent_crossings|length > 0 %}
-    <aside class="panel panel-crossings">
-        <header class="panel-header">
-            <div class="panel-title">
-                <span class="panel-dot panel-dot-crossings"></span>
-                <h2>Poslední přechody</h2>
-            </div>
-        </header>
-        <ul class="crossings-list">
-            {% for c in recent_crossings %}
-                <li class="crossings-item">
-                    <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
-                    <span class="crossings-user">{{ c.user.displayName }}</span>
-                    <span class="crossings-line">{{ c.highline.name }}</span>
-                    <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
-                        {% if c.rating %}
-                            {% for s in 1..5 %}
-                                <span class="crossings-star{% if s <= c.rating %} on{% endif %}">★</span>
-                            {% endfor %}
-                        {% else %}
-                            <span class="crossings-rating-none">–</span>
-                        {% endif %}
-                    </span>
-                </li>
-            {% endfor %}
-        </ul>
-    </aside>
-    {% endif %}
+{% set music_tracks = [
+    { title: 'Dark Wave 80s Retro Vibes', artist: 'nickpanekAIassets', src: asset('audio/intro-1-dark.mp3') },
+    { title: 'Neonscapes',                artist: 'FSM Team feat. <e s c p>', src: asset('audio/intro-2-chill.mp3') },
+    { title: 'Cyber Thriller',            artist: 'FSM Team feat. <e s c p>', src: asset('audio/intro-3-driving.mp3') },
+    { title: 'Magenta Metropolis',        artist: 'FSM Team feat. <e s c p>', src: asset('audio/intro-4-cinematic.mp3') },
+] %}
 
-    <section class="panel panel-map">
-        <header class="panel-header">
-            <div class="panel-title">
-                <span class="panel-dot panel-dot-map"></span>
-                <h2>Highline mapa</h2>
-            </div>
-            <a href="{{ path('app_highline_map') }}" class="panel-link">Otevřít →</a>
-        </header>
-        <div
-            class="panel-map-canvas"
-            data-controller="map"
-            data-map-data-url-value="{{ path('app_highline_map_data') }}"
-            data-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-            data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-            data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
-        ></div>
-    </section>
+<div
+    class="intro-wrapper"
+    data-controller="intro"
+    data-intro-tracks-value="{{ music_tracks|json_encode }}"
+>
+    <div class="intro-overlay" data-intro-target="overlay">
+        <div class="intro-content">
+            <button type="button" class="intro-button" data-action="click->intro#enter">Vstoupit</button>
+            <p class="intro-tagline">Highline · Midline · Urbanline</p>
+        </div>
+    </div>
+
+    <div class="music-menu" data-intro-target="menu" role="group" aria-label="Hudba">
+        <button
+            type="button"
+            class="music-btn music-mute"
+            data-intro-target="muteBtn"
+            data-action="click->intro#toggleMute"
+            aria-label="Ztlumit"
+            aria-pressed="false"
+        >
+            <span class="music-icon music-icon-on" aria-hidden="true">♪</span>
+            <span class="music-icon music-icon-off" aria-hidden="true">⊘</span>
+        </button>
+        <button type="button" class="music-btn" data-action="click->intro#prev" aria-label="Předchozí stopa">‹</button>
+        <span class="music-label" data-intro-target="label"></span>
+        <button type="button" class="music-btn" data-action="click->intro#next" aria-label="Další stopa">›</button>
+    </div>
+</div>
+
+<div class="page-grid">
+    <div class="page-main">
+        <section class="panel panel-map">
+            <header class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-dot panel-dot-map"></span>
+                    <h2>Highline mapa</h2>
+                </div>
+                <a href="{{ path('app_highline_map') }}" class="panel-link">Otevřít →</a>
+            </header>
+            <div
+                class="panel-map-canvas"
+                data-controller="featured-map"
+                data-featured-map-data-url-value="{{ path('app_highline_map_data') }}"
+                data-featured-map-crossings-url-value="{{ path('app_highline_map_recent_crossings') }}"
+                data-featured-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                data-featured-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                data-featured-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+            ></div>
+        </section>
+
+        {% if recent_crossings|length > 0 %}
+        <aside class="panel panel-crossings panel-crossings-stripe">
+            <header class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-dot panel-dot-crossings"></span>
+                    <h2>Poslední přechody</h2>
+                </div>
+            </header>
+            {{ include('_partials/_recent_crossings.html.twig', { crossings: recent_crossings, layout: 'stripe' }) }}
+        </aside>
+        {% endif %}
+    </div>
 
     {% if feed_items|length > 0 %}
     <aside class="panel panel-tv">
