@@ -23,9 +23,9 @@ final class HighlineController extends AbstractController
         return new JsonResponse($repository->findAllForMap());
     }
 
-    #[Route('/mapa/recent-crossings', name: 'app_highline_map_recent_crossings', methods: ['GET'])]
-    public function recentCrossings(HighlineCrossingRepository $repository): JsonResponse
+    #[Route('/mapa/recent-users', name: 'app_highline_map_recent_users', methods: ['GET'])]
+    public function recentUsers(HighlineCrossingRepository $repository): JsonResponse
     {
-        return new JsonResponse($repository->findRecentForMap(5));
+        return new JsonResponse($repository->findRecentUsersForMap(10));
     }
 }

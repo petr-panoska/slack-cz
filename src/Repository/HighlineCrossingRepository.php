@@ -33,10 +33,12 @@ class HighlineCrossingRepository extends ServiceEntityRepository
     }
 
     /**
-     * Lightweight rows for the map overlay: highline coords + user display + rating.
+     * Most-recent crossing per unique user (top N users by recency).
+     * One row per user — even if user A has 5 recent crossings, only the latest one shows.
      *
      * @return list<array{
      *     id:int,
+     *     userId:int,
      *     highlineId:int,
      *     highlineName:string,
      *     latitude:string,
@@ -46,7 +48,7 @@ class HighlineCrossingRepository extends ServiceEntityRepository
      *     rating:?int
      * }>
      */
-    public function findRecentForMap(int $limit = 5): array
+    public function findRecentUsersForMap(int $limit = 10): array
     {
         $rows = $this->createQueryBuilder('c')
             ->select(
@@ -57,6 +59,7 @@ class HighlineCrossingRepository extends ServiceEntityRepository
                 'h.name AS highlineName',
                 'h.latitude AS latitude',
                 'h.longitude AS longitude',
+                'u.id AS userId',
                 'u.nick AS nick',
                 'u.email AS email',
             )
@@ -64,13 +67,23 @@ class HighlineCrossingRepository extends ServiceEntityRepository
             ->join('c.user', 'u')
             ->orderBy('c.crossedAt', 'DESC')
             ->addOrderBy('c.id', 'DESC')
-            ->setMaxResults($limit)
+            ->setMaxResults($limit * 5) // fetch extra rows so we have enough after dedup
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(static function (array $r): array {
+        $byUser = [];
+        foreach ($rows as $r) {
+            $uid = (int) $r['userId'];
+            if (!isset($byUser[$uid])) {
+                $byUser[$uid] = $r;
+                if (count($byUser) >= $limit) break;
+            }
+        }
+
+        return array_values(array_map(static function (array $r): array {
             return [
                 'id' => (int) $r['id'],
+                'userId' => (int) $r['userId'],
                 'highlineId' => (int) $r['highlineId'],
                 'highlineName' => $r['highlineName'],
                 'latitude' => $r['latitude'],
@@ -79,6 +92,6 @@ class HighlineCrossingRepository extends ServiceEntityRepository
                 'crossedAt' => $r['crossedAt']->format('Y-m-d'),
                 'rating' => $r['rating'] !== null ? (int) $r['rating'] : null,
             ];
-        }, $rows);
+        }, $byUser));
     }
 }

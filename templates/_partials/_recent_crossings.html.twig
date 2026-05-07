@@ -8,8 +8,10 @@
     {% for c in crossings %}
         <li class="crossings-item">
             <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
+            {% if c.style %}
+                <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
+            {% endif %}
             <span class="crossings-user">{{ c.user.displayName }}</span>
-            <span class="crossings-line">{{ c.highline.name }}</span>
             <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
                 {% if c.rating %}
                     {% for s in 1..5 %}
@@ -19,6 +21,10 @@
                     <span class="crossings-rating-none">–</span>
                 {% endif %}
             </span>
+            <span class="crossings-line">{{ c.highline.name }}</span>
+            {% if c.comment %}
+                <p class="crossings-comment">{{ c.comment }}</p>
+            {% endif %}
         </li>
     {% endfor %}
 </ul>

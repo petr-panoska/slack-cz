@@ -52,12 +52,12 @@
             </header>
             <div
                 class="panel-map-canvas"
-                data-controller="featured-map"
-                data-featured-map-data-url-value="{{ path('app_highline_map_data') }}"
-                data-featured-map-crossings-url-value="{{ path('app_highline_map_recent_crossings') }}"
-                data-featured-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-                data-featured-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-                data-featured-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                data-controller="map"
+                data-map-data-url-value="{{ path('app_highline_map_data') }}"
+                data-map-users-url-value="{{ path('app_highline_map_recent_users') }}"
+                data-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
             ></div>
         </section>
 
