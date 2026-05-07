@@ -1,0 +1,178 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}O projektu — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article">
+    <header class="article-head">
+        <h1>O projektu</h1>
+        <p class="article-lead">
+            Krátká historie webu, který v&nbsp;různých kabátech provází českou
+            slackline scénu už od&nbsp;konce roku 2007.
+        </p>
+    </header>
+
+    <section>
+        <h2>2007 — slacklive.cz</h2>
+        <figure class="article-figure article-figure-retro">
+            <img src="{{ asset('images/slacklive-logo.gif') }}" alt="Logo SLACKlive — Everything about lines" />
+            <figcaption>Originální banner slacklive.cz — „Everything about lines"</figcaption>
+        </figure>
+        <p>
+            Začalo to jako <strong>slacklive.cz</strong>. Klasický český web
+            tehdejší doby — tabulkový layout,
+            kódování windows-1250, ručně skládané HTML stránky. Provozoval ho
+            <strong>Jiří „Kolouch" Janoušek</strong> v&nbsp;době, kdy slackline
+            v&nbsp;Česku teprve začínal — pár let po&nbsp;tom, co první lajny
+            natáhli v&nbsp;Yosemitech. Sekce <em>TEXT</em>, <em>FOTO</em>,
+            <em>VIDEO</em>, <em>FÓRUM</em>, <em>Highlines book</em>, kalendář
+            akcí. Web pořád <a href="http://www.slacklive.cz/index.htm" target="_blank" rel="noopener">funguje</a>, dnes spíš jako časová kapsle.
+        </p>
+    </section>
+
+    <section>
+        <h2>Léto 2010 — slack.cz</h2>
+        <p>
+            <strong>18.&nbsp;července&nbsp;2010</strong> Kolouch ohlašuje na&nbsp;slacklive
+            redesign a&nbsp;přesun pod nový název: <strong>slack.cz</strong>.
+            V&nbsp;tehdejším článku
+            („Slacklive v&nbsp;novém kabátě") se mluví o&nbsp;tom, proč nové stránky
+            vznikly:
+        </p>
+        <blockquote>
+            „Vítejte na&nbsp;stránce SLACK.CZ. Mladší to sestřičky slacklive.cz.
+            Důvodů ke&nbsp;změně bylo několik. Jako hlavní se ale jevila potřeba
+            větší interaktivity — tedy zapojení široké slacklajnové komunity
+            při tvorbě obsahu stránek."
+        </blockquote>
+        <p>
+            Konkrétně přibyl <em>Deníček</em>, do&nbsp;kterého si uživatelé můžou
+            zapisovat přechody highline a&nbsp;longline, a&nbsp;upgradovaný
+            <em>Highlines book</em>, kde si autoři přidávají svoje lajny. Slacklive
+            obsah se přesunul do&nbsp;sekce <em>Archiv</em>; bookmarky se
+            automaticky redirectovaly. Kolouch tehdy lajnerům taky vzkázal:
+        </p>
+        <blockquote>
+            „Nestyď se za&nbsp;češtinu a&nbsp;klidně napiš foneticky. Nejsme web
+            češtinářů, ale slakerů."
+        </blockquote>
+        <p>
+            Tahle verze běží do&nbsp;dneška — drží <strong>254 zmapovaných
+            highline</strong>, stovky článků, deníčků a&nbsp;rok od&nbsp;roku
+            rostoucí archiv.
+        </p>
+    </section>
+
+    <section class="preface">
+        <figure class="preface-figure">
+            <img src="{{ asset('images/kolouch-vitejte.jpg') }}" alt="Highline nad českou krajinou" />
+        </figure>
+        <div class="preface-content">
+            <h2>Kolouchovo úvodní slovo</h2>
+            <p class="preface-note">
+                Text, který stojí
+                na&nbsp;<a href="https://slack.cz/homepage/page?name=vitejte" target="_blank" rel="noopener">úvodní straně slack.cz</a>
+                dodnes. Zachováno doslova:
+            </p>
+            <div class="preface-body">
+            <p>
+                Vítejte na&nbsp;stránkách věnovaných SLACKLINE — modernímu provazochodectví,
+                zábavě, sportu, způsobu odreagování se od&nbsp;každodenního stresu, balancování
+                na&nbsp;tenkém popruhu, kterému prostě říkáme LAJNA.
+            </p>
+            <p>
+                Přestože jsme stáli u&nbsp;samotného zrodu SLACKLINE v&nbsp;Česku a&nbsp;od&nbsp;konce
+                roku 2007 provozujeme tyto stránky upozorňujeme, že se nechceme tvářit, jako
+                bychom o&nbsp;lajnách věděli vše. Vždyť je to teprve pár let od&nbsp;doby, kdy byla
+                u&nbsp;nás natažena první lajna po&nbsp;vzoru Yosemitských Rezidents.
+            </p>
+            <p>
+                Je tedy celkem jisté, že některé poznatky a&nbsp;způsoby napínání, jakož
+                i&nbsp;používaný materiál, budou zanedlouho překonány. Přesto, anebo právě proto
+                nás těší, že můžeme být tam, kde vzniká něco zcela nového. Naše poznávání
+                zákonitostí a&nbsp;krás SLACKLINE rostlo s&nbsp;každou přetrženou lajnou, modřinou,
+                spáleninou, nebo stehem na&nbsp;rozbité hlavě, jakož i&nbsp;ve&nbsp;chvílích vítězství
+                a&nbsp;radosti z&nbsp;překonávání vlastních limitů.
+            </p>
+            <p>
+                Stejně tak i&nbsp;nové způsoby kotvení, upínání a&nbsp;natahování, se rodily a&nbsp;rodí
+                v&nbsp;nekonečných diskuzích nad&nbsp;půllitry piva, sklenkami vína, či v&nbsp;bezesných
+                nocích slacklajnových nadšenců.
+            </p>
+            <p>
+                Velice nás těší setkávat se v&nbsp;tomto kyberprostoru s&nbsp;lidmi, kteří stejně jako
+                my propadli kouzlu balancování na&nbsp;lajně natažené pár centimetrů nad&nbsp;zelenou
+                loukou, vnímajících napětí monster dlouhých desítky metrů, užívajících si lajn
+                natažených nad&nbsp;vodou, či adrenalinových labužníků vznášejících se na&nbsp;highline
+                vysoko mezi skalami v&nbsp;magické prázdnotě mezi nebem a&nbsp;zemí.
+            </p>
+            <p>
+                Mnohem více nás však těší společná setkávání na&nbsp;lajně, ať už se jedná
+                o&nbsp;komorní akcičku uprostřed týdne někde v&nbsp;parku, adrenalinovou highline,
+                nebo o&nbsp;víkendový slacklinefest.
+            </p>
+            <p>
+                Proto budeme velice potěšeni, pokud se tyto stránky stanou zdrojem informací
+                a&nbsp;inspirace pro každého. Od&nbsp;úplného začátečníka až po&nbsp;skalního lajnera,
+                kterému se SLACKLINE stala životním stylem.
+            </p>
+            <p>
+                Ovšem žijeme v&nbsp;dodě, kdy je nezbytně nutné připsat ještě následující:
+            </p>
+            <p>
+                <em>Provozování SLACKLINE může být nebezpečné! Doporučujeme proto, stejně
+                jako při&nbsp;každé jiné lidské činnosti, používat hlavu a&nbsp;konkrétně pak mozek
+                a&nbsp;rozum, aby nedocházelo ke&nbsp;zbytečným zraněním. Slack.cz nenese žádnou
+                odpovědnost za&nbsp;případné úrazy či úmrtí v&nbsp;souvislosti s&nbsp;jejím provozováním.</em>
+            </p>
+            <p class="preface-greeting">Slack zdar!</p>
+            <p class="preface-sign">— kolouch</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>2010–2011 — vznik ČAS</h2>
+        <p>
+            Souběžně s&nbsp;rebrandem na&nbsp;slack.cz se rozjela myšlenka
+            zastřešit lajnery samostatnou organizací. Stáli za&nbsp;ní
+            <strong>Jiří „Kolouch" Janoušek</strong> a&nbsp;<strong>Jiří „George"
+            Bláha</strong>; v&nbsp;roce 2010 se k&nbsp;nim přidal
+            <strong>Ondřej „OndraHK" Kváš</strong> a&nbsp;společně dotáhli stanovy.
+        </p>
+        <p>
+            <strong>Česká asociace slackline (ČAS)</strong> byla oficiálně
+            zaregistrována <strong>4.&nbsp;března&nbsp;2011</strong>
+            u&nbsp;Ministerstva vnitra ČR jako zapsaný spolek. První valná
+            hromada proběhla
+            <strong>22.&nbsp;května&nbsp;2011</strong> v&nbsp;lezeckém centru
+            v&nbsp;Sobotce za&nbsp;účasti 29 zakládajících členů. ČAS se hlásí
+            k&nbsp;tomu, že je nejspíš nejstarší slackline organizací
+            na&nbsp;světě.
+        </p>
+    </section>
+
+    <section>
+        <h2>Dnes — nový slack.cz pod ČAS</h2>
+        <p>
+            Slack.cz z&nbsp;roku 2010 narazil na&nbsp;limity technologie té doby —
+            generování stránek z&nbsp;pohledu admina i&nbsp;uživatele přestalo
+            stačit. Mapa highline funguje, ale po&nbsp;letech přidávání by
+            potřebovala přepsat. Stejně tak deníčky, články, profily.
+        </p>
+        <p>
+            Nová verze, kterou právě čteš, se proto staví od&nbsp;základů znova
+            pod&nbsp;křídly
+            <strong><a href="https://ceska-asociace-slackline.cz/" target="_blank" rel="noopener">ČAS</a></strong>.
+            Cíl je převést hodnotu starého slack.cz (mapu lajn, komunitní obsah,
+            archiv) do&nbsp;moderního stacku, vrátit jí&nbsp;rychlost
+            a&nbsp;přidat věci, které původní appka neuměla.
+        </p>
+        <p class="article-links">
+            <a href="http://slack.cz" target="_blank" rel="noopener">slack.cz (2010) →</a>
+            <a href="http://www.slacklive.cz/index.htm" target="_blank" rel="noopener">slacklive.cz (2007) →</a>
+            <a href="https://ceska-asociace-slackline.cz/" target="_blank" rel="noopener">ČAS →</a>
+        </p>
+    </section>
+</article>
+{% endblock %}

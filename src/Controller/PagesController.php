@@ -27,6 +27,12 @@ final class PagesController extends AbstractController
         return $this->render('pages/profile.html.twig');
     }
 
+    #[Route('/o-projektu', name: 'app_about')]
+    public function about(): Response
+    {
+        return $this->render('pages/about.html.twig');
+    }
+
     #[Route('/old-users', name: 'app_old_users')]
     public function oldUsers(ManagerRegistry $doctrine): Response
     {
