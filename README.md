@@ -29,3 +29,12 @@ docker compose run php symfony check:requirements
 
 ### Entities
 - legacy entities are mapped with Doctrine and live in `src/Old/Entity` (namespace `App\Old\Entity`); they are kept outside `src/Entity` so the default Postgres EM does not pick them up
+
+## Documentation
+
+Internal docs live in [`docs/`](docs/):
+- [`architecture.md`](docs/architecture.md) — what is built and key decisions
+- [`migration.md`](docs/migration.md) — legacy data import strategy
+- [`crossing-styles.md`](docs/crossing-styles.md) — highline crossing styles taxonomy
+- [`dev.md`](docs/dev.md) — operational cheat sheet (Docker, console, DB, cache, smoke tests)
+- [`todo.md`](docs/todo.md) — open work items
