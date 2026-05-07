@@ -28,4 +28,48 @@ class HighlineRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    /**
+     * For the time-travel feature: each highline with the date it should appear on the map
+     * (= firstAscentDate, falling back to the earliest known crossing date).
+     * Highlines with no first-ascent and no crossings are excluded — nothing to anchor them in time.
+     *
+     * @return list<array{id:int,name:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string,appearanceDate:string}>
+     */
+    public function findAllForTimeline(): array
+    {
+        $sql = <<<'SQL'
+            SELECT
+                h.id,
+                h.name,
+                h.type,
+                h.length,
+                h.height,
+                h.latitude::text  AS latitude,
+                h.longitude::text AS longitude,
+                h.area,
+                h.region,
+                COALESCE(h.first_ascent_date, MIN(c.crossed_at))::text AS appearance_date
+            FROM highline h
+            LEFT JOIN highline_crossing c ON c.highline_id = h.id
+            GROUP BY h.id
+            HAVING COALESCE(h.first_ascent_date, MIN(c.crossed_at)) IS NOT NULL
+            ORDER BY appearance_date ASC, h.id ASC
+        SQL;
+
+        $rows = $this->getEntityManager()->getConnection()->executeQuery($sql)->fetchAllAssociative();
+
+        return array_map(static fn(array $r): array => [
+            'id' => (int) $r['id'],
+            'name' => $r['name'],
+            'type' => $r['type'],
+            'length' => (int) $r['length'],
+            'height' => (int) $r['height'],
+            'latitude' => $r['latitude'],
+            'longitude' => $r['longitude'],
+            'area' => $r['area'],
+            'region' => $r['region'],
+            'appearanceDate' => substr((string) $r['appearance_date'], 0, 10),
+        ], $rows);
+    }
 }

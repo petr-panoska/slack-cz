@@ -10,9 +10,20 @@ const TYPE_LABELS = {
     urban_line: 'Urban Line',
 };
 
+const STYLE_LABELS = {
+    os_fm: 'OS FM',
+    os_fm_split: 'OS, FM',
+    os: 'OS',
+    fm: 'FM',
+    ow: 'OW',
+    af: 'AF',
+    swami: 'swami',
+    solo: 'solo',
+    kotnik: 'kotník',
+};
+
 const CZECH_CENTER = [49.8, 15.5];
 
-// Curated, widely-supported emoji set used as deterministic per-user "avatar".
 const USER_EMOJIS = [
     '🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵',
     '🐔','🐧','🦅','🦉','🐺','🦄','🐝','🦋','🐢','🐠',
@@ -27,14 +38,36 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('cs-CZ', {
     year: 'numeric',
 });
 
+const DATE_FORMATTER_LONG = new Intl.DateTimeFormat('cs-CZ', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+});
+
+// At 1× speed: 30 days of virtual time pass per real second.
+// 16 years of history → ~3.25 minutes at 1×.
+const TIMELINE_DAYS_PER_SECOND = 30;
+
 export default class extends Controller {
     static values = {
         dataUrl: String,
         usersUrl: String,
+        timelineUrl: String,
         iconUrl: String,
         iconRetinaUrl: String,
         shadowUrl: String,
     };
+
+    static targets = [
+        'canvas',
+        'ttToggle',
+        'ttPanel',
+        'ttPlay',
+        'ttDate',
+        'ttSlider',
+        'ttCounter',
+        'ttSpeed',
+    ];
 
     async connect() {
         L.Icon.Default.mergeOptions({
@@ -43,16 +76,38 @@ export default class extends Controller {
             shadowUrl: this.shadowUrlValue,
         });
 
-        this.map = L.map(this.element).setView(CZECH_CENTER, 7);
+        this.map = L.map(this.canvasTarget).setView(CZECH_CENTER, 7);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         }).addTo(this.map);
 
+        // Static mode = highlines + recent users emoji
+        this.staticLayer = L.layerGroup().addTo(this.map);
+        // Timeline mode = highlines fading in chronologically + crossing pulses
+        this.timelineLayer = L.layerGroup();
+
+        this.timeTravel = false;
+        this.playing = false;
+        this.speedMultiplier = 1;
+
         await this.loadHighlines();
         await this.loadUsers();
     }
+
+    disconnect() {
+        if (this.rafHandle) {
+            cancelAnimationFrame(this.rafHandle);
+            this.rafHandle = null;
+        }
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
+    }
+
+    // ---------- Static markers (default mode) ----------
 
     async loadHighlines() {
         const response = await fetch(this.dataUrlValue, { headers: { Accept: 'application/json' } });
@@ -62,21 +117,19 @@ export default class extends Controller {
         }
 
         const highlines = await response.json();
-        this.markers = [];
-        this.markersByHighlineId = new Map();
+        const markers = [];
         for (const h of highlines) {
             const lat = parseFloat(h.latitude);
             const lng = parseFloat(h.longitude);
             if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
 
             const marker = L.marker([lat, lng]).bindPopup(this.popupHtml(h));
-            marker.addTo(this.map);
-            this.markers.push(marker);
-            this.markersByHighlineId.set(h.id, marker);
+            marker.addTo(this.staticLayer);
+            markers.push(marker);
         }
 
-        if (this.markers.length > 0) {
-            const group = L.featureGroup(this.markers);
+        if (markers.length > 0) {
+            const group = L.featureGroup(markers);
             this.map.fitBounds(group.getBounds().pad(0.1));
         }
     }
@@ -92,7 +145,6 @@ export default class extends Controller {
 
         const users = await response.json();
 
-        // Group by lat/lng so users at the same spot can be fanned out around the point.
         const groups = new Map();
         for (const u of users) {
             const key = `${u.latitude}|${u.longitude}`;
@@ -115,17 +167,242 @@ export default class extends Controller {
                 });
                 L.marker([lat, lng], { icon, zIndexOffset: 800 })
                     .bindPopup(this.userPopupHtml(u))
-                    .addTo(this.map);
+                    .addTo(this.staticLayer);
             });
         }
     }
 
-    disconnect() {
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
+    // ---------- Time travel ----------
+
+    async toggleTimeTravel(event) {
+        event?.preventDefault();
+        if (this.timeTravel) {
+            this.exitTimeTravel();
+        } else {
+            await this.enterTimeTravel();
         }
     }
+
+    async enterTimeTravel() {
+        if (!this.hasTimelineUrlValue) return;
+
+        if (!this.timelineLoaded) {
+            const ok = await this.fetchTimelineData();
+            if (!ok) return;
+        }
+
+        this.timeTravel = true;
+        this.staticLayer.removeFrom(this.map);
+        this.timelineLayer.addTo(this.map);
+        this.element.classList.add('time-travel-active');
+        if (this.hasTtToggleTarget) this.ttToggleTarget.textContent = 'Návrat do dneška';
+
+        // Reset playback state
+        this.virtualTime = this.timelineStart;
+        this.timelineHighlineMarkers = new Map();
+        this.timelineCounters = { highlines: 0, crossings: 0 };
+        this.eventCursor = { highline: 0, crossing: 0 };
+        this.playing = false;
+        this.lastFrameTime = 0;
+
+        this.updateTimelineUI();
+    }
+
+    exitTimeTravel() {
+        this.timeTravel = false;
+        this.playing = false;
+        if (this.rafHandle) {
+            cancelAnimationFrame(this.rafHandle);
+            this.rafHandle = null;
+        }
+
+        this.timelineLayer.clearLayers();
+        this.timelineLayer.removeFrom(this.map);
+        this.staticLayer.addTo(this.map);
+
+        this.element.classList.remove('time-travel-active');
+        if (this.hasTtToggleTarget) this.ttToggleTarget.textContent = 'Přehrát historii';
+    }
+
+    async fetchTimelineData() {
+        const response = await fetch(this.timelineUrlValue, { headers: { Accept: 'application/json' } });
+        if (!response.ok) {
+            console.error('Failed to load timeline data', response.status);
+            return false;
+        }
+        const data = await response.json();
+        this.timelineHighlines = data.highlines;
+        this.timelineCrossings = data.crossings;
+
+        this.timelineHighlinesById = new Map();
+        for (const h of this.timelineHighlines) {
+            this.timelineHighlinesById.set(h.id, h);
+        }
+
+        const firstDate = this.timelineHighlines[0]?.appearanceDate;
+        this.timelineStart = firstDate
+            ? new Date(firstDate).getTime()
+            : new Date('2010-01-01').getTime();
+        this.timelineEnd = Date.now();
+
+        this.timelineLoaded = true;
+        return true;
+    }
+
+    togglePlay(event) {
+        event?.preventDefault();
+        if (!this.timeTravel) return;
+
+        // Reached the end? rewind to start.
+        if (this.virtualTime >= this.timelineEnd) {
+            this.seekToTime(this.timelineStart);
+        }
+
+        this.playing = !this.playing;
+        if (this.playing) {
+            this.lastFrameTime = performance.now();
+            this.rafHandle = requestAnimationFrame((t) => this.tick(t));
+        }
+        this.updateTimelineUI();
+    }
+
+    seek(event) {
+        if (!this.timeTravel) return;
+        const ratio = parseFloat(event.target.value) / 1000;
+        const target = this.timelineStart + ratio * (this.timelineEnd - this.timelineStart);
+        this.seekToTime(target);
+    }
+
+    seekToTime(target) {
+        // Wipe everything and re-process from the very beginning, no animations.
+        this.timelineLayer.clearLayers();
+        this.timelineHighlineMarkers = new Map();
+        this.timelineCounters = { highlines: 0, crossings: 0 };
+        this.eventCursor = { highline: 0, crossing: 0 };
+
+        this.virtualTime = this.timelineStart;
+        this.processEventsTo(target, true);
+        this.virtualTime = target;
+
+        this.updateTimelineUI();
+    }
+
+    setSpeed(event) {
+        const v = parseFloat(event.target.value);
+        if (Number.isFinite(v) && v > 0) this.speedMultiplier = v;
+    }
+
+    tick(now) {
+        if (!this.playing || !this.timeTravel) return;
+
+        // Cap delta to avoid huge jumps if tab was throttled.
+        const delta = Math.min(0.1, (now - this.lastFrameTime) / 1000);
+        this.lastFrameTime = now;
+
+        const advanceMs = TIMELINE_DAYS_PER_SECOND * this.speedMultiplier * 86400 * 1000 * delta;
+        const newTime = this.virtualTime + advanceMs;
+
+        this.processEventsTo(newTime, false);
+        this.virtualTime = newTime;
+
+        if (this.virtualTime >= this.timelineEnd) {
+            this.virtualTime = this.timelineEnd;
+            this.playing = false;
+        }
+
+        this.updateTimelineUI();
+
+        if (this.playing) {
+            this.rafHandle = requestAnimationFrame((t) => this.tick(t));
+        }
+    }
+
+    processEventsTo(targetTime, instant) {
+        // Fire highlines first so subsequent crossings can anchor to them.
+        while (this.eventCursor.highline < this.timelineHighlines.length) {
+            const h = this.timelineHighlines[this.eventCursor.highline];
+            if (new Date(h.appearanceDate).getTime() > targetTime) break;
+            this.appearHighline(h, instant);
+            this.eventCursor.highline++;
+        }
+
+        while (this.eventCursor.crossing < this.timelineCrossings.length) {
+            const c = this.timelineCrossings[this.eventCursor.crossing];
+            if (new Date(c.crossedAt).getTime() > targetTime) break;
+            this.pulseCrossing(c, instant);
+            this.eventCursor.crossing++;
+        }
+    }
+
+    appearHighline(h, instant) {
+        this.timelineCounters.highlines++;
+
+        const lat = parseFloat(h.latitude);
+        const lng = parseFloat(h.longitude);
+        if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+        const marker = L.marker([lat, lng]).bindPopup(this.popupHtml(h));
+        marker.addTo(this.timelineLayer);
+        this.timelineHighlineMarkers.set(h.id, marker);
+
+        if (!instant) this.bloomAt(lat, lng);
+    }
+
+    bloomAt(lat, lng) {
+        const icon = L.divIcon({
+            className: 'highline-bloom-icon',
+            html: '<span class="highline-bloom"></span>',
+            iconSize: [80, 80],
+            iconAnchor: [40, 40],
+        });
+        const m = L.marker([lat, lng], { icon, interactive: false, zIndexOffset: 600 });
+        m.addTo(this.timelineLayer);
+        setTimeout(() => this.timelineLayer.removeLayer(m), 2200);
+    }
+
+    pulseCrossing(c, instant) {
+        this.timelineCounters.crossings++;
+        if (instant) return;
+
+        const h = this.timelineHighlinesById.get(c.highlineId);
+        if (!h) return;
+        const lat = parseFloat(h.latitude);
+        const lng = parseFloat(h.longitude);
+        if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+        const emoji = emojiForUser(c.userId);
+        const icon = L.divIcon({
+            className: 'crossing-pulse-icon',
+            html: `<span class="crossing-pulse-ring"></span><span class="crossing-pulse-emoji">${emoji}</span>`,
+            iconSize: [44, 44],
+            iconAnchor: [22, 22],
+        });
+        const m = L.marker([lat, lng], { icon, interactive: false, zIndexOffset: 1100 });
+        m.addTo(this.timelineLayer);
+        setTimeout(() => this.timelineLayer.removeLayer(m), 1700);
+    }
+
+    updateTimelineUI() {
+        if (!this.timeTravel) return;
+
+        if (this.hasTtDateTarget) {
+            this.ttDateTarget.textContent = DATE_FORMATTER_LONG.format(new Date(this.virtualTime));
+        }
+        if (this.hasTtSliderTarget) {
+            const ratio = (this.virtualTime - this.timelineStart) / (this.timelineEnd - this.timelineStart);
+            this.ttSliderTarget.value = String(Math.round(ratio * 1000));
+        }
+        if (this.hasTtCounterTarget) {
+            const c = this.timelineCounters;
+            this.ttCounterTarget.textContent = `Highlines: ${c.highlines} · Přechody: ${c.crossings}`;
+        }
+        if (this.hasTtPlayTarget) {
+            this.ttPlayTarget.textContent = this.playing ? '⏸' : '▶';
+            this.ttPlayTarget.setAttribute('aria-label', this.playing ? 'Pauza' : 'Přehrát');
+        }
+    }
+
+    // ---------- Popups ----------
 
     popupHtml(h) {
         const typeLabel = TYPE_LABELS[h.type] ?? h.type;
@@ -158,7 +435,7 @@ export default class extends Controller {
 function fanOffset(i, total) {
     if (total <= 1) return { x: 0, y: 0 };
     const radius = 22;
-    const angle = (i / total) * Math.PI * 2 - Math.PI / 2; // start from top, clockwise
+    const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
 }
 

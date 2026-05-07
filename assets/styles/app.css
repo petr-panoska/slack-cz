@@ -362,8 +362,14 @@ a {
 
 /* ---------- Map panel (index) ---------- */
 
-.panel-map-canvas {
+.panel-map-wrapper {
+    position: relative;
     height: 560px;
+    width: 100%;
+}
+
+.panel-map-canvas {
+    height: 100%;
     width: 100%;
 }
 
@@ -946,9 +952,225 @@ a {
 
 /* ---------- Map page ---------- */
 
-.highline-map {
+.highline-map-wrapper {
+    position: relative;
     height: calc(100vh - var(--header-height));
     width: 100%;
+}
+
+.highline-map {
+    height: 100%;
+    width: 100%;
+}
+
+/* ---------- Time-travel controls ---------- */
+
+.map-tt-toggle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 500;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--color-line);
+    color: var(--color-fg);
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.map-tt-toggle:hover,
+.map-tt-toggle:focus-visible {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+    outline: none;
+}
+
+.time-travel-active .map-tt-toggle {
+    background: rgba(20, 0, 12, 0.92);
+    color: #fff;
+    border-color: rgba(225, 0, 91, 0.4);
+}
+
+.map-tt-panel {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    right: 14px;
+    z-index: 500;
+    padding: 14px 18px 12px;
+    background: rgba(20, 0, 12, 0.92);
+    color: #fff;
+    border: 1px solid rgba(225, 0, 91, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transform: translateY(calc(100% + 24px));
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+}
+
+.time-travel-active .map-tt-panel {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.map-tt-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.map-tt-play {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: background-color 0.15s, transform 0.1s;
+}
+
+.map-tt-play:hover {
+    background: var(--color-accent-hover);
+}
+
+.map-tt-play:active {
+    transform: scale(0.95);
+}
+
+.map-tt-date {
+    flex: 0 0 auto;
+    min-width: 130px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+}
+
+.map-tt-slider {
+    flex: 1;
+    accent-color: var(--color-accent);
+    height: 4px;
+    cursor: pointer;
+}
+
+.map-tt-speed {
+    flex: 0 0 auto;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.map-tt-counter {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Highline first-ascent bloom */
+.highline-bloom-icon {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+}
+
+.highline-bloom {
+    display: block;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(225, 0, 91, 0.55) 0%,
+        rgba(225, 0, 91, 0.25) 35%,
+        rgba(225, 0, 91, 0)   70%);
+    animation: highline-bloom-anim 2.0s ease-out forwards;
+}
+
+@keyframes highline-bloom-anim {
+    0%   { transform: scale(0.15); opacity: 0; }
+    20%  { transform: scale(1.0);  opacity: 1; }
+    100% { transform: scale(2.6);  opacity: 0; }
+}
+
+/* Crossing pulse — emoji circle expanding ring at the highline location */
+.crossing-pulse-icon {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+    position: relative;
+}
+
+.crossing-pulse-emoji {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    background: #fff;
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: crossing-pulse-emoji-anim 1.6s ease-out forwards;
+}
+
+.crossing-pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    border-radius: 50%;
+    border: 2px solid var(--color-accent);
+    animation: crossing-pulse-ring-anim 1.6s ease-out forwards;
+}
+
+@keyframes crossing-pulse-emoji-anim {
+    0%   { opacity: 0; transform: scale(0.4); }
+    20%  { opacity: 1; transform: scale(1.15); }
+    50%  { opacity: 1; transform: scale(1.0);  }
+    100% { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes crossing-pulse-ring-anim {
+    0%   { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0;   transform: scale(3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .highline-bloom,
+    .crossing-pulse-emoji,
+    .crossing-pulse-ring,
+    .map-tt-panel {
+        animation-duration: 0.01ms;
+        transition-duration: 0.01ms;
+    }
 }
 
 .highline-popup strong {

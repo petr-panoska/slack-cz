@@ -28,4 +28,15 @@ final class HighlineController extends AbstractController
     {
         return new JsonResponse($repository->findRecentUsersForMap(10));
     }
+
+    #[Route('/mapa/timeline-data', name: 'app_highline_map_timeline', methods: ['GET'])]
+    public function timeline(
+        HighlineRepository $highlines,
+        HighlineCrossingRepository $crossings,
+    ): JsonResponse {
+        return new JsonResponse([
+            'highlines' => $highlines->findAllForTimeline(),
+            'crossings' => $crossings->findAllForTimeline(),
+        ]);
+    }
 }

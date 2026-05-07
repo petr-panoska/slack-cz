@@ -48,6 +48,49 @@ class HighlineCrossingRepository extends ServiceEntityRepository
      *     rating:?int
      * }>
      */
+    /**
+     * All crossings, sorted chronologically — for the time-travel playback.
+     * Lightweight payload: just what the JS needs to fire pulse animations + popup.
+     *
+     * @return list<array{
+     *     highlineId:int,
+     *     userId:int,
+     *     userDisplayName:string,
+     *     crossedAt:string,
+     *     rating:?int,
+     *     style:?string
+     * }>
+     */
+    public function findAllForTimeline(): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select(
+                'IDENTITY(c.highline) AS highlineId',
+                'IDENTITY(c.user) AS userId',
+                'c.crossedAt AS crossedAt',
+                'c.rating AS rating',
+                'c.style AS style',
+                'u.nick AS nick',
+                'u.email AS email',
+            )
+            ->join('c.user', 'u')
+            ->orderBy('c.crossedAt', 'ASC')
+            ->addOrderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static function (array $r): array {
+            return [
+                'highlineId' => (int) $r['highlineId'],
+                'userId' => (int) $r['userId'],
+                'userDisplayName' => $r['nick'] ?? (string) $r['email'],
+                'crossedAt' => $r['crossedAt']->format('Y-m-d'),
+                'rating' => $r['rating'] !== null ? (int) $r['rating'] : null,
+                'style' => $r['style'] instanceof \BackedEnum ? $r['style']->value : ($r['style'] ?? null),
+            ];
+        }, $rows);
+    }
+
     public function findRecentUsersForMap(int $limit = 10): array
     {
         $rows = $this->createQueryBuilder('c')

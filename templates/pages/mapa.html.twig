@@ -4,12 +4,58 @@
 
 {% block body %}
 <div
+    class="highline-map-wrapper"
     data-controller="map"
     data-map-data-url-value="{{ path('app_highline_map_data') }}"
     data-map-users-url-value="{{ path('app_highline_map_recent_users') }}"
+    data-map-timeline-url-value="{{ path('app_highline_map_timeline') }}"
     data-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
     data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
     data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
-    class="highline-map"
-></div>
+>
+    <div class="highline-map" data-map-target="canvas"></div>
+
+    <button
+        type="button"
+        class="map-tt-toggle"
+        data-map-target="ttToggle"
+        data-action="click->map#toggleTimeTravel"
+    >Přehrát historii</button>
+
+    <div class="map-tt-panel" data-map-target="ttPanel">
+        <div class="map-tt-row">
+            <button
+                type="button"
+                class="map-tt-play"
+                data-map-target="ttPlay"
+                data-action="click->map#togglePlay"
+                aria-label="Přehrát"
+            >▶</button>
+            <span class="map-tt-date" data-map-target="ttDate">—</span>
+            <input
+                type="range"
+                min="0"
+                max="1000"
+                value="0"
+                step="1"
+                class="map-tt-slider"
+                data-map-target="ttSlider"
+                data-action="change->map#seek"
+                aria-label="Posun v čase"
+            >
+            <select
+                class="map-tt-speed"
+                data-map-target="ttSpeed"
+                data-action="change->map#setSpeed"
+                aria-label="Rychlost"
+            >
+                <option value="0.5">½×</option>
+                <option value="1" selected>1×</option>
+                <option value="2">2×</option>
+                <option value="4">4×</option>
+            </select>
+        </div>
+        <div class="map-tt-counter" data-map-target="ttCounter">Highlines: 0 · Přechody: 0</div>
+    </div>
+</div>
 {% endblock %}
