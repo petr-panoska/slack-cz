@@ -4,6 +4,35 @@
 
 {% block body %}
 <div class="page-grid">
+    {% if recent_crossings|length > 0 %}
+    <aside class="panel panel-crossings">
+        <header class="panel-header">
+            <div class="panel-title">
+                <span class="panel-dot panel-dot-crossings"></span>
+                <h2>Poslední přechody</h2>
+            </div>
+        </header>
+        <ul class="crossings-list">
+            {% for c in recent_crossings %}
+                <li class="crossings-item">
+                    <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
+                    <span class="crossings-user">{{ c.user.displayName }}</span>
+                    <span class="crossings-line">{{ c.highline.name }}</span>
+                    <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
+                        {% if c.rating %}
+                            {% for s in 1..5 %}
+                                <span class="crossings-star{% if s <= c.rating %} on{% endif %}">★</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="crossings-rating-none">–</span>
+                        {% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    </aside>
+    {% endif %}
+
     <section class="panel panel-map">
         <header class="panel-header">
             <div class="panel-title">

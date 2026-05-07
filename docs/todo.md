@@ -4,20 +4,7 @@ Otevřené úkoly napříč projektem. Aktualizuj kdykoli zmizí / přibude.
 
 ## Migrace dat (priority 1)
 
-- [ ] **User import** (`app:import:users`)
-  - rozšířit `App\Entity\User` o pole z legacy (nick, firstName, lastName, city, birthYear, phone, gender, isActive, legacyId, legacyMergedIds, legacyDataSnapshot) — viz `migration.md`
-  - migrace pro nová pole
-  - doplnit `password_hashers.legacy_md5` do `security.yaml` + `migrate_from`
-  - command s `--truncate` a `--dry-run`, plný report (imported / merged / skipped)
-  - merge logika 6 duplicit dle tabulky v `migration.md`
-  - vystavit merge mapu (`dropped_legacy_id → canonical_user_id`) jako shared service `App\Legacy\UserMergeMap`
-- [ ] **Crossings import** (`app:import:crossings`)
-  - vytvořit entitu `App\Entity\HighlineCrossing`
-  - vytvořit `App\Enum\HighlineCrossingStyle` dle `crossing-styles.md`
-  - mapovat styl text → enum, neznámé hodnoty hodit warning
-  - aplikovat user merge mapu na `uzivatel_id`
-  - command `--truncate` a `--dry-run` s reportem
-- [ ] Aktualizovat `Makefile` o `legacyImport` target (drop+create+migrate+highlines+users+crossings)
+Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a doptávky na Koloucha.
 
 ## Migrace dat (deferred)
 
@@ -50,6 +37,10 @@ Otevřené úkoly napříč projektem. Aktualizuj kdykoli zmizí / přibude.
 
 ## Dokončené (krátký archiv)
 
+- [x] **User import** — 440 nových User + 1 enriched (existující dev účet) + 6 dropped legacy řádků mergováno (5 duplicit emailů). MD5 hesla zachována, `migrate_from` v security.yaml přehashuje na bcrypt při prvním loginu.
+- [x] **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datům). Style enum s 9 hodnotami, mapping legacy → enum, neznámé hodnoty se reportují jako warning.
+- [x] **`Makefile`** — targety `legacyImport` (re-import s `--truncate`) a `legacyImportFresh` (drop+create+migrate+full import).
+- [x] **„Poslední přechody" panel** na indexu (vedle Slack.cz TV) — ukazuje 5 nejnovějších (datum / user / lajna / hodnocení v hvězdách).
 - [x] Highline import 254/254 z legacy DB do nové Postgres
 - [x] Mapa `/mapa` s Leaflet + OSM, fixnutý problém s ikonami (asset URLs přes Stimulus values)
 - [x] Light theme s magenta accent (`#e91e63` z původního loga)

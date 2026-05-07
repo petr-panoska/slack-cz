@@ -145,16 +145,16 @@ a {
 /* ---------- Page grid (panels on index) ---------- */
 
 .page-grid {
-    max-width: 1200px;
+    max-width: 1320px;
     margin: 0 auto;
     padding: 32px 24px 64px;
     display: grid;
-    grid-template-columns: 1fr 360px;
-    gap: 24px;
+    grid-template-columns: 280px 1fr 360px;
+    gap: 20px;
     align-items: start;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .page-grid {
         grid-template-columns: 1fr;
     }
@@ -206,6 +206,77 @@ a {
 
 .panel-dot-map {
     background: #2e7d32;
+}
+
+.panel-dot-crossings {
+    background: #f5a300;
+}
+
+/* ---------- Recent crossings panel (index) ---------- */
+
+.crossings-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.crossings-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+        "date date"
+        "user rating"
+        "line line";
+    gap: 2px 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 0.85rem;
+}
+
+.crossings-item:last-child {
+    border-bottom: none;
+}
+
+.crossings-date {
+    grid-area: date;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.crossings-user {
+    grid-area: user;
+    font-weight: 600;
+    color: var(--color-fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.crossings-line {
+    grid-area: line;
+    color: var(--color-fg);
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.crossings-rating {
+    grid-area: rating;
+    font-size: 0.7rem;
+    letter-spacing: -0.05em;
+    color: var(--color-line);
+    white-space: nowrap;
+}
+
+.crossings-star.on {
+    color: var(--color-accent);
+}
+
+.crossings-rating-none {
+    color: var(--color-line);
 }
 
 @keyframes tv-pulse {

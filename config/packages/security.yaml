@@ -1,6 +1,19 @@
 security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
+        # Default for new users: bcrypt/argon (auto). Legacy MD5 hashes from slack.cz 2010
+        # are accepted via migrate_from and rehashed on first successful login
+        # (PasswordUpgraderInterface implemented on UserRepository).
+        App\Entity\User:
+            algorithm: auto
+            migrate_from:
+                - legacy_md5
+
+        legacy_md5:
+            algorithm: md5
+            encode_as_base64: false
+            iterations: 1
+
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
