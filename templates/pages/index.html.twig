@@ -1,20 +1,60 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello PagesController!{% endblock %}
+{% block title %}slack.cz{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+<div class="page-grid">
+    <section class="panel panel-map">
+        <header class="panel-header">
+            <div class="panel-title">
+                <span class="panel-dot panel-dot-map"></span>
+                <h2>Highline mapa</h2>
+            </div>
+            <a href="{{ path('app_highline_map') }}" class="panel-link">Otevřít →</a>
+        </header>
+        <div
+            class="panel-map-canvas"
+            data-controller="map"
+            data-map-data-url-value="{{ path('app_highline_map_data') }}"
+            data-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+            data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+            data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+        ></div>
+    </section>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    <h2>Highline mapa</h2>
-    <a href="{{ path('app_highline_map') }}">Zobrazit mapu highline</a>
-
-    <h2>Old users</h2>
-    <a href="{{ path('app_old_users') }}">Show all old users</a>
+    {% if feed_items|length > 0 %}
+    <aside class="panel panel-tv">
+        <header class="panel-header">
+            <div class="panel-title">
+                <span class="panel-dot panel-dot-tv"></span>
+                <h2>Slack.cz TV</h2>
+            </div>
+        </header>
+        <ul class="tv-list">
+            {% for item in feed_items %}
+            <li class="tv-item">
+                <a href="{{ item.link }}" target="_blank" rel="noopener" class="tv-thumb">
+                    <img src="{{ item.thumbnailUrl }}" alt="" loading="lazy" />
+                    <span class="tv-play" aria-hidden="true">▶</span>
+                </a>
+                <div class="tv-meta">
+                    <h3 class="tv-title">
+                        <a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a>
+                    </h3>
+                    <div class="tv-sub">
+                        {% if item.authorUrl %}
+                            <a href="{{ item.authorUrl }}" target="_blank" rel="noopener">{{ item.authorName }}</a>
+                        {% else %}
+                            <span>{{ item.authorName }}</span>
+                        {% endif %}
+                        <span class="tv-sep">·</span>
+                        <time datetime="{{ item.publishedAt|date('c') }}">{{ item.publishedAt|date('j. n. Y') }}</time>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+    {% endif %}
 </div>
 {% endblock %}

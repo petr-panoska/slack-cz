@@ -15,6 +15,8 @@
 </head>
 
 <body>
+    {% include 'user_toolbar.twig' %}
+
     {% for label, messages in app.flashes %}
         {% for message in messages %}
         <div class="flash-{{ label }}">
@@ -22,8 +24,10 @@
         </div>
         {% endfor %}
     {% endfor %}
-    {% include 'user_toolbar.twig' %}
-    {% block body %}{% endblock %}
+
+    <main>
+        {% block body %}{% endblock %}
+    </main>
 </body>
 
 </html>

@@ -4,3 +4,6 @@ dcSetup:
 dcInitDb:
 	docker compose run php bin/console doctrine:database:create --if-not-exists
 	docker compose run php bin/console doctrine:migrations:migrate --no-interaction
+
+dcClearCache:
+	docker compose run php bin/console cache:clear --no-warmup

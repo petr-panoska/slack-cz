@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Feed\FeedFetcherInterface;
 use App\Old\Entity\Uzivatel;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,10 +12,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class PagesController extends AbstractController
 {
     #[Route('/', name: 'app_index')]
-    public function index(): Response
+    public function index(FeedFetcherInterface $feed): Response
     {
         return $this->render('pages/index.html.twig', [
-            'controller_name' => 'PagesController',
+            'feed_items' => $feed->fetch(12),
         ]);
     }
 

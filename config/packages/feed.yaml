@@ -1,0 +1,25 @@
+parameters:
+    # YouTube channel IDs (UC...) — get them from a channel URL via "view source" → look for "channelId"
+    feed.youtube.channels: []
+        # Example:
+        # - 'UCxxxxxxxxxxxxxxxxxxxxx'
+
+    # Search queries — plain text or "#hashtag". Each query costs 100 quota units per fetch.
+    feed.youtube.queries:
+        - '#czechslackline'                                      
+        - 'czech slackline'                                      
+        - 'czech highline'
+
+    feed.cache.ttl_seconds: 1800
+
+services:
+    App\Feed\YoutubeFeedFetcher: ~
+    App\Feed\MockFeedFetcher: ~
+    App\Feed\FeedFetcherDispatcher: ~
+
+    App\Feed\FeedFetcherInterface:
+        class: App\Feed\CachedFeedFetcher
+        arguments:
+            $inner: '@App\Feed\FeedFetcherDispatcher'
+            $cache: '@cache.app'
+            $ttlSeconds: '%feed.cache.ttl_seconds%'
