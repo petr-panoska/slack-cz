@@ -25,4 +25,15 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    'leaflet' => [
+        'version' => '1.9.4',
+    ],
+    'leaflet/dist/leaflet.css' => [
+        'version' => '1.9.4',
+        'type' => 'css',
+    ],
+    'leaflet/dist/leaflet.min.css' => [
+        'version' => '1.9.4',
+        'type' => 'css',
+    ],
 ];

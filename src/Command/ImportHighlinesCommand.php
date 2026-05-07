@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Command;
+
+use App\Entity\Highline;
+use App\Enum\HighlineType;
+use App\Repository\HighlineRepository;
+use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
+#[AsCommand(
+    name: 'app:import:highlines',
+    description: 'Imports highlines from the legacy MySQL database into the new Postgres schema',
+)]
+final class ImportHighlinesCommand extends Command
+{
+    public function __construct(
+        #[Autowire(service: 'doctrine.dbal.old_connection')]
+        private readonly Connection $oldConnection,
+        private readonly HighlineRepository $repository,
+        private readonly EntityManagerInterface $em,
+    ) {
+        parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addOption('truncate', null, InputOption::VALUE_NONE, 'Drop existing imported rows before import')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be imported without writing');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $dryRun = (bool) $input->getOption('dry-run');
+
+        if ($input->getOption('truncate') && !$dryRun) {
+            $io->warning('Truncating existing highlines table');
+            $this->em->createQuery('DELETE FROM ' . Highline::class)->execute();
+        }
+
+        $rows = $this->oldConnection->fetchAllAssociative('
+            SELECT h.id, h.typ, h.jmeno, h.delka, h.vyska, h.stat, h.oblast, h.kraj,
+                   h.hodnoceni, h.kotveni, h.info, h.pointOneInfo, h.pointTwoInfo,
+                   h.autor, h.datum,
+                   COALESCE(NULLIF(h.lat, ""), CAST(g.lat AS CHAR)) AS lat,
+                   COALESCE(NULLIF(h.lng, ""), CAST(g.lng AS CHAR)) AS lng,
+                   h.nameHistory, h.timeApproach, h.timeTensioning
+            FROM highline h
+            LEFT JOIN gps g ON g.id = h.point1_id
+        ');
+
+        $io->info(sprintf('Found %d highlines in legacy DB', count($rows)));
+
+        $imported = 0;
+        $skipped = 0;
+        $batchSize = 50;
+
+        foreach ($rows as $i => $row) {
+            $lat = $row['lat'] ?? null;
+            $lng = $row['lng'] ?? null;
+            if ($lat === null || $lng === null || trim((string) $lat) === '' || trim((string) $lng) === '') {
+                $io->writeln(sprintf('  <comment>skip</comment> #%d "%s" — missing GPS', $row['id'], $row['jmeno']));
+                $skipped++;
+                continue;
+            }
+
+            $existing = $this->repository->findOneBy(['legacyId' => (int) $row['id']]);
+            if ($existing !== null) {
+                $skipped++;
+                continue;
+            }
+
+            $h = new Highline();
+            $h->setLegacyId((int) $row['id']);
+            $h->setName($row['jmeno']);
+            $h->setType(HighlineType::fromLegacyId((int) $row['typ']));
+            $h->setLength((int) $row['delka']);
+            $h->setHeight((int) $row['vyska']);
+            $h->setLatitude($this->normalizeCoord($lat));
+            $h->setLongitude($this->normalizeCoord($lng));
+            $h->setCountry($row['stat'] ?: null);
+            $h->setArea($row['oblast'] ?: null);
+            $h->setRegion($row['kraj'] ?: null);
+            $h->setRating($row['hodnoceni'] !== null ? (int) $row['hodnoceni'] : null);
+            $h->setAnchoring($row['kotveni'] ?: null);
+            $h->setDescription($this->normalizeText($row['info']));
+            $h->setPointOneInfo($this->normalizeText($row['pointOneInfo']));
+            $h->setPointTwoInfo($this->normalizeText($row['pointTwoInfo']));
+            $h->setFirstAscentBy($row['autor'] ?: null);
+            $h->setFirstAscentDate($this->parseDate($row['datum']));
+            $h->setNameHistory($this->normalizeText($row['nameHistory']));
+            $h->setApproachMinutes($row['timeApproach'] !== null ? (int) $row['timeApproach'] : null);
+            $h->setTensioningMinutes($row['timeTensioning'] !== null ? (int) $row['timeTensioning'] : null);
+
+            if (!$dryRun) {
+                $this->em->persist($h);
+                if (($i + 1) % $batchSize === 0) {
+                    $this->em->flush();
+                    $this->em->clear();
+                }
+            }
+
+            $imported++;
+        }
+
+        if (!$dryRun) {
+            $this->em->flush();
+        }
+
+        $io->success(sprintf(
+            '%s %d highlines (%d skipped)',
+            $dryRun ? 'Would import' : 'Imported',
+            $imported,
+            $skipped,
+        ));
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Legacy stores coords as strings with up to 17 decimal digits — clamp to our precision (7 digits).
+     */
+    private function normalizeCoord(string $raw): string
+    {
+        return number_format((float) trim($raw), 7, '.', '');
+    }
+
+    private function normalizeText(?string $text): ?string
+    {
+        if ($text === null) {
+            return null;
+        }
+        $trimmed = trim($text);
+        return $trimmed === '' ? null : $trimmed;
+    }
+
+    private function parseDate(mixed $value): ?\DateTimeImmutable
+    {
+        if (!$value) {
+            return null;
+        }
+        try {
+            return new \DateTimeImmutable((string) $value);
+        } catch (\Exception) {
+            return null;
+        }
+    }
+}

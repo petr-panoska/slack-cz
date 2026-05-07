@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Old\Uzivatel;
+use App\Old\Entity\Uzivatel;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;

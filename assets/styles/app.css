@@ -1,3 +1,17 @@
 body {
     background-color: skyblue;
 }
+
+.highline-map {
+    height: calc(100vh - 80px);
+    width: 100%;
+}
+
+.highline-popup strong {
+    font-size: 1.05em;
+}
+
+.highline-popup .muted {
+    color: #666;
+    font-size: 0.9em;
+}

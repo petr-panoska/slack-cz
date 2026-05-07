@@ -1,7 +1,7 @@
 <?php
-namespace App\Entity\Old;
+namespace App\Old\Entity;
 
-use App\Repository\Old\UzivatelRepository;
+use App\Old\Repository\UzivatelRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UzivatelRepository::class)]

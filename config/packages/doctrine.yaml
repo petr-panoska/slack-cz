@@ -40,8 +40,8 @@ doctrine:
                 mappings:
                     Old:
                         is_bundle: false
-                        dir: '%kernel.project_dir%/src/Entity/Old'
-                        prefix: 'App\Entity\Old'
+                        dir: '%kernel.project_dir%/src/Old/Entity'
+                        prefix: 'App\Old\Entity'
                         alias: Old
 
 when@test:

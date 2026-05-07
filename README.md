@@ -28,4 +28,4 @@ docker compose run php symfony check:requirements
 - use adminer to import source dump (`*.sql.gz`)
 
 ### Entities
-- entities are mapped with Doctrine and lives in `src/Entity/Old` dir
+- legacy entities are mapped with Doctrine and live in `src/Old/Entity` (namespace `App\Old\Entity`); they are kept outside `src/Entity` so the default Postgres EM does not pick them up

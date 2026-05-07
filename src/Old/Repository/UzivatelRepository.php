@@ -1,9 +1,8 @@
 <?php
-namespace App\Repository\Old;
+namespace App\Old\Repository;
 
-use App\Entity\Old\Uzivatel;
+use App\Old\Entity\Uzivatel;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 class UzivatelRepository extends EntityRepository
 {
