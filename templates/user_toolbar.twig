@@ -10,6 +10,37 @@
     </nav>
 
     <div class="site-user">
+        <div
+            class="site-search"
+            data-controller="search"
+            data-search-data-url-value="{{ path('app_highline_map_data') }}"
+        >
+            <button
+                type="button"
+                class="site-search-btn"
+                data-action="click->search#toggle"
+                aria-label="Hledat"
+                title="Hledat"
+            >
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <line x1="15.2" y1="15.2" x2="20" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div class="site-search-panel">
+                <input
+                    type="search"
+                    class="site-search-input"
+                    placeholder="Najít highline…"
+                    data-search-target="input"
+                    data-action="input->search#input"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <ul class="site-search-results" data-search-target="results"></ul>
+            </div>
+        </div>
+
         {# Persistent across Turbo navigations — id+turbo-permanent keeps the audio playing through page swaps. #}
         <div
             id="music-player"

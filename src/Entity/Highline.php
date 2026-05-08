@@ -403,4 +403,12 @@ class Highline
     {
         return $this->createdAt;
     }
+
+    public function getCoverUrl(): ?string
+    {
+        if ($this->legacyId === null) {
+            return null;
+        }
+        return sprintf('https://slack.cz/line/high/%d/foto.jpg', $this->legacyId);
+    }
 }

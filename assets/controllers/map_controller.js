@@ -24,6 +24,37 @@ const STYLE_LABELS = {
 
 const CZECH_CENTER = [49.8, 15.5];
 
+// Survives Turbo navigations (map → highline detail → back) so the user
+// returns to the same pan/zoom they left.
+const VIEW_STORAGE_KEY = 'slack.cz:mapa:view';
+
+function readSavedView() {
+    try {
+        const raw = sessionStorage.getItem(VIEW_STORAGE_KEY);
+        if (!raw) return null;
+        const v = JSON.parse(raw);
+        if (typeof v?.lat !== 'number' || typeof v?.lng !== 'number' || typeof v?.zoom !== 'number') {
+            return null;
+        }
+        return v;
+    } catch {
+        return null;
+    }
+}
+
+function writeSavedView(map) {
+    try {
+        const c = map.getCenter();
+        sessionStorage.setItem(VIEW_STORAGE_KEY, JSON.stringify({
+            lat: c.lat,
+            lng: c.lng,
+            zoom: map.getZoom(),
+        }));
+    } catch {
+        /* sessionStorage may be unavailable (private mode quirks); ignore. */
+    }
+}
+
 const USER_EMOJIS = [
     '🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵',
     '🐔','🐧','🦅','🦉','🐺','🦄','🐝','🦋','🐢','🐠',
@@ -76,12 +107,19 @@ export default class extends Controller {
             shadowUrl: this.shadowUrlValue,
         });
 
-        this.map = L.map(this.canvasTarget).setView(CZECH_CENTER, 7);
+        const saved = readSavedView();
+        this.viewRestored = saved !== null;
+        this.map = L.map(this.canvasTarget).setView(
+            saved ? [saved.lat, saved.lng] : CZECH_CENTER,
+            saved ? saved.zoom : 7,
+        );
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         }).addTo(this.map);
+
+        this.map.on('moveend zoomend', () => writeSavedView(this.map));
 
         // Static mode = highlines + recent users emoji
         this.staticLayer = L.layerGroup().addTo(this.map);
@@ -128,7 +166,7 @@ export default class extends Controller {
             markers.push(marker);
         }
 
-        if (markers.length > 0) {
+        if (markers.length > 0 && !this.viewRestored) {
             const group = L.featureGroup(markers);
             this.map.fitBounds(group.getBounds().pad(0.1));
         }

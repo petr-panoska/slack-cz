@@ -3,110 +3,126 @@
 {% block title %}{{ highline.name }} – slack.cz{% endblock %}
 
 {% block body %}
-<article class="hl-detail">
-    <header class="hl-detail-head">
-        <a href="{{ path('app_highline_map') }}" class="hl-back">← Mapa</a>
-        <h1>{{ highline.name }}</h1>
-        <div class="hl-detail-meta">
-            <span class="hl-type-badge hl-type-{{ highline.type.value }}">{{ highline.type.label }}</span>
-            {% set place = [highline.area, highline.region, highline.country]|filter(v => v)|join(' · ') %}
-            {% if place %}<span class="hl-loc">{{ place }}</span>{% endif %}
-            {% if highline.firstAscentDate %}
-                <span class="hl-fa">První napnutí <time datetime="{{ highline.firstAscentDate|date('Y-m-d') }}">{{ highline.firstAscentDate|date('j. n. Y') }}</time></span>
-            {% endif %}
+{% set cover = highline.coverUrl %}
+<article class="hl-detail{% if cover %} hl-detail-has-cover{% endif %}">
+    <header class="hl-cover">
+        {% if cover %}
+            <img
+                class="hl-cover-img"
+                src="{{ cover }}"
+                alt="{{ highline.name }}"
+                loading="eager"
+                decoding="async"
+                onerror="this.closest('.hl-detail').classList.remove('hl-detail-has-cover'); this.remove();"
+            >
+        {% endif %}
+        <div class="hl-cover-shade"></div>
+        <div class="hl-cover-content">
+            <a href="{{ path('app_highline_map') }}" class="hl-back">← Mapa</a>
+            <h1>{{ highline.name }}</h1>
+            <div class="hl-detail-meta">
+                <span class="hl-type-badge hl-type-{{ highline.type.value }}">{{ highline.type.label }}</span>
+                {% set place = [highline.area, highline.region, highline.country]|filter(v => v)|join(' · ') %}
+                {% if place %}<span class="hl-loc">{{ place }}</span>{% endif %}
+                {% if highline.firstAscentDate %}
+                    <span class="hl-fa">První napnutí <time datetime="{{ highline.firstAscentDate|date('Y-m-d') }}">{{ highline.firstAscentDate|date('j. n. Y') }}</time></span>
+                {% endif %}
+            </div>
         </div>
     </header>
 
-    <div class="hl-detail-grid">
-        <aside class="hl-stats panel">
-            <div class="hl-stats-row">
-                <div class="hl-stat">
-                    <span class="hl-stat-icon" aria-hidden="true">↔</span>
-                    <span class="hl-stat-value">{{ highline.length }}<span class="hl-stat-unit"> m</span></span>
-                    <span class="hl-stat-label">Délka</span>
+    <div class="hl-detail-body">
+        <div class="hl-detail-grid">
+            <aside class="hl-stats panel">
+                <div class="hl-stats-row">
+                    <div class="hl-stat">
+                        <span class="hl-stat-icon" aria-hidden="true">↔</span>
+                        <span class="hl-stat-value">{{ highline.length }}<span class="hl-stat-unit"> m</span></span>
+                        <span class="hl-stat-label">Délka</span>
+                    </div>
+                    <div class="hl-stat">
+                        <span class="hl-stat-icon" aria-hidden="true">↕</span>
+                        <span class="hl-stat-value">{{ highline.height }}<span class="hl-stat-unit"> m</span></span>
+                        <span class="hl-stat-label">Výška</span>
+                    </div>
                 </div>
-                <div class="hl-stat">
-                    <span class="hl-stat-icon" aria-hidden="true">↕</span>
-                    <span class="hl-stat-value">{{ highline.height }}<span class="hl-stat-unit"> m</span></span>
-                    <span class="hl-stat-label">Výška</span>
-                </div>
-            </div>
-            {% if highline.rating %}
-                <div class="hl-rating-large" aria-label="hodnocení {{ highline.rating }} z 5">
-                    {% for s in 1..5 %}<span class="hl-star{% if s <= highline.rating %} on{% endif %}">★</span>{% endfor %}
-                </div>
-            {% endif %}
-        </aside>
-
-        <section class="hl-info panel">
-            {% if highline.description %}
-                <div class="hl-info-block hl-richtext">
-                    <h2>Popis</h2>
-                    {# legacy CKEditor HTML (entity-encoded) — render as-is #}
-                    {{ highline.description|raw }}
-                </div>
-            {% endif %}
-
-            <table class="hl-table">
-                {% if highline.pointOneInfo %}<tr><th>Kotvení bodu&nbsp;1</th><td class="hl-richtext">{{ highline.pointOneInfo|raw }}</td></tr>{% endif %}
-                {% if highline.pointTwoInfo %}<tr><th>Kotvení bodu&nbsp;2</th><td class="hl-richtext">{{ highline.pointTwoInfo|raw }}</td></tr>{% endif %}
-                {% if highline.anchoring %}<tr><th>Typ kotvení</th><td>{{ highline.anchoring }}</td></tr>{% endif %}
-                {% if highline.tensioningMinutes %}<tr><th>Napínání</th><td>{{ highline.tensioningMinutes }} min</td></tr>{% endif %}
-                {% if highline.approachMinutes %}<tr><th>Přístup</th><td>{{ highline.approachMinutes }} min</td></tr>{% endif %}
-                {% if highline.firstAscentBy %}<tr><th>Autor 1. napnutí</th><td>{{ highline.firstAscentBy }}</td></tr>{% endif %}
-                {% if highline.firstAscentDate %}<tr><th>Datum 1. napnutí</th><td>{{ highline.firstAscentDate|date('j. n. Y') }}</td></tr>{% endif %}
-                {% if highline.nameHistory %}<tr><th>Historie názvu</th><td class="hl-richtext">{{ highline.nameHistory|raw }}</td></tr>{% endif %}
-                <tr>
-                    <th>GPS</th>
-                    <td>
-                        <a href="https://mapy.cz/turisticka?source=coor&id={{ highline.longitude }}%2C{{ highline.latitude }}" target="_blank" rel="noopener">
-                            {{ highline.latitude }}, {{ highline.longitude }}
-                        </a>
-                    </td>
-                </tr>
-            </table>
-        </section>
-
-        <section class="panel hl-map-panel">
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-map"></span>
-                    <h2>Mapa</h2>
-                </div>
-            </header>
-            <div
-                class="hl-map-wrapper"
-                data-controller="highline-detail-map"
-                data-highline-detail-map-lat-value="{{ highline.latitude }}"
-                data-highline-detail-map-lng-value="{{ highline.longitude }}"
-                data-highline-detail-map-name-value="{{ highline.name }}"
-                {% if highline.hasPolyline %}
-                data-highline-detail-map-p1-lat-value="{{ highline.point1Latitude }}"
-                data-highline-detail-map-p1-lng-value="{{ highline.point1Longitude }}"
-                data-highline-detail-map-p2-lat-value="{{ highline.point2Latitude }}"
-                data-highline-detail-map-p2-lng-value="{{ highline.point2Longitude }}"
+                {% if highline.rating %}
+                    <div class="hl-rating-large" aria-label="hodnocení {{ highline.rating }} z 5">
+                        {% for s in 1..5 %}<span class="hl-star{% if s <= highline.rating %} on{% endif %}">★</span>{% endfor %}
+                    </div>
                 {% endif %}
-                data-highline-detail-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-                data-highline-detail-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-                data-highline-detail-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
-            >
-                <div class="hl-map-canvas" data-highline-detail-map-target="canvas"></div>
-            </div>
-        </section>
+            </aside>
 
-        <section class="panel hl-crossings-panel">
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-crossings"></span>
-                    <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
+            <section class="hl-info panel">
+                {% if highline.description %}
+                    <div class="hl-info-block hl-richtext">
+                        <h2>Popis</h2>
+                        {# legacy CKEditor HTML (entity-encoded) — render as-is #}
+                        {{ highline.description|raw }}
+                    </div>
+                {% endif %}
+
+                <table class="hl-table">
+                    {% if highline.pointOneInfo %}<tr><th>Kotvení bodu&nbsp;1</th><td class="hl-richtext">{{ highline.pointOneInfo|raw }}</td></tr>{% endif %}
+                    {% if highline.pointTwoInfo %}<tr><th>Kotvení bodu&nbsp;2</th><td class="hl-richtext">{{ highline.pointTwoInfo|raw }}</td></tr>{% endif %}
+                    {% if highline.anchoring %}<tr><th>Typ kotvení</th><td>{{ highline.anchoring }}</td></tr>{% endif %}
+                    {% if highline.tensioningMinutes %}<tr><th>Napínání</th><td>{{ highline.tensioningMinutes }} min</td></tr>{% endif %}
+                    {% if highline.approachMinutes %}<tr><th>Přístup</th><td>{{ highline.approachMinutes }} min</td></tr>{% endif %}
+                    {% if highline.firstAscentBy %}<tr><th>Autor 1. napnutí</th><td>{{ highline.firstAscentBy }}</td></tr>{% endif %}
+                    {% if highline.firstAscentDate %}<tr><th>Datum 1. napnutí</th><td>{{ highline.firstAscentDate|date('j. n. Y') }}</td></tr>{% endif %}
+                    {% if highline.nameHistory %}<tr><th>Historie názvu</th><td class="hl-richtext">{{ highline.nameHistory|raw }}</td></tr>{% endif %}
+                    <tr>
+                        <th>GPS</th>
+                        <td>
+                            <a href="https://mapy.cz/turisticka?source=coor&id={{ highline.longitude }}%2C{{ highline.latitude }}" target="_blank" rel="noopener">
+                                {{ highline.latitude }}, {{ highline.longitude }}
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </section>
+
+            <section class="panel hl-map-panel">
+                <header class="panel-header">
+                    <div class="panel-title">
+                        <span class="panel-dot panel-dot-map"></span>
+                        <h2>Mapa</h2>
+                    </div>
+                </header>
+                <div
+                    class="hl-map-wrapper"
+                    data-controller="highline-detail-map"
+                    data-highline-detail-map-lat-value="{{ highline.latitude }}"
+                    data-highline-detail-map-lng-value="{{ highline.longitude }}"
+                    data-highline-detail-map-name-value="{{ highline.name }}"
+                    {% if highline.hasPolyline %}
+                    data-highline-detail-map-p1-lat-value="{{ highline.point1Latitude }}"
+                    data-highline-detail-map-p1-lng-value="{{ highline.point1Longitude }}"
+                    data-highline-detail-map-p2-lat-value="{{ highline.point2Latitude }}"
+                    data-highline-detail-map-p2-lng-value="{{ highline.point2Longitude }}"
+                    {% endif %}
+                    data-highline-detail-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                    data-highline-detail-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                    data-highline-detail-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                >
+                    <div class="hl-map-canvas" data-highline-detail-map-target="canvas"></div>
                 </div>
-            </header>
-            {% if crossings|length > 0 %}
-                {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: false }) }}
-            {% else %}
-                <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
-            {% endif %}
-        </section>
+            </section>
+
+            <section class="panel hl-crossings-panel">
+                <header class="panel-header">
+                    <div class="panel-title">
+                        <span class="panel-dot panel-dot-crossings"></span>
+                        <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
+                    </div>
+                </header>
+                {% if crossings|length > 0 %}
+                    {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: false }) }}
+                {% else %}
+                    <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
+                {% endif %}
+            </section>
+        </div>
     </div>
 </article>
 {% endblock %}

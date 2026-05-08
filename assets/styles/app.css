@@ -1645,15 +1645,100 @@ a.crossings-line:hover {
 /* ---------- Highline detail page ---------- */
 
 .hl-detail {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 32px 24px 64px;
+    /* Full-bleed: cover hero is edge-to-edge. Content body has its own max-width. */
+    margin: 0;
+    padding: 0;
 }
 
-.hl-detail-head {
-    margin-bottom: 24px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--color-line);
+/* ---------- Cover hero ---------- */
+
+.hl-cover {
+    position: relative;
+    width: 100%;
+    /* Fill viewport minus app header. dvh handles mobile URL bar gracefully. */
+    height: calc(100dvh - var(--header-height));
+    min-height: 360px;
+    overflow: hidden;
+    background: #1a0010;
+    color: #fff;
+}
+
+.hl-cover-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* When the page has no cover URL (legacyId missing) collapse the hero — just
+ * show a slim band so the title still has a stage. */
+.hl-detail:not(.hl-detail-has-cover) .hl-cover {
+    height: auto;
+    min-height: 0;
+    background: linear-gradient(135deg, #1a0010 0%, #3a0020 100%);
+}
+
+/* Gradient shade for legibility of the title and a smooth bleed into content. */
+.hl-cover-shade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.0) 25%,
+            rgba(0, 0, 0, 0.0) 55%,
+            rgba(0, 0, 0, 0.75) 100%);
+}
+
+.hl-cover-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 32px 24px 56px;
+    max-width: 1100px;
+    margin: 0 auto;
+    z-index: 1;
+}
+
+.hl-cover-content .hl-back {
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hl-cover-content .hl-back:hover {
+    color: #fff;
+}
+
+.hl-cover-content h1 {
+    margin: 8px 0 14px;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
+    line-height: 1.05;
+}
+
+.hl-cover-content .hl-detail-meta {
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hl-cover-content .hl-loc,
+.hl-cover-content .hl-fa {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Override badge background on dark cover for legibility */
+.hl-cover-content .hl-type-badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .hl-back {
@@ -1661,17 +1746,10 @@ a.crossings-line:hover {
     font-size: 0.85rem;
     color: var(--color-muted);
     text-decoration: none;
-    margin-bottom: 4px;
 }
 
 .hl-back:hover {
     color: var(--color-accent);
-}
-
-.hl-detail-head h1 {
-    margin: 6px 0 12px;
-    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-    letter-spacing: -0.02em;
 }
 
 .hl-detail-meta {
@@ -1681,6 +1759,25 @@ a.crossings-line:hover {
     align-items: center;
     font-size: 0.9rem;
     color: var(--color-muted);
+}
+
+/* ---------- Content body below the cover ---------- */
+
+.hl-detail-body {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+    /* Soft fade from transparent into page bg at the top, so the cover→content
+     * seam is smooth as the user scrolls past the hero. */
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-bg) 80px);
+}
+
+/* Without a cover image, the hero collapses — content starts immediately
+ * with normal spacing, no gradient needed. */
+.hl-detail:not(.hl-detail-has-cover) .hl-detail-body {
+    background: var(--color-bg);
+    padding-top: 32px;
 }
 
 .hl-type-badge {
@@ -1905,4 +2002,146 @@ a.crossings-line:hover {
         "date    style"
         "user    rating"
         "comment comment";
+}
+
+/* ---------- Header search ---------- */
+
+.site-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.site-search-btn {
+    background: #fafafa;
+    border: 1px solid var(--color-line);
+    color: var(--color-fg);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.site-search-btn:hover,
+.site-search-btn:focus-visible,
+.site-search.is-open .site-search-btn {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    outline: none;
+}
+
+.site-search-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 320px;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 1500;
+}
+
+.site-search.is-open .site-search-panel {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.site-search-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--color-line);
+    padding: 12px 16px;
+    font: inherit;
+    font-size: 0.95rem;
+    background: transparent;
+    color: var(--color-fg);
+}
+
+.site-search-input::placeholder {
+    color: var(--color-muted);
+}
+
+.site-search-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-accent);
+}
+
+.site-search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.site-search-results:not(.has-results) {
+    display: none;
+}
+
+.site-search-results li {
+    border-bottom: 1px solid var(--color-line);
+}
+
+.site-search-results li:last-child {
+    border-bottom: none;
+}
+
+.site-search-results a {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: var(--color-fg);
+    transition: background 0.12s, color 0.12s;
+}
+
+.site-search-results a:hover,
+.site-search-results a:focus-visible {
+    background: rgba(225, 0, 91, 0.08);
+    color: var(--color-accent);
+    outline: none;
+}
+
+.site-search-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.site-search-meta {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+.site-search-results a:hover .site-search-meta,
+.site-search-results a:focus-visible .site-search-meta {
+    color: var(--color-accent);
+}
+
+.site-search-empty {
+    padding: 16px;
+    color: var(--color-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .site-search-panel {
+        width: calc(100vw - 32px);
+        right: -16px;
+    }
 }

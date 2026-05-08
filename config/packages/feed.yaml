@@ -5,12 +5,14 @@ parameters:
         # - 'UCxxxxxxxxxxxxxxxxxxxxx'
 
     # Search queries — plain text or "#hashtag". Each query costs 100 quota units per fetch.
+    # Free tier = 10k units/day. With TTL=21600s (6h) → 4 misses/day → 100 × 4 = 400 units/day per query.
+    # Pre-2026: we ran 3 overlapping queries (#czechslackline, "czech slackline", "czech highline") with
+    # 30-min TTL = 14 400 units/day → permanent quota exhaustion. Reduced to one specific hashtag.
     feed.youtube.queries:
-        - '#czechslackline'                                      
-        - 'czech slackline'                                      
-        - 'czech highline'
+        - '#czechslackline'
 
-    feed.cache.ttl_seconds: 1800
+    # 6h cache. Community feed doesn't need to be real-time and we burn no quota inside the window.
+    feed.cache.ttl_seconds: 21600
 
 services:
     App\Feed\YoutubeFeedFetcher: ~
@@ -22,4 +24,5 @@ services:
         arguments:
             $inner: '@App\Feed\FeedFetcherDispatcher'
             $cache: '@cache.app'
+            $mock: '@App\Feed\MockFeedFetcher'
             $ttlSeconds: '%feed.cache.ttl_seconds%'

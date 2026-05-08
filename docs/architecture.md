@@ -86,9 +86,43 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 - Architektura:
   - `FeedFetcherInterface` — kontrakt
   - `YoutubeFeedFetcher` — real (channels via `playlistItems`, queries via `search`)
-  - `MockFeedFetcher` — fixturní data pro dev / kdyby chyběl key
-  - `FeedFetcherDispatcher` — picknul real, když je API key, jinak mock
-  - `CachedFeedFetcher` — decorator přes `cache.app`, TTL 30 min default
+  - `MockFeedFetcher` — fixturní data pro dev / fallback když nic reálného nemáme
+  - `FeedFetcherDispatcher` — vybere real (když je API key), jinak mock
+  - `CachedFeedFetcher` — decorator přes `cache.app`. Default TTL 6h (`feed.cache.ttl_seconds: 21600`).
+    Kaskáda fallbacků: real fetch → last-known-good (7 dní, jen z reálných úspěšných fetchů) → mock (necachuje se). Prázdný real fetch se cachuje jen 60s, aby se po obnovení kvóty rychle vrátili reálná data.
+
+### Quota economics
+
+YouTube Data API daily free tier = **10 000 units / GCP project / den** (reset v PT půlnoc ≈ 09:00 CEST). Cena endpointů, které používáme:
+
+| Endpoint | Cost | Kde |
+|---|---|---|
+| `search.list` | **100 units / call** | `feed.youtube.queries` |
+| `channels.list` | 1 unit / call | `feed.youtube.channels` (lookup uploads playlist) |
+| `playlistItems.list` | 1 unit / call | `feed.youtube.channels` (skutečná videa) |
+
+Burn = **(počet queries × 100 + počet kanálů × 2) × (86400 / TTL)** units/den.
+
+Aktuální config (1 query, 0 kanálů, TTL 6 h) = **400 units/den** — 25× headroom.
+
+**Historicky jsme limit přepálili** s `feed.youtube.queries: [#czechslackline, czech slackline, czech highline]` a `feed.cache.ttl_seconds: 1800` (30 min):
+3 queries × 48 fetchů/den × 100 units = **14 400 units/den** — kvóta vyčerpaná každé odpoledne. Plus každý `bin/console cache:clear` během vývoje vyhodí `cache.app` a vyvolá další 300 units instantně. Comment v `config/packages/feed.yaml` má aktuální vzorec, používej ho při ladění queries listu.
+
+### Recovery po vyčerpání kvóty / rotaci klíče
+
+```bash
+# vyhodit 60s "empty fetch" lockout, aby další request hned re-tryoval
+docker compose exec -T php bin/console cache:pool:clear cache.app
+
+# načíst nový YOUTUBE_API_KEY z .env.local
+docker compose exec -T php bin/console cache:clear --env=dev
+```
+
+### GCP "new project" search gate (gotcha)
+
+Čerstvě založený GCP projekt s povolenou YouTube Data API: `/channels` jede (1 unit, 200 OK), ale `/search` vrací **403 Forbidden** i s plnou kvótou. To je standardní GCP posture pro neověřené projekty — `search` je gated dokud (a) nezapneš billing, nebo (b) projde quota-extension request přes Cloud Console. Rotace klíče na nový projekt sama o sobě `/search` nerozjede.
+
+Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kvótu, počkat na PT reset; `accessNotConfigured` / 403 jen na `/search` → nový projekt čeká na verifikaci.
 
 ## Auth
 
