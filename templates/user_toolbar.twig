@@ -10,6 +10,110 @@
     </nav>
 
     <div class="site-user">
+        {# Persistent across Turbo navigations — id+turbo-permanent keeps the audio playing through page swaps. #}
+        <div
+            id="music-player"
+            class="intro-wrapper"
+            data-controller="intro"
+            data-intro-tracks-value="{{ music_tracks|json_encode }}"
+            data-turbo-permanent
+        >
+            <div class="intro-overlay" data-intro-target="overlay">
+                <div class="intro-content">
+                    <button type="button" class="intro-button" data-action="click->intro#enter">Vstoupit</button>
+                    <p class="intro-tagline">Highline · Midline · Urbanline</p>
+                </div>
+            </div>
+
+            <aside class="music-panel panel" data-intro-target="menu" role="group" aria-label="Hudba">
+                <header class="panel-header music-panel-header">
+                    <div class="panel-title music-panel-title">
+                        <span class="panel-dot music-panel-dot"></span>
+                        <span class="music-radio-icon" aria-hidden="true">📻</span>
+                        <h2 class="music-radio-name">slackvibes</h2>
+                        <span class="music-eq" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+                    <div class="music-panel-trail">
+                        <div class="music-panel-actions">
+                            <button
+                                type="button"
+                                class="music-mute"
+                                data-intro-target="muteBtn"
+                                data-action="click->intro#toggleMuteOrPlay"
+                                aria-label="Ztlumit"
+                            >
+                                <span class="music-icon music-icon-on" aria-hidden="true">♪</span>
+                                <span class="music-icon music-icon-off" aria-hidden="true">⊘</span>
+                                <span class="music-icon music-icon-play" aria-hidden="true">▶</span>
+                                <span class="music-icon music-icon-pause" aria-hidden="true">⏸</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="music-mini"
+                                data-intro-target="miniBtn"
+                                data-action="click->intro#toggleCompact"
+                                aria-label="Rozbalit přehrávač"
+                                title="Rozbalit"
+                            >
+                                <span class="music-mini-icon music-mini-icon-collapse" aria-hidden="true">−</span>
+                                <span class="music-mini-icon music-mini-icon-expand" aria-hidden="true">+</span>
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            class="music-close"
+                            data-action="click->intro#hide"
+                            aria-label="Skrýt přehrávač"
+                            title="Skrýt"
+                        >×</button>
+                    </div>
+                </header>
+
+                <div class="music-now">
+                    <div class="music-now-title" data-intro-target="title">—</div>
+                    <div class="music-now-artist" data-intro-target="artist"></div>
+
+                    <div class="music-progress-row">
+                        <input
+                            type="range"
+                            min="0"
+                            max="1000"
+                            value="0"
+                            step="1"
+                            class="music-progress"
+                            data-intro-target="progress"
+                            data-action="input->intro#seek"
+                            aria-label="Pozice ve stopě"
+                        >
+                        <span class="music-time" data-intro-target="time">0:00 / 0:00</span>
+                    </div>
+
+                    <div class="music-controls">
+                        <button type="button" class="music-ctrl music-ctrl-prev" data-action="click->intro#prev" aria-label="Předchozí">‹‹</button>
+                        <button type="button" class="music-ctrl music-ctrl-play" data-intro-target="playBtn" data-action="click->intro#togglePlay" aria-label="Přehrát/Pauza">▶</button>
+                        <button type="button" class="music-ctrl music-ctrl-next" data-action="click->intro#next" aria-label="Další">››</button>
+                    </div>
+                </div>
+
+                <ol class="music-queue" data-intro-target="queue">
+                    {% for i, t in music_tracks %}
+                    <li class="music-queue-item" data-index="{{ i }}" data-action="click->intro#playIndex">
+                        <span class="music-queue-num">{{ i + 1 }}</span>
+                        <span class="music-queue-meta">
+                            <span class="music-queue-title">{{ t.title }}</span>
+                            <span class="music-queue-artist">{{ t.artist }}</span>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </aside>
+        </div>
+
         {% if app.user %}
             <a href="{{ path('app_profile') }}" class="user-email">{{ app.user.email }}</a>
             <form method="post" action="{{ path('app_logout') }}" class="logout-form">

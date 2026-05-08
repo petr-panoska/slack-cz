@@ -6,6 +6,9 @@
     <title>{% block title %}Welcome!{% endblock %}</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
     {% block stylesheets %}
     {% endblock %}
 
@@ -29,39 +32,6 @@
         { title: 'Synth Things',              artist: 'REDproductions',            src: asset('audio/redproductions-synth-things-video-film-game-tv-music-185938.mp3') },
         { title: 'Suspense Cyberpunk',        artist: 'The Mountain',              src: asset('audio/the_mountain-suspense-cyberpunk-375986.mp3') },
     ] %}
-
-    {# Persistent across Turbo navigations — id+turbo-permanent keeps the audio playing through page swaps. #}
-    <div
-        id="music-player"
-        class="intro-wrapper"
-        data-controller="intro"
-        data-intro-tracks-value="{{ music_tracks|json_encode }}"
-        data-turbo-permanent
-    >
-        <div class="intro-overlay" data-intro-target="overlay">
-            <div class="intro-content">
-                <button type="button" class="intro-button" data-action="click->intro#enter">Vstoupit</button>
-                <p class="intro-tagline">Highline · Midline · Urbanline</p>
-            </div>
-        </div>
-
-        <div class="music-menu" data-intro-target="menu" role="group" aria-label="Hudba">
-            <button
-                type="button"
-                class="music-btn music-mute"
-                data-intro-target="muteBtn"
-                data-action="click->intro#toggleMute"
-                aria-label="Ztlumit"
-                aria-pressed="false"
-            >
-                <span class="music-icon music-icon-on" aria-hidden="true">♪</span>
-                <span class="music-icon music-icon-off" aria-hidden="true">⊘</span>
-            </button>
-            <button type="button" class="music-btn" data-action="click->intro#prev" aria-label="Předchozí stopa">‹</button>
-            <span class="music-label" data-intro-target="label"></span>
-            <button type="button" class="music-btn" data-action="click->intro#next" aria-label="Další stopa">›</button>
-        </div>
-    </div>
 
     {% include 'user_toolbar.twig' %}
 

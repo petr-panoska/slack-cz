@@ -56,14 +56,18 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 
 ## Frontend
 
-- **Asset Mapper** + **Stimulus** + **Turbo** (Symfony stack, žádný build step)
+- **Asset Mapper** + **Stimulus** + **Turbo Drive** (Symfony stack, žádný build step)
 - **Importmap** (`importmap.php`) drží: stimulus, turbo, leaflet
+- Turbo je aktivně zapnuté — link kliky a form submity jsou frame swapy, ne full reloady. Předpokládá to, že stránky extendují `base.html.twig` a vrací 30x redirecty po POST.
 - Stimulus controllery v `assets/controllers/`:
   - `hello_controller.js` — placeholder z generátoru
   - `map_controller.js` — hlavní Leaflet mapa (statické markery + recent users + time-travel režim)
   - `highline_detail_map_controller.js` — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
+  - `intro_controller.js` — slackvibes 📻 audio player; persistent přes Turbo přes `data-turbo-permanent`. Detaily v `docs/audio-player.md`.
 - Globální CSS v `assets/styles/app.css`
 - Obrázky v `assets/images/` (logo, leaflet ikony, archivní artefakty)
+- Audio v `public/audio/` (12 stop, 128 kbps stereo). Originály v `var/audio-original/` (gitignored).
+- Google Fonts: **Space Grotesk** (400, 500, 600, 700) jako globální font na `body` — geometrický sans s charakterem, sedí k bold display logu. Linkovaný přes `<link>` tag v `base.html.twig`.
 
 ## Mapa — Leaflet
 
@@ -118,3 +122,5 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 - ✅ **About / O projektu** s historií slacklive 2007 → slack.cz 2010 → ČAS 2011 → dnes, vč. archivního Kolouchova úvodního slova
 - ✅ Hlavní vizuál — světlý theme, magenta accent (`#e91e63` z původního slack.cz loga)
 - ✅ Auth (registrace, login, reset, email verify) — předvyřízeno před začátkem této vývojové větve
+- ✅ **slackvibes 📻 audio player** — persistent přes Turbo, docked v hlavičce / floating expandable / hidden, equalizer animace, draggable; viz `docs/audio-player.md`
+- ✅ **Time-travel mapa** — historický playback highlines + crossings v čase, controly v `.map-tt-panel` (z-index 500)

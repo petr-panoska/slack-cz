@@ -33,7 +33,20 @@ Vždy přes `php` container:
 docker compose exec -T php bin/console <cmd>
 ```
 
-Časté:
+### Make targety (zkratky)
+
+| Target | Co dělá |
+|---|---|
+| `make dcSetup` | `composer install` |
+| `make dcInitDb` | `doctrine:database:create --if-not-exists` + migrate |
+| `make dcClearCache` | cache:clear --no-warmup (dle aktuálního `APP_ENV` v containeru / `.env.local`) |
+| `make dcAssetMapCompile` | `bin/console asset-map:compile` — generuje `public/assets/manifest.json`. **NUTNÉ v prod** — bez něj 500 |
+| `make dcClearCacheProd` | cache:clear s vynuceným `APP_ENV=prod` (i kdyby `.env.local` měl `APP_ENV=dev`) |
+| `make loadLegacyDump` | jednorázový load `slackcz_44953.sql` po fresh `docker compose down -v` |
+| `make legacyImport` | re-run importů uvnitř existujícího schématu (DELETE crossings → highlines/users/crossings truncate) |
+| `make legacyImportFresh` | drop + create + migrate + full import (předpokládá nahraný legacy dump) |
+
+### Časté konzole příkazy
 
 ```bash
 # vyčistit cache (NUTNÉ po změnách Twig templates / config)
