@@ -632,27 +632,39 @@ a.crossings-line:hover {
 }
 
 .intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
     text-align: center;
-    transform: translateY(-4vh);
+}
+
+.intro-logo {
+    width: clamp(240px, 42vw, 440px);
+    height: auto;
+    display: block;
+    filter:
+        drop-shadow(0 0 18px rgba(225, 0, 91, 0.85))
+        drop-shadow(0 0 48px rgba(225, 0, 91, 0.55))
+        drop-shadow(0 0 96px rgba(225, 0, 91, 0.35));
 }
 
 .intro-button {
     background: transparent;
     border: 2px solid var(--color-accent);
     color: var(--color-accent);
-    padding: 22px 72px;
+    padding: 14px 44px;
     font-family: inherit;
-    font-size: 2rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    letter-spacing: 0.5em;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
-    text-shadow: 0 0 24px rgba(225, 0, 91, 0.7);
+    text-shadow: 0 0 18px rgba(225, 0, 91, 0.7);
     box-shadow:
-        0 0 36px rgba(225, 0, 91, 0.45),
-        inset 0 0 24px rgba(225, 0, 91, 0.1);
-    animation: intro-button-pulse 1.8s ease-in-out infinite;
+        0 0 24px rgba(225, 0, 91, 0.4),
+        inset 0 0 16px rgba(225, 0, 91, 0.1);
 }
 
 .intro-button:hover,
@@ -670,31 +682,7 @@ a.crossings-line:hover {
     transform: scale(0.97);
 }
 
-.intro-tagline {
-    margin: 28px 0 0;
-    font-size: 0.8rem;
-    letter-spacing: 0.4em;
-    color: rgba(255, 255, 255, 0.55);
-    text-transform: uppercase;
-}
-
-@keyframes intro-button-pulse {
-    0%, 100% {
-        box-shadow:
-            0 0 36px rgba(225, 0, 91, 0.45),
-            inset 0 0 24px rgba(225, 0, 91, 0.1);
-    }
-    50% {
-        box-shadow:
-            0 0 56px rgba(225, 0, 91, 0.75),
-            inset 0 0 24px rgba(225, 0, 91, 0.2);
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .intro-button {
-        animation: none;
-    }
     .intro-overlay {
         transition: opacity 0.2s ease;
     }
