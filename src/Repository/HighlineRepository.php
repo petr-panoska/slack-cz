@@ -19,12 +19,12 @@ class HighlineRepository extends ServiceEntityRepository
     /**
      * Returns lightweight rows for the map (no description/HTML payload).
      *
-     * @return list<array{id:int,name:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string}>
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string}>
      */
     public function findAllForMap(): array
     {
         return $this->createQueryBuilder('h')
-            ->select('h.id, h.name, h.type, h.length, h.height, h.latitude, h.longitude, h.area, h.region')
+            ->select('h.id, h.name, h.slug, h.type, h.length, h.height, h.latitude, h.longitude, h.area, h.region')
             ->getQuery()
             ->getArrayResult();
     }

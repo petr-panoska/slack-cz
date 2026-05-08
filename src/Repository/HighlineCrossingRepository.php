@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Highline;
 use App\Entity\HighlineCrossing;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -28,6 +29,21 @@ class HighlineCrossingRepository extends ServiceEntityRepository
             ->orderBy('c.crossedAt', 'DESC')
             ->addOrderBy('c.id', 'DESC')
             ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<HighlineCrossing>
+     */
+    public function findForHighline(Highline $highline): array
+    {
+        return $this->createQueryBuilder('c')
+            ->addSelect('u')
+            ->join('c.user', 'u')
+            ->andWhere('c.highline = :h')->setParameter('h', $highline)
+            ->orderBy('c.crossedAt', 'DESC')
+            ->addOrderBy('c.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -100,6 +116,7 @@ class HighlineCrossingRepository extends ServiceEntityRepository
                 'c.rating AS rating',
                 'h.id AS highlineId',
                 'h.name AS highlineName',
+                'h.slug AS highlineSlug',
                 'h.latitude AS latitude',
                 'h.longitude AS longitude',
                 'u.id AS userId',
@@ -129,6 +146,7 @@ class HighlineCrossingRepository extends ServiceEntityRepository
                 'userId' => (int) $r['userId'],
                 'highlineId' => (int) $r['highlineId'],
                 'highlineName' => $r['highlineName'],
+                'highlineSlug' => $r['highlineSlug'],
                 'latitude' => $r['latitude'],
                 'longitude' => $r['longitude'],
                 'userDisplayName' => $r['nick'] ?? (string) $r['email'],

@@ -2,22 +2,27 @@
 
 Rychlý reference pro běžné operace. Když si nepamatuješ, koukni sem.
 
+> **Setup:** native docker-ce na Linuxu (Ubuntu 25.10, Docker Engine 29.x). Žádný Docker Desktop. Předpokládá se, že tvoje shell session je členem `docker` group (jinak každý `docker` command volá permission denied — fix: `sudo usermod -aG docker $USER` + logout/login, jednorázově).
+
 ## Containery (Docker compose)
 
-| Service | Port (host) | Účel |
+| Service | Host port | Účel |
 |---|---|---|
-| `apache` | 8000 | hlavní web |
-| `database` | 40219 | Postgres 16 (new app DB) |
-| `mysql` | – | legacy MySQL (interně 3306) |
-| `adminer` | 8080 | DB UI |
-| `mailer` | 42039 (UI), 37623 (SMTP) | Mailpit |
-| `php` | – | PHP-FPM (sdílí volume s apache) |
+| `apache` | **8000** (pevný) | hlavní web |
+| `database` | dynamický | Postgres 16 (new app DB), interně 5432 |
+| `mysql` | – | legacy MySQL (jen interní 3306) |
+| `adminer` | **8080** (pevný) | DB UI |
+| `mailer` | dynamický | Mailpit (interní UI 8025, SMTP 1025) |
+| `php` | – | PHP-FPM (jen interní 9000) |
 
 ```bash
-docker compose ps                  # status
-docker compose up -d               # start (detached)
-docker compose down                # stop
-docker compose logs -f apache      # tail logs konkrétní service
+docker compose ps                              # status
+docker compose up -d                           # start (detached)
+docker compose down                            # stop (volumes zachovány)
+docker compose down -v                         # stop + smaž volumes (ztratíš DB!)
+docker compose logs -f apache                  # tail logs konkrétní service
+docker compose port database 5432              # zjisti aktuální host port pro Postgres
+docker compose port mailer 8025                # ... pro Mailpit UI
 ```
 
 ## Symfony console
@@ -87,15 +92,24 @@ docker compose exec -T php bin/console doctrine:migrations:status            # p
 
 ### Legacy import — fresh end-to-end
 
+> ⚠ **Při úplně čistém startu** (např. po `docker compose down -v` nebo po reinstalu Dockeru) je MySQL volume prázdný — legacy dump se musí jednorázově nahrát, jinak importy padnou na "table doesn't exist". Compose neudělá nic auto-loadu.
+
 ```bash
+# 0) Pokud je legacy MySQL prázdný, nahraj dump:
+docker compose exec -T mysql sh -c "mysql -uroot -proot old --default-character-set=utf8mb4" < slackcz_44953.sql
+
+# 1) Nová DB:
 docker compose exec -T php bin/console doctrine:database:drop --force --if-exists
 docker compose exec -T php bin/console doctrine:database:create
 docker compose exec -T php bin/console doctrine:migrations:migrate -n
+
+# 2) Importy v tomhle pořadí (kvůli FK):
 docker compose exec -T php bin/console app:import:highlines --truncate
-# (později po implementaci):
 docker compose exec -T php bin/console app:import:users --truncate
 docker compose exec -T php bin/console app:import:crossings --truncate
 ```
+
+Nebo `make legacyImportFresh` (vyžaduje, aby MySQL měla dump nahrátý — krok 0 výše dělá jen jednorázově po smazání volumes).
 
 ## Smoke testy v terminálu
 
@@ -119,7 +133,8 @@ curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'asset
 - **Twig filtry, které NEjsou nainstalované** (a budou házet 500):
   - `format_datetime` (potřebuje `twig/intl-extra`) — místo toho použij `|date('j. n. Y')`
   - `|u.truncate(...)` (potřebuje `twig/string-extra`) — místo toho použij CSS `-webkit-line-clamp`
-- **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/mapa.html.twig`. Když přidáš novou mapu, **použij stejný controller** (ne kopii).
+- **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/mapa.html.twig`. Pro plnohodnotnou mapu se 254 lajnami + time-travel use `map_controller`; pro slim single-line view (např. detail) je `highline_detail_map_controller`.
+- **Re-import highlines vs. crossings**: `legacyImport` target v Makefile padne, pokud už existují crossings (FK z crossings → highline brání DELETE). Order pro re-run uvnitř existujícího schématu: `dbal:run-sql "DELETE FROM highline_crossing"` → `app:import:highlines --truncate` → `app:import:crossings --truncate`. Nebo nech to udělat `legacyImportFresh` (drop + create + migrate + full import).
 - **Asset URL hashe** se mění při edit → curl test musí parsovat URL z HTML, ne hardcodovat.
 
 ## Feed (Slack.cz TV)
@@ -140,7 +155,8 @@ Quota math: každá search query = 100 units / fetch. Default cache TTL = 1800 s
 |---|---|
 | App | <http://localhost:8000/> |
 | Mapa | <http://localhost:8000/mapa> |
+| Detail lajny | <http://localhost:8000/highline/{slug}> (např. `cimburi-cimbuline`) |
 | O projektu | <http://localhost:8000/o-projektu> |
 | Adminer (PG) | <http://localhost:8080/?pgsql=database&username=app&db=app> |
 | Adminer (MySQL legacy) | <http://localhost:8080/?server=mysql&username=root&db=old> |
-| Mailpit UI | <http://localhost:42039/> |
+| Mailpit UI | `docker compose port mailer 8025` → otevři ten port (host port je dynamický) |

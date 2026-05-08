@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[AsCommand(
     name: 'app:import:highlines',
@@ -26,6 +27,7 @@ final class ImportHighlinesCommand extends Command
         private readonly Connection $oldConnection,
         private readonly HighlineRepository $repository,
         private readonly EntityManagerInterface $em,
+        private readonly SluggerInterface $slugger,
     ) {
         parent::__construct();
     }
@@ -51,11 +53,16 @@ final class ImportHighlinesCommand extends Command
             SELECT h.id, h.typ, h.jmeno, h.delka, h.vyska, h.stat, h.oblast, h.kraj,
                    h.hodnoceni, h.kotveni, h.info, h.pointOneInfo, h.pointTwoInfo,
                    h.autor, h.datum,
-                   COALESCE(NULLIF(h.lat, ""), CAST(g.lat AS CHAR)) AS lat,
-                   COALESCE(NULLIF(h.lng, ""), CAST(g.lng AS CHAR)) AS lng,
+                   COALESCE(NULLIF(h.lat, ""), CAST(g1.lat AS CHAR)) AS lat,
+                   COALESCE(NULLIF(h.lng, ""), CAST(g1.lng AS CHAR)) AS lng,
+                   CAST(g1.lat AS CHAR) AS point1_lat,
+                   CAST(g1.lng AS CHAR) AS point1_lng,
+                   CAST(g2.lat AS CHAR) AS point2_lat,
+                   CAST(g2.lng AS CHAR) AS point2_lng,
                    h.nameHistory, h.timeApproach, h.timeTensioning
             FROM highline h
-            LEFT JOIN gps g ON g.id = h.point1_id
+            LEFT JOIN gps g1 ON g1.id = h.point1_id
+            LEFT JOIN gps g2 ON g2.id = h.point2_id
         ');
 
         $io->info(sprintf('Found %d highlines in legacy DB', count($rows)));
@@ -63,6 +70,7 @@ final class ImportHighlinesCommand extends Command
         $imported = 0;
         $skipped = 0;
         $batchSize = 50;
+        $usedSlugs = [];
 
         foreach ($rows as $i => $row) {
             $lat = $row['lat'] ?? null;
@@ -82,11 +90,16 @@ final class ImportHighlinesCommand extends Command
             $h = new Highline();
             $h->setLegacyId((int) $row['id']);
             $h->setName($row['jmeno']);
+            $h->setSlug($this->makeUniqueSlug($row['jmeno'], $usedSlugs));
             $h->setType(HighlineType::fromLegacyId((int) $row['typ']));
             $h->setLength((int) $row['delka']);
             $h->setHeight((int) $row['vyska']);
             $h->setLatitude($this->normalizeCoord($lat));
             $h->setLongitude($this->normalizeCoord($lng));
+            $h->setPoint1Latitude($this->normalizeNullableCoord($row['point1_lat']));
+            $h->setPoint1Longitude($this->normalizeNullableCoord($row['point1_lng']));
+            $h->setPoint2Latitude($this->normalizeNullableCoord($row['point2_lat']));
+            $h->setPoint2Longitude($this->normalizeNullableCoord($row['point2_lng']));
             $h->setCountry($row['stat'] ?: null);
             $h->setArea($row['oblast'] ?: null);
             $h->setRegion($row['kraj'] ?: null);
@@ -132,6 +145,35 @@ final class ImportHighlinesCommand extends Command
     private function normalizeCoord(string $raw): string
     {
         return number_format((float) trim($raw), 7, '.', '');
+    }
+
+    private function normalizeNullableCoord(?string $raw): ?string
+    {
+        if ($raw === null || trim($raw) === '') {
+            return null;
+        }
+        return $this->normalizeCoord($raw);
+    }
+
+    /**
+     * @param array<string,true> $usedSlugs accumulator within a single import run; ensures slug uniqueness
+     *                                      even before the rows hit the DB (truncate + flush happen later).
+     */
+    private function makeUniqueSlug(string $name, array &$usedSlugs): string
+    {
+        $base = strtolower($this->slugger->slug($name)->toString());
+        if ($base === '') {
+            $base = 'highline';
+        }
+
+        $slug = $base;
+        $i = 2;
+        while (isset($usedSlugs[$slug])) {
+            $slug = $base . '-' . $i++;
+        }
+        $usedSlugs[$slug] = true;
+
+        return $slug;
     }
 
     private function normalizeText(?string $text): ?string

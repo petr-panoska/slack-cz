@@ -22,6 +22,9 @@ class Highline
     #[Assert\NotBlank]
     private ?string $name = null;
 
+    #[ORM\Column(length: 180, unique: true)]
+    private ?string $slug = null;
+
     #[ORM\Column(length: 32, enumType: HighlineType::class)]
     private HighlineType $type = HighlineType::Unsorted;
 
@@ -40,6 +43,22 @@ class Highline
     #[ORM\Column(type: 'decimal', precision: 10, scale: 7)]
     #[Assert\Range(min: -180, max: 180)]
     private ?string $longitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    #[Assert\Range(min: -90, max: 90)]
+    private ?string $point1Latitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    #[Assert\Range(min: -180, max: 180)]
+    private ?string $point1Longitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    #[Assert\Range(min: -90, max: 90)]
+    private ?string $point2Latitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    #[Assert\Range(min: -180, max: 180)]
+    private ?string $point2Longitude = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $country = null;
@@ -108,6 +127,17 @@ class Highline
         return $this;
     }
 
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
+        return $this;
+    }
+
     public function getType(): HighlineType
     {
         return $this->type;
@@ -161,6 +191,58 @@ class Highline
     {
         $this->longitude = $longitude;
         return $this;
+    }
+
+    public function getPoint1Latitude(): ?string
+    {
+        return $this->point1Latitude;
+    }
+
+    public function setPoint1Latitude(?string $point1Latitude): static
+    {
+        $this->point1Latitude = $point1Latitude;
+        return $this;
+    }
+
+    public function getPoint1Longitude(): ?string
+    {
+        return $this->point1Longitude;
+    }
+
+    public function setPoint1Longitude(?string $point1Longitude): static
+    {
+        $this->point1Longitude = $point1Longitude;
+        return $this;
+    }
+
+    public function getPoint2Latitude(): ?string
+    {
+        return $this->point2Latitude;
+    }
+
+    public function setPoint2Latitude(?string $point2Latitude): static
+    {
+        $this->point2Latitude = $point2Latitude;
+        return $this;
+    }
+
+    public function getPoint2Longitude(): ?string
+    {
+        return $this->point2Longitude;
+    }
+
+    public function setPoint2Longitude(?string $point2Longitude): static
+    {
+        $this->point2Longitude = $point2Longitude;
+        return $this;
+    }
+
+    public function hasPolyline(): bool
+    {
+        return $this->point1Latitude !== null
+            && $this->point1Longitude !== null
+            && $this->point2Latitude !== null
+            && $this->point2Longitude !== null;
     }
 
     public function getCountry(): ?string

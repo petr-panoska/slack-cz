@@ -1,12 +1,14 @@
 {# Renders a list of recent highline crossings.
    Params:
      crossings  – iterable of HighlineCrossing
-     layout     – 'panel' (default, vertical list) or 'stripe' (horizontal scroll) #}
+     layout     – 'panel' (default, vertical list) or 'stripe' (horizontal scroll)
+     show_line  – include the highline name (default true). Set false on a highline detail page where it's redundant. #}
 {% set layout = layout|default('panel') %}
+{% set show_line = show_line ?? true %}
 {% if crossings|length > 0 %}
 <ul class="crossings-list crossings-list-{{ layout }}">
     {% for c in crossings %}
-        <li class="crossings-item">
+        <li class="crossings-item{% if not show_line %} crossings-item-noline{% endif %}">
             <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
             {% if c.style %}
                 <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
@@ -21,7 +23,9 @@
                     <span class="crossings-rating-none">–</span>
                 {% endif %}
             </span>
-            <span class="crossings-line">{{ c.highline.name }}</span>
+            {% if show_line %}
+                <a class="crossings-line" href="{{ path('app_highline_detail', { slug: c.highline.slug }) }}">{{ c.highline.name }}</a>
+            {% endif %}
             {% if c.comment %}
                 <p class="crossings-comment">{{ c.comment }}</p>
             {% endif %}

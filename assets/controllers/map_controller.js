@@ -407,9 +407,12 @@ export default class extends Controller {
     popupHtml(h) {
         const typeLabel = TYPE_LABELS[h.type] ?? h.type;
         const place = [h.area, h.region].filter(Boolean).join(', ');
+        const title = h.slug
+            ? `<a href="/highline/${encodeURIComponent(h.slug)}">${escapeHtml(h.name)}</a>`
+            : `<strong>${escapeHtml(h.name)}</strong>`;
         return `
             <div class="highline-popup">
-                <strong>${escapeHtml(h.name)}</strong>
+                <strong>${title}</strong>
                 <div>${escapeHtml(typeLabel)}</div>
                 <div>${h.length} m &middot; ${h.height} m vysoko</div>
                 ${place ? `<div class="muted">${escapeHtml(place)}</div>` : ''}
@@ -422,10 +425,13 @@ export default class extends Controller {
         const stars = u.rating
             ? '★'.repeat(u.rating) + '☆'.repeat(5 - u.rating)
             : '';
+        const lineLink = u.highlineSlug
+            ? `<a href="/highline/${encodeURIComponent(u.highlineSlug)}">${escapeHtml(u.highlineName)}</a>`
+            : escapeHtml(u.highlineName);
         return `
             <div class="user-popup">
                 <strong>${escapeHtml(u.userDisplayName)}</strong>
-                <div class="user-popup-line">${escapeHtml(u.highlineName)}</div>
+                <div class="user-popup-line">${lineLink}</div>
                 <div class="muted">${escapeHtml(date)}${stars ? ` &middot; <span class="user-popup-stars">${stars}</span>` : ''}</div>
             </div>
         `;

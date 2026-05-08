@@ -2,16 +2,20 @@
 
 Symfony 7.3 / PHP 8.2+ aplikace. Vyvíjí se v Dockeru (Compose), produkce zatím není nasazená.
 
+Dev běží na **native docker-ce** (Linux) — žádný Docker Desktop, žádný `linuxkit`, žádný FUSE wrapper. Bind mount je raw `ext4` přímo z hostu, atomic-rename funguje korektně (důležité, viz historie editací; DD's `fakeowner` FUSE měl invalidation bug).
+
 ## Stack
 
-| Vrstva | Komponenta | Pozn. |
+| Vrstva | Komponenta | Host port |
 |---|---|---|
-| Web | Apache 2.4 (`:8000`) | servíruje `public/` |
-| App | PHP-FPM (slack-cz-php) | Symfony 7.3, PHP 8.2+ |
-| DB nová | PostgreSQL 16 (`:40219`) | Doctrine ORM, EM `default` |
-| DB legacy | MySQL (`:3306` interní) | čte se z `slackcz_44953.sql` dump, EM `old` |
-| Mail | Mailpit (UI `:42039`, SMTP `:37623`) | dev-only |
-| Adminer | `:8080` | DB UI |
+| Web | Apache 2.4 | **8000** (pevný) |
+| App | PHP-FPM (image `slack-cz-php`, Symfony 7.3, PHP 8.4 alpine) | – (jen interní 9000) |
+| DB nová | PostgreSQL 16 (Doctrine EM `default`) | dynamický (compose ho přidělí) |
+| DB legacy | MySQL (Doctrine EM `old`, čte `slackcz_44953.sql` dump) | – (interní) |
+| Mail | Mailpit (UI 8025, SMTP 1025) | dynamické pro UI i SMTP |
+| Adminer | DB UI | **8080** (pevný) |
+
+Aktuální dynamické porty: `docker compose port database 5432`, `docker compose port mailer 8025` atp.
 
 ## Struktura kódu
 
@@ -56,7 +60,8 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 - **Importmap** (`importmap.php`) drží: stimulus, turbo, leaflet
 - Stimulus controllery v `assets/controllers/`:
   - `hello_controller.js` — placeholder z generátoru
-  - `map_controller.js` — Leaflet mapa, parametrizovatelný (data-url, ikony)
+  - `map_controller.js` — hlavní Leaflet mapa (statické markery + recent users + time-travel režim)
+  - `highline_detail_map_controller.js` — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
 - Globální CSS v `assets/styles/app.css`
 - Obrázky v `assets/images/` (logo, leaflet ikony, archivní artefakty)
 
@@ -96,6 +101,7 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 | `/` | `app_index` | ✓ |
 | `/mapa` | `app_highline_map` | ✓ |
 | `/mapa/data` | `app_highline_map_data` | ✓ JSON |
+| `/highline/{slug}` | `app_highline_detail` | ✓ |
 | `/o-projektu` | `app_about` | ✓ |
 | `/profile` | `app_profile` | login required |
 | `/login`, `/register`, `/logout` | auth | ✓ |
@@ -105,7 +111,8 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 
 ## Hotové features
 
-- ✅ **Highline mapa** s 254 lajnami z legacy DB (Leaflet + OSM, popup)
+- ✅ **Highline mapa** s 254 lajnami z legacy DB (Leaflet + OSM, popup linkuje na detail)
+- ✅ **Highline detail** `/highline/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
 - ✅ **Index page** se 2 panely: mini mapa + Slack.cz TV (YouTube feed)
 - ✅ **Slack.cz TV** — YouTube feed, hashtag/search/channel zdroje, in-memory cache
 - ✅ **About / O projektu** s historií slacklive 2007 → slack.cz 2010 → ČAS 2011 → dnes, vč. archivního Kolouchova úvodního slova
