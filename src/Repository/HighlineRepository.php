@@ -34,7 +34,7 @@ class HighlineRepository extends ServiceEntityRepository
      * (= firstAscentDate, falling back to the earliest known crossing date).
      * Highlines with no first-ascent and no crossings are excluded — nothing to anchor them in time.
      *
-     * @return list<array{id:int,name:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string,appearanceDate:string}>
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string,appearanceDate:string}>
      */
     public function findAllForTimeline(): array
     {
@@ -42,6 +42,7 @@ class HighlineRepository extends ServiceEntityRepository
             SELECT
                 h.id,
                 h.name,
+                h.slug,
                 h.type,
                 h.length,
                 h.height,
@@ -62,6 +63,7 @@ class HighlineRepository extends ServiceEntityRepository
         return array_map(static fn(array $r): array => [
             'id' => (int) $r['id'],
             'name' => $r['name'],
+            'slug' => $r['slug'],
             'type' => $r['type'],
             'length' => (int) $r['length'],
             'height' => (int) $r['height'],
