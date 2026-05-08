@@ -61,9 +61,23 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 - Turbo je aktivně zapnuté — link kliky a form submity jsou frame swapy, ne full reloady. Předpokládá to, že stránky extendují `base.html.twig` a vrací 30x redirecty po POST.
 - Stimulus controllery v `assets/controllers/`:
   - `hello_controller.js` — placeholder z generátoru
-  - `map_controller.js` — hlavní Leaflet mapa (statické markery + recent users + time-travel režim)
+  - `map_controller.js` — hlavní Leaflet mapa: highline markery (`staticLayer`), emoji markery posledních přechodů (`usersLayer`, přepínatelné okem ze sidebaru), time-travel režim (`timelineLayer`). Leaflet zoom je přesunutý na `bottomright`, aby se nemlátil se sidebarem vlevo nahoře.
   - `highline_detail_map_controller.js` — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
+  - `user_denik_map_controller.js` — mini-mapa na `/denik/{id}` se všemi unikátními highlines, co user prošel
+  - `crossing_feed_controller.js` — vertikální „news bar" sidebar na `/mapa`: list posledních N přechodů, dvě tlačítka v hlavičce (oko = visibility emoji markerů, šipka = collapse panelu), reaguje na time-travel režim (změní se v okno -7 dní zpět od virtuálního času)
+  - `search_controller.js` — global highline search v hlavičce
   - `intro_controller.js` — slackvibes 📻 audio player; persistent přes Turbo přes `data-turbo-permanent`. Detaily v `docs/audio-player.md`.
+
+#### Cross-controller event bus
+
+Mapový sidebar a mapa potřebují komunikovat napříč nezávislými Stimulus controllery. Používáme `document`-level CustomEvents:
+
+| Event | Producer | Consumer | Payload |
+|---|---|---|---|
+| `slack:map-mode` | `map` | `crossing-feed` | `{ mode: 'recent' \| 'time-travel', date?, days? }` — feed podle toho přefetchuje data (sloty se debouncují 200 ms + AbortController) |
+| `slack:users-visibility` | `crossing-feed` (eye button) | `map` | `{ visible: bool }` — mapa přidá/odebere `usersLayer` |
+
+Stav přežívá Turbo navigaci přes `sessionStorage` (`slack.cz:mapa:feed-collapsed`, `slack.cz:mapa:users-hidden`, `slack.cz:mapa:view`). Map controller čte `users-hidden` přímo na bootu (ne přes event), aby nedocházelo k race condition s pořadím Stimulus connectů.
 - Globální CSS v `assets/styles/app.css`
 - Obrázky v `assets/images/` (logo, leaflet ikony, archivní artefakty)
 - Audio v `public/audio/` (12 stop, 128 kbps stereo). Originály v `var/audio-original/` (gitignored).
@@ -73,7 +87,22 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 
 - Tile provider: **OpenStreetMap** (`tile.openstreetmap.org`)
 - Markery: defaultní Leaflet ikony — kvůli AssetMapperu jsme musely PNG (`marker-icon`, `marker-icon-2x`, `marker-shadow`) stáhnout do `assets/images/leaflet/` a předat URLs z Twigu jako `data-*` (klasický bundling problém)
-- Použití na 2 místech: full mapa `/mapa` a mini mapa v panelu na indexu — sdílí Stimulus controller
+- Zoom controly jsou na **`bottomright`** (default `topleft` koliduje se sidebarem `/mapa`); v time-travel módu se zoom navíc CSSkem zvedne nad time-travel panel
+- Použití na 4 místech: full mapa `/mapa` (s sidebar feedem + time-travel), mini mapa v panelu na indexu (sdílí `map_controller`), mini-mapa detailu lajny (`highline_detail_map_controller`), mini-mapa deníku (`user_denik_map_controller`)
+
+### Recent crossings — single source of truth
+
+Konstanta `App\Repository\HighlineCrossingRepository::RECENT_LIMIT` (default 10) určuje, kolik nejnovějších přechodů se zobrazí v UI. Sjednocuje tři místa, která jindy „žila vlastním limitem":
+
+| Místo | Metoda repa | Tvar |
+|---|---|---|
+| Index page „Posledních přechodů" stripe | `findRecent()` | entity (Twig partial `_recent_crossings.html.twig`) |
+| `/mapa` emoji markery | `findRecentForJson()` | array (lat/lng + popup data) |
+| `/mapa` sidebar feed | `findRecentForJson()` | array (sdílený endpoint `/mapa/feed`) |
+
+Bez dedup by user — homepage list, emoji markery i sidebar zobrazují **stejné** přechody. Když má jeden user 3 ze 10 nejnovějších, mapa ukáže 3× jeho emoji na 3 různých lajnách (fan-offset stackuje pouze identické GPS).
+
+Pro time-travel režim je separátní `findForFeedInRange(from, to)` (sidebar volá `/mapa/feed?date=YYYY-MM-DD&days=7`).
 
 ## Feed (Slack.cz TV)
 
@@ -138,8 +167,11 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 |---|---|---|
 | `/` | `app_index` | ✓ |
 | `/mapa` | `app_highline_map` | ✓ |
-| `/mapa/data` | `app_highline_map_data` | ✓ JSON |
+| `/mapa/data` | `app_highline_map_data` | ✓ JSON — všechny highlines (markery na mapě) |
+| `/mapa/feed` | `app_highline_map_feed` | ✓ JSON — N posledních přechodů (default `RECENT_LIMIT`); s `?date=YYYY-MM-DD&days=7` vrací time-travel okno |
+| `/mapa/timeline-data` | `app_highline_map_timeline` | ✓ JSON — vše pro time-travel playback (highlines + crossings chronologicky) |
 | `/highline/{slug}` | `app_highline_detail` | ✓ |
+| `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele |
 | `/o-projektu` | `app_about` | ✓ |
 | `/profile` | `app_profile` | login required |
 | `/login`, `/register`, `/logout` | auth | ✓ |
@@ -157,4 +189,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ Hlavní vizuál — světlý theme, magenta accent (`#e91e63` z původního slack.cz loga)
 - ✅ Auth (registrace, login, reset, email verify) — předvyřízeno před začátkem této vývojové větve
 - ✅ **slackvibes 📻 audio player** — persistent přes Turbo, docked v hlavičce / floating expandable / hidden, equalizer animace, draggable; viz `docs/audio-player.md`
+- ✅ **Intro splash overlay** — fullscreen logo + „Vstoupit" button (component `intro-overlay`), magenta glow, single-action vstup do appky + spuštění audio playeru
 - ✅ **Time-travel mapa** — historický playback highlines + crossings v čase, controly v `.map-tt-panel` (z-index 500)
+- ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
+- ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů

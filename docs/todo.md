@@ -46,13 +46,17 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 ## Dokončené (krátký archiv)
 
-- [x] **Deník uživatele `/denik/{id}`** — `UserController::denik` + `pages/user_denik.html.twig`. Hlavička (nick, město, ročník, datum prvního přechodu), stat panel (# přechodů, # unikátních highlines, suma délek, max délka, max výška), mini-mapa s body všech navštívených highlines (zoom na bbox, popup s odkazem na detail), tabulka přechodů. Linkováno z „Posledních přechodů" stripe a z popupu uživatele na `/mapa`.
+- [x] **Deník uživatele `/denik/{id}`** — `UserController::denik` + `pages/user_denik.html.twig`. Hlavička (nick, město, ročník, datum prvního přechodu přes `findFirstCrossingDate`), mini-mapa s body všech navštívených highlines (zoom na bbox, popup s odkazem na detail), tabulka přechodů. Linkováno z „Posledních přechodů" stripe a z popupu uživatele na `/mapa`.
+- [x] **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s N posledními přechody (`RECENT_LIMIT`), eye toggle (skryje/zobrazí emoji markery, persistent přes `sessionStorage`), collapse na samotnou hlavičku (taky persistent). Time-travel režim přepne sidebar na okno -7 dní zpět od virtuálního času. Cross-controller komunikace přes CustomEvents `slack:map-mode` a `slack:users-visibility` (viz `architecture.md`).
+- [x] **Single source of truth pro recent crossings** — `HighlineCrossingRepository::RECENT_LIMIT`. Index page stripe, mapové emoji markery i sidebar feed teď čerpají ze stejného setu (žádný dedup by user). Sjednoceno přes `findRecent()` + `findRecentForJson()`.
+- [x] **Intro splash overlay** — fullscreen logo + „Vstoupit" button na vstupu do appky (komponenta `intro-overlay` v `user_toolbar.twig`). Klik = dismiss + start audio playeru.
+- [x] **Mapové zoom controly přesunuty na `bottomright`** — defaultní `topleft` koliduje se sidebarem. V time-travel módu se zoom zvedá nad time-travel panel (CSSkem).
 - [x] **Highline detail `/highline/{slug}`** — slug v DB (unique), import doplňuje přes `AsciiSlugger`. Stránka: stat panel (délka/výška/rating), info tabulka (kotvení 1/2, přístup, napínání, autor, datum, historie názvu, GPS s odkazem na mapy.cz), mini-mapa s polyline mezi `point1Latitude/Longitude` a `point2Latitude/Longitude` (pokud oba body známe), seznam všech přechodů. Detail je nalinkovaný z popupu na `/mapa` i ze stripe „Posledních přechodů" na indexu.
 - [x] **Highline `point1Latitude/Longitude` + `point2Latitude/Longitude`** — naimportováno z legacy `gps` tabulky přes JOIN na `point1_id` / `point2_id` (typ `LINE_POINT`).
 - [x] **User import** — 440 nových User + 1 enriched (existující dev účet) + 6 dropped legacy řádků mergováno (5 duplicit emailů). MD5 hesla zachována, `migrate_from` v security.yaml přehashuje na bcrypt při prvním loginu.
 - [x] **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datům). Style enum s 9 hodnotami, mapping legacy → enum, neznámé hodnoty se reportují jako warning.
 - [x] **`Makefile`** — targety `legacyImport` (re-import s `--truncate`) a `legacyImportFresh` (drop+create+migrate+full import).
-- [x] **„Poslední přechody" panel** na indexu (vedle Slack.cz TV) — ukazuje 5 nejnovějších (datum / user / lajna / hodnocení v hvězdách).
+- [x] **„Poslední přechody" panel** na indexu (vedle Slack.cz TV) — ukazuje N nejnovějších (datum / user / lajna / hodnocení v hvězdách). Limit centrálně v `RECENT_LIMIT`.
 - [x] Highline import 254/254 z legacy DB do nové Postgres
 - [x] Mapa `/mapa` s Leaflet + OSM, fixnutý problém s ikonami (asset URLs přes Stimulus values)
 - [x] Light theme s magenta accent (`#e91e63` z původního loga)

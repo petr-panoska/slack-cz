@@ -8,6 +8,7 @@ Je míněn primárně pro vývojáře projektu (CAS).
 - [`architecture.md`](architecture.md) — co je postavené, struktura kódu, klíčová architekturní rozhodnutí
 - [`migration.md`](migration.md) — strategie importu legacy dat ze staré MySQL DB do nové Postgres
 - [`crossing-styles.md`](crossing-styles.md) — taxonomie stylů přechodů highline, mapování legacy → nový enum
+- [`audio-player.md`](audio-player.md) — slackvibes 📻 přehrávač (states, storage, controller internals)
 - [`dev.md`](dev.md) — operační cheat sheet (Docker, console, DB, cache, smoke testy)
 - [`todo.md`](todo.md) — otevřené úkoly napříč projektem
 

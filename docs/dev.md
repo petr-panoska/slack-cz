@@ -133,8 +133,14 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8000/mapa
 # vidět konkrétní content
 curl -s http://localhost:8000/mapa | grep -oE 'feed-item|panel-map' | sort -u
 
-# JSON endpoint
+# JSON endpoint — všechny highlines pro markery
 curl -s http://localhost:8000/mapa/data | head -c 500
+
+# JSON endpoint — N posledních přechodů (sidebar feed + emoji markery na mapě)
+curl -s http://localhost:8000/mapa/feed | head -c 500
+
+# JSON endpoint — time-travel okno (-7 dní od daného data)
+curl -s "http://localhost:8000/mapa/feed?date=2025-09-01&days=7" | head -c 500
 
 # asset existuje (po importmap:require / asset()):
 curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'assets/images/[^"]+' | head -1) -o /dev/null -w "%{http_code}\n"
@@ -149,6 +155,7 @@ curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'asset
 - **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/mapa.html.twig`. Pro plnohodnotnou mapu se 254 lajnami + time-travel use `map_controller`; pro slim single-line view (např. detail) je `highline_detail_map_controller`.
 - **Re-import highlines vs. crossings**: `legacyImport` target v Makefile padne, pokud už existují crossings (FK z crossings → highline brání DELETE). Order pro re-run uvnitř existujícího schématu: `dbal:run-sql "DELETE FROM highline_crossing"` → `app:import:highlines --truncate` → `app:import:crossings --truncate`. Nebo nech to udělat `legacyImportFresh` (drop + create + migrate + full import).
 - **Asset URL hashe** se mění při edit → curl test musí parsovat URL z HTML, ne hardcodovat.
+- **Limit posledních přechodů** je centralizovaný v `App\Repository\HighlineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i sidebar feed. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
 
 ## Feed (Slack.cz TV)
 
@@ -169,6 +176,7 @@ Quota math: každá search query = 100 units / fetch. Default cache TTL = 1800 s
 | App | <http://localhost:8000/> |
 | Mapa | <http://localhost:8000/mapa> |
 | Detail lajny | <http://localhost:8000/highline/{slug}> (např. `cimburi-cimbuline`) |
+| Deník uživatele | <http://localhost:8000/denik/{id}> |
 | O projektu | <http://localhost:8000/o-projektu> |
 | Adminer (PG) | <http://localhost:8080/?pgsql=database&username=app&db=app> |
 | Adminer (MySQL legacy) | <http://localhost:8080/?server=mysql&username=root&db=old> |
