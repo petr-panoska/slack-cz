@@ -38,12 +38,6 @@ final class HighlineController extends AbstractController
         return new JsonResponse($repository->findAllForMap());
     }
 
-    #[Route('/mapa/recent-users', name: 'app_highline_map_recent_users', methods: ['GET'])]
-    public function recentUsers(HighlineCrossingRepository $repository): JsonResponse
-    {
-        return new JsonResponse($repository->findRecentUsersForMap(10));
-    }
-
     #[Route('/mapa/feed', name: 'app_highline_map_feed', methods: ['GET'])]
     public function feed(Request $request, HighlineCrossingRepository $repository): JsonResponse
     {
@@ -60,7 +54,7 @@ final class HighlineController extends AbstractController
             return new JsonResponse($repository->findForFeedInRange($from, $until));
         }
 
-        return new JsonResponse($repository->findRecentForFeed(10));
+        return new JsonResponse($repository->findRecentForJson());
     }
 
     #[Route('/mapa/timeline-data', name: 'app_highline_map_timeline', methods: ['GET'])]

@@ -17,7 +17,7 @@ final class PagesController extends AbstractController
     {
         return $this->render('pages/index.html.twig', [
             'feed_items' => $feed->fetch(12),
-            'recent_crossings' => $crossings->findRecent(5),
+            'recent_crossings' => $crossings->findRecent(),
         ]);
     }
 

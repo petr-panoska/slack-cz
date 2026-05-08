@@ -123,7 +123,7 @@ export default class extends Controller {
         if (this.hasCaptionTarget) {
             this.captionTarget.textContent = detail.mode === 'time-travel'
                 ? `${formatDate(detail.date)} · 7 dní zpět`
-                : 'Posledních 10 přechodů';
+                : `Posledních ${items.length} přechodů`;
         }
 
         this.listTarget.innerHTML = '';
