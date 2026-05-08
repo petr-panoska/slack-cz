@@ -1473,7 +1473,8 @@ a.crossings-line:hover {
     text-overflow: ellipsis;
 }
 
-.crossing-feed-toggle {
+.crossing-feed-toggle,
+.crossing-feed-eye {
     width: 24px;
     height: 24px;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1486,14 +1487,23 @@ a.crossings-line:hover {
     justify-content: center;
     padding: 0;
     flex-shrink: 0;
-    transition: background-color 0.15s, border-color 0.15s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .crossing-feed-toggle:hover,
-.crossing-feed-toggle:focus-visible {
+.crossing-feed-toggle:focus-visible,
+.crossing-feed-eye:hover,
+.crossing-feed-eye:focus-visible {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.55);
     outline: none;
+}
+
+.crossing-feed-eye-off { display: none; }
+.crossing-feed.users-hidden .crossing-feed-eye-on { display: none; }
+.crossing-feed.users-hidden .crossing-feed-eye-off { display: block; }
+.crossing-feed.users-hidden .crossing-feed-eye {
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .crossing-feed-toggle-icon {

@@ -27,6 +27,9 @@ const CZECH_CENTER = [49.8, 15.5];
 // Survives Turbo navigations (map → highline detail → back) so the user
 // returns to the same pan/zoom they left.
 const VIEW_STORAGE_KEY = 'slack.cz:mapa:view';
+// Owned by crossing_feed_controller (eye toggle); read here on boot so we don't
+// race with the feed controller's connect order.
+const USERS_HIDDEN_KEY = 'slack.cz:mapa:users-hidden';
 
 function readSavedView() {
     try {
@@ -122,8 +125,9 @@ export default class extends Controller {
 
         this.map.on('moveend zoomend', () => writeSavedView(this.map));
 
-        // Static mode = highlines + recent users emoji
+        // Static mode = highlines (always visible) + recent users emoji (toggleable via sidebar eye)
         this.staticLayer = L.layerGroup().addTo(this.map);
+        this.usersLayer = L.layerGroup();
         // Timeline mode = highlines fading in chronologically + crossing pulses
         this.timelineLayer = L.layerGroup();
 
@@ -131,6 +135,16 @@ export default class extends Controller {
         this.playing = false;
         this.speedMultiplier = 1;
         this._lastEmittedDate = null;
+
+        try {
+            this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) !== '1';
+        } catch {
+            this.usersVisible = true;
+        }
+        if (this.usersVisible) this.usersLayer.addTo(this.map);
+
+        this._onUsersVisibility = (e) => this._setUsersVisible(e.detail?.visible ?? true);
+        document.addEventListener('slack:users-visibility', this._onUsersVisibility);
 
         await this.loadHighlines();
         await this.loadUsers();
@@ -142,6 +156,9 @@ export default class extends Controller {
         if (this.rafHandle) {
             cancelAnimationFrame(this.rafHandle);
             this.rafHandle = null;
+        }
+        if (this._onUsersVisibility) {
+            document.removeEventListener('slack:users-visibility', this._onUsersVisibility);
         }
         if (this.map) {
             this.map.remove();
@@ -209,7 +226,7 @@ export default class extends Controller {
                 });
                 L.marker([lat, lng], { icon, zIndexOffset: 800 })
                     .bindPopup(this.userPopupHtml(u))
-                    .addTo(this.staticLayer);
+                    .addTo(this.usersLayer);
             });
         }
     }
@@ -235,6 +252,7 @@ export default class extends Controller {
 
         this.timeTravel = true;
         this.staticLayer.removeFrom(this.map);
+        this.usersLayer.removeFrom(this.map);
         this.timelineLayer.addTo(this.map);
         this.element.classList.add('time-travel-active');
         if (this.hasTtToggleTarget) this.ttToggleTarget.textContent = 'Návrat do dneška';
@@ -262,6 +280,7 @@ export default class extends Controller {
         this.timelineLayer.clearLayers();
         this.timelineLayer.removeFrom(this.map);
         this.staticLayer.addTo(this.map);
+        if (this.usersVisible) this.usersLayer.addTo(this.map);
 
         this.element.classList.remove('time-travel-active');
         if (this.hasTtToggleTarget) this.ttToggleTarget.textContent = 'Přehrát historii';
@@ -464,6 +483,14 @@ export default class extends Controller {
                 ${place ? `<div class="muted">${escapeHtml(place)}</div>` : ''}
             </div>
         `;
+    }
+
+    _setUsersVisible(visible) {
+        this.usersVisible = !!visible;
+        // In time-travel mode users layer isn't on the map anyway — apply on next exit.
+        if (this.timeTravel || !this.map) return;
+        if (this.usersVisible) this.usersLayer.addTo(this.map);
+        else this.usersLayer.removeFrom(this.map);
     }
 
     // ---------- Cross-controller bus ----------

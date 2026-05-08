@@ -33,6 +33,7 @@ function renderStars(rating) {
 }
 
 const COLLAPSED_KEY = 'slack.cz:mapa:feed-collapsed';
+const USERS_HIDDEN_KEY = 'slack.cz:mapa:users-hidden';
 
 export default class extends Controller {
     static values = {
@@ -48,6 +49,9 @@ export default class extends Controller {
         if (sessionStorage.getItem(COLLAPSED_KEY) === '1') {
             this.element.classList.add('is-collapsed');
         }
+
+        this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) !== '1';
+        this._applyUsersVisibility();
 
         this._onModeChange = (e) => this._handleMode(e.detail);
         document.addEventListener('slack:map-mode', this._onModeChange);
@@ -72,6 +76,30 @@ export default class extends Controller {
         } catch {
             /* sessionStorage may be unavailable; non-fatal */
         }
+    }
+
+    toggleUsers(event) {
+        event?.preventDefault();
+        this.usersVisible = !this.usersVisible;
+        try {
+            sessionStorage.setItem(USERS_HIDDEN_KEY, this.usersVisible ? '0' : '1');
+        } catch {
+            /* sessionStorage may be unavailable; non-fatal */
+        }
+        this._applyUsersVisibility();
+    }
+
+    _applyUsersVisibility() {
+        this.element.classList.toggle('users-hidden', !this.usersVisible);
+        const eye = this.element.querySelector('.crossing-feed-eye');
+        if (eye) {
+            const label = this.usersVisible ? 'Skrýt přechody na mapě' : 'Zobrazit přechody na mapě';
+            eye.setAttribute('aria-label', label);
+            eye.setAttribute('title', label);
+        }
+        document.dispatchEvent(new CustomEvent('slack:users-visibility', {
+            detail: { visible: this.usersVisible },
+        }));
     }
 
     _handleMode(detail) {
