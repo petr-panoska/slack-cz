@@ -7,6 +7,7 @@ use App\Repository\HighlineRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Highline;
@@ -41,6 +42,25 @@ final class HighlineController extends AbstractController
     public function recentUsers(HighlineCrossingRepository $repository): JsonResponse
     {
         return new JsonResponse($repository->findRecentUsersForMap(10));
+    }
+
+    #[Route('/mapa/feed', name: 'app_highline_map_feed', methods: ['GET'])]
+    public function feed(Request $request, HighlineCrossingRepository $repository): JsonResponse
+    {
+        $date = $request->query->get('date');
+        $days = (int) $request->query->get('days', 0);
+
+        if (is_string($date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1 && $days > 0) {
+            try {
+                $until = new \DateTimeImmutable($date);
+                $from = $until->modify("-{$days} days");
+            } catch (\Exception) {
+                return new JsonResponse([], 400);
+            }
+            return new JsonResponse($repository->findForFeedInRange($from, $until));
+        }
+
+        return new JsonResponse($repository->findRecentForFeed(10));
     }
 
     #[Route('/mapa/timeline-data', name: 'app_highline_map_timeline', methods: ['GET'])]

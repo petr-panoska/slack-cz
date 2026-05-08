@@ -109,10 +109,11 @@ export default class extends Controller {
 
         const saved = readSavedView();
         this.viewRestored = saved !== null;
-        this.map = L.map(this.canvasTarget).setView(
+        this.map = L.map(this.canvasTarget, { zoomControl: false }).setView(
             saved ? [saved.lat, saved.lng] : CZECH_CENTER,
             saved ? saved.zoom : 7,
         );
+        L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -129,9 +130,12 @@ export default class extends Controller {
         this.timeTravel = false;
         this.playing = false;
         this.speedMultiplier = 1;
+        this._lastEmittedDate = null;
 
         await this.loadHighlines();
         await this.loadUsers();
+
+        this._publishMode();
     }
 
     disconnect() {
@@ -244,6 +248,7 @@ export default class extends Controller {
         this.lastFrameTime = 0;
 
         this.updateTimelineUI();
+        this._publishMode();
     }
 
     exitTimeTravel() {
@@ -260,6 +265,7 @@ export default class extends Controller {
 
         this.element.classList.remove('time-travel-active');
         if (this.hasTtToggleTarget) this.ttToggleTarget.textContent = 'Přehrát historii';
+        this._publishMode();
     }
 
     async fetchTimelineData() {
@@ -323,6 +329,7 @@ export default class extends Controller {
         this.virtualTime = target;
 
         this.updateTimelineUI();
+        this._publishMode();
     }
 
     setSpeed(event) {
@@ -349,6 +356,7 @@ export default class extends Controller {
         }
 
         this.updateTimelineUI();
+        this._publishMode();
 
         if (this.playing) {
             this.rafHandle = requestAnimationFrame((t) => this.tick(t));
@@ -456,6 +464,24 @@ export default class extends Controller {
                 ${place ? `<div class="muted">${escapeHtml(place)}</div>` : ''}
             </div>
         `;
+    }
+
+    // ---------- Cross-controller bus ----------
+    // Tells the news-bar feed which window of crossings to show.
+    _publishMode() {
+        if (this.timeTravel) {
+            const date = new Date(this.virtualTime).toISOString().slice(0, 10);
+            if (date === this._lastEmittedDate) return;
+            this._lastEmittedDate = date;
+            document.dispatchEvent(new CustomEvent('slack:map-mode', {
+                detail: { mode: 'time-travel', date, days: 7 },
+            }));
+        } else {
+            this._lastEmittedDate = null;
+            document.dispatchEvent(new CustomEvent('slack:map-mode', {
+                detail: { mode: 'recent' },
+            }));
+        }
     }
 
     userPopupHtml(u) {

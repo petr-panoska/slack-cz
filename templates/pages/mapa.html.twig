@@ -15,6 +15,34 @@
 >
     <div class="highline-map" data-map-target="canvas"></div>
 
+    <aside
+        class="crossing-feed"
+        aria-label="Přechody"
+        data-controller="crossing-feed"
+        data-crossing-feed-url-value="{{ path('app_highline_map_feed') }}"
+    >
+        <header class="crossing-feed-header">
+            <span class="crossing-feed-dot" aria-hidden="true"></span>
+            <div class="crossing-feed-titles">
+                <h2 class="crossing-feed-title">Přechody</h2>
+                <span class="crossing-feed-caption" data-crossing-feed-target="caption">Posledních 10 přechodů</span>
+            </div>
+            <button
+                type="button"
+                class="crossing-feed-toggle"
+                data-action="click->crossing-feed#toggle"
+                aria-label="Skrýt panel"
+                title="Skrýt panel"
+            >
+                <span class="crossing-feed-toggle-icon" aria-hidden="true">‹</span>
+            </button>
+        </header>
+        <div class="crossing-feed-body-wrap">
+            <ul class="crossing-feed-list" data-crossing-feed-target="list"></ul>
+            <p class="crossing-feed-empty" data-crossing-feed-target="empty" hidden>Zatím žádný přechod.</p>
+        </div>
+    </aside>
+
     <button
         type="button"
         class="map-tt-toggle"
