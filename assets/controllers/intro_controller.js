@@ -100,8 +100,10 @@ export default class extends Controller {
 
     makeAudio(src) {
         const audio = new Audio(src);
-        audio.loop = true;
-        audio.preload = 'auto';
+        audio.preload = 'none';
+        audio.addEventListener('ended', () => {
+            if (this.audio === audio) this.next();
+        });
         return audio;
     }
 

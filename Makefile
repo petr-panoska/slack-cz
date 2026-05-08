@@ -8,6 +8,15 @@ dcInitDb:
 dcClearCache:
 	docker compose run php bin/console cache:clear --no-warmup
 
+# Compile AssetMapper output to public/assets/. Required in prod —
+# without it Symfony can't resolve the manifest and returns 500.
+dcAssetMapCompile:
+	docker compose run php bin/console asset-map:compile
+
+# Clear+warm prod cache explicitly, regardless of .env.local APP_ENV.
+dcClearCacheProd:
+	docker compose run -e APP_ENV=prod php bin/console cache:clear
+
 # Loads legacy MySQL dump into the `mysql` container. Needed only after a fresh
 # `docker compose down -v` or first-time setup — the dump doesn't auto-load.
 loadLegacyDump:
