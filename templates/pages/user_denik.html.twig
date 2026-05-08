@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ profile.displayName }} – deník – slack.cz{% endblock %}
+
+{% block body %}
+<article class="denik">
+    <header class="denik-head panel">
+        <div class="denik-identity">
+            <h1>{{ profile.displayName }}</h1>
+            {% set bits = [profile.firstName, profile.lastName]|filter(v => v)|join(' ') %}
+            {% if bits %}<p class="denik-realname">{{ bits }}</p>{% endif %}
+            <ul class="denik-meta">
+                {% if profile.city %}<li><span class="denik-meta-label">Město</span> {{ profile.city }}</li>{% endif %}
+                {% if profile.birthYear %}<li><span class="denik-meta-label">Ročník</span> {{ profile.birthYear }}</li>{% endif %}
+                {% if firstCrossingDate %}
+                    <li>
+                        <span class="denik-meta-label">První přechod</span>
+                        <time datetime="{{ firstCrossingDate|date('Y-m-d') }}">{{ firstCrossingDate|date('j. n. Y') }}</time>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </header>
+
+    <div class="denik-grid">
+        <section class="panel denik-map-panel">
+            <header class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-dot panel-dot-map"></span>
+                    <h2>Mapa <span class="hl-crossings-count">{{ mapHighlines|length }}</span></h2>
+                </div>
+            </header>
+            {% if mapHighlines|length > 0 %}
+                <div
+                    class="denik-map-wrapper"
+                    data-controller="user-denik-map"
+                    data-user-denik-map-highlines-value="{{ mapHighlines|json_encode|e('html_attr') }}"
+                    data-user-denik-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                    data-user-denik-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                    data-user-denik-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                >
+                    <div class="denik-map-canvas" data-user-denik-map-target="canvas"></div>
+                </div>
+            {% else %}
+                <p class="hl-empty">Zatím bez záznamu na mapě.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel denik-crossings-panel">
+            <header class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-dot panel-dot-crossings"></span>
+                    <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
+                </div>
+            </header>
+            {% if crossings|length > 0 %}
+                {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: true }) }}
+            {% else %}
+                <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
+            {% endif %}
+        </section>
+    </div>
+</article>
+{% endblock %}

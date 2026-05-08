@@ -466,9 +466,12 @@ export default class extends Controller {
         const lineLink = u.highlineSlug
             ? `<a href="/highline/${encodeURIComponent(u.highlineSlug)}">${escapeHtml(u.highlineName)}</a>`
             : escapeHtml(u.highlineName);
+        const userLink = u.userId
+            ? `<a href="/denik/${u.userId}">${escapeHtml(u.userDisplayName)}</a>`
+            : escapeHtml(u.userDisplayName);
         return `
             <div class="user-popup">
-                <strong>${escapeHtml(u.userDisplayName)}</strong>
+                <strong>${userLink}</strong>
                 <div class="user-popup-line">${lineLink}</div>
                 <div class="muted">${escapeHtml(date)}${stars ? ` &middot; <span class="user-popup-stars">${stars}</span>` : ''}</div>
             </div>

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Highline;
 use App\Entity\HighlineCrossing;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -46,6 +47,71 @@ class HighlineCrossingRepository extends ServiceEntityRepository
             ->addOrderBy('c.id', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return list<HighlineCrossing>
+     */
+    public function findForUser(User $user): array
+    {
+        return $this->createQueryBuilder('c')
+            ->addSelect('h')
+            ->join('c.highline', 'h')
+            ->andWhere('c.user = :u')->setParameter('u', $user)
+            ->orderBy('c.crossedAt', 'DESC')
+            ->addOrderBy('c.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findFirstCrossingDate(User $user): ?\DateTimeImmutable
+    {
+        $value = $this->createQueryBuilder('c')
+            ->select('MIN(c.crossedAt)')
+            ->andWhere('c.user = :u')->setParameter('u', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $value instanceof \DateTimeImmutable ? $value : null;
+    }
+
+    /**
+     * Unique highlines crossed by a user — used to render the deník mini-map.
+     *
+     * @return list<array{
+     *     id:int,
+     *     slug:string,
+     *     name:string,
+     *     latitude:string,
+     *     longitude:string,
+     *     crossings:int
+     * }>
+     */
+    public function findUserHighlinesForMap(User $user): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select(
+                'h.id AS id',
+                'h.slug AS slug',
+                'h.name AS name',
+                'h.latitude AS latitude',
+                'h.longitude AS longitude',
+                'COUNT(c.id) AS crossings',
+            )
+            ->join('c.highline', 'h')
+            ->andWhere('c.user = :u')->setParameter('u', $user)
+            ->groupBy('h.id', 'h.slug', 'h.name', 'h.latitude', 'h.longitude')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'],
+            'slug' => (string) $r['slug'],
+            'name' => (string) $r['name'],
+            'latitude' => (string) $r['latitude'],
+            'longitude' => (string) $r['longitude'],
+            'crossings' => (int) $r['crossings'],
+        ], $rows);
     }
 
     /**

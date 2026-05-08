@@ -28,6 +28,14 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Pokud chceme zobrazovat víc než 2 search queries, prodloužit `feed.cache.ttl_seconds` na 3600s (1h) — viz quota matematika v `architecture.md`
 - [ ] Promyslet, jestli má smysl přidat i FB Page CAS jako další zdroj (pak nutný jiný fetcher; Meta API)
 
+## Deník uživatele
+
+- [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`
+- [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
+- [ ] „Síň slávy" / žebříček uživatelů (nejvíc přechodů, nejdelší lajna) — nový index na `/denicky`
+- [ ] FA badge u přechodu / na profilu, jakmile dořešíme prvopřechody
+- [ ] Edit profile (po přihlášení) — město, ročník, telefon, gender
+
 ## Ostatní
 
 - [ ] Restrikce YouTube API key v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — momentálně je key bez restriction, je v transkriptech konverzace
@@ -38,6 +46,7 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 ## Dokončené (krátký archiv)
 
+- [x] **Deník uživatele `/denik/{id}`** — `UserController::denik` + `pages/user_denik.html.twig`. Hlavička (nick, město, ročník, datum prvního přechodu), stat panel (# přechodů, # unikátních highlines, suma délek, max délka, max výška), mini-mapa s body všech navštívených highlines (zoom na bbox, popup s odkazem na detail), tabulka přechodů. Linkováno z „Posledních přechodů" stripe a z popupu uživatele na `/mapa`.
 - [x] **Highline detail `/highline/{slug}`** — slug v DB (unique), import doplňuje přes `AsciiSlugger`. Stránka: stat panel (délka/výška/rating), info tabulka (kotvení 1/2, přístup, napínání, autor, datum, historie názvu, GPS s odkazem na mapy.cz), mini-mapa s polyline mezi `point1Latitude/Longitude` a `point2Latitude/Longitude` (pokud oba body známe), seznam všech přechodů. Detail je nalinkovaný z popupu na `/mapa` i ze stripe „Posledních přechodů" na indexu.
 - [x] **Highline `point1Latitude/Longitude` + `point2Latitude/Longitude`** — naimportováno z legacy `gps` tabulky přes JOIN na `point1_id` / `point2_id` (typ `LINE_POINT`).
 - [x] **User import** — 440 nových User + 1 enriched (existující dev účet) + 6 dropped legacy řádků mergováno (5 duplicit emailů). MD5 hesla zachována, `migrate_from` v security.yaml přehashuje na bcrypt při prvním loginu.

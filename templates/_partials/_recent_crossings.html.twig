@@ -13,7 +13,7 @@
             {% if c.style %}
                 <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
             {% endif %}
-            <span class="crossings-user">{{ c.user.displayName }}</span>
+            <a class="crossings-user" href="{{ path('app_user_denik', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
             <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
                 {% if c.rating %}
                     {% for s in 1..5 %}

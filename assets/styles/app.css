@@ -277,6 +277,12 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-decoration: none;
+}
+
+a.crossings-user:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
 }
 
 .crossings-line {
@@ -2011,6 +2017,96 @@ a.crossings-line:hover {
         "date    style"
         "user    rating"
         "comment comment";
+}
+
+/* ---------- Deník (uživatelský profil) ---------- */
+
+.denik {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.denik-head {
+    padding: 24px 28px;
+}
+
+.denik-identity h1 {
+    margin: 0 0 4px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.denik-realname {
+    margin: 0 0 14px;
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+
+.denik-meta {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    font-size: 0.92rem;
+    color: var(--color-fg);
+}
+
+.denik-meta-label {
+    color: var(--color-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 6px;
+}
+
+.denik-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.denik-map-panel { grid-column: 1; }
+.denik-crossings-panel { grid-column: 2; }
+
+.denik-map-wrapper {
+    height: 420px;
+    width: 100%;
+}
+
+.denik-map-canvas {
+    height: 100%;
+    width: 100%;
+}
+
+.denik-map-popup {
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.denik-map-popup:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+    .denik-grid {
+        grid-template-columns: 1fr;
+    }
+    .denik-map-panel,
+    .denik-crossings-panel {
+        grid-column: 1;
+    }
+    .denik-map-wrapper {
+        height: 300px;
+    }
 }
 
 /* ---------- Header search ---------- */
