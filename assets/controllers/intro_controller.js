@@ -3,6 +3,11 @@ import { Controller } from '@hotwired/stimulus';
 // Splash overlay + persistent music menu (mute, prev/next track).
 // Tracks come from the `tracks` value as JSON [{ title, artist, src }, ...].
 // Mute state and selected track index persist in localStorage.
+//
+// The Audio object lives in module scope (not on the controller) so it
+// survives any Turbo lifecycle quirks: even if Stimulus disconnects and
+// reconnects the controller during a permanent-element swap, the same
+// Audio keeps playing — connect() rebinds to it instead of starting over.
 
 const STORAGE_MUTED = 'slack-cz:music:muted';
 const STORAGE_TRACK = 'slack-cz:music:track';
@@ -12,6 +17,12 @@ const FADE_SWITCH_SECONDS = 0.7;
 const FADE_OUT_SECONDS = 0.4;
 const TARGET_VOLUME = 0.55;
 
+const shared = {
+    audio: null,
+    started: false,
+};
+let currentInstance = null;
+
 export default class extends Controller {
     static values = {
         tracks: Array,
@@ -20,18 +31,27 @@ export default class extends Controller {
     static targets = ['overlay', 'menu', 'muteBtn', 'label'];
 
     connect() {
+        currentInstance = this;
         this.muted = JSON.parse(localStorage.getItem(STORAGE_MUTED) || 'false');
         const stored = parseInt(localStorage.getItem(STORAGE_TRACK) ?? '0', 10);
         this.currentIndex = Number.isFinite(stored) && stored >= 0 && stored < this.tracksValue.length
             ? stored
             : 0;
+
+        if (shared.started) {
+            this.element.classList.add('intro-started');
+            this.overlayTarget?.classList.add('intro-dismissing');
+        }
         this.updateUI();
     }
 
+    get audio() { return shared.audio; }
+    set audio(v) { shared.audio = v; }
+
     enter(event) {
         event?.preventDefault();
-        if (this.started) return;
-        this.started = true;
+        if (shared.started) return;
+        shared.started = true;
 
         this.element.classList.add('intro-started');
         this.overlayTarget?.classList.add('intro-dismissing');
@@ -102,7 +122,7 @@ export default class extends Controller {
         const audio = new Audio(src);
         audio.preload = 'none';
         audio.addEventListener('ended', () => {
-            if (this.audio === audio) this.next();
+            if (shared.audio === audio) currentInstance?.next();
         });
         return audio;
     }
@@ -144,13 +164,8 @@ export default class extends Controller {
     }
 
     disconnect() {
-        if (this.audio) {
-            const audio = this.audio;
-            this.audio = null;
-            this.fade(audio, 0, FADE_OUT_SECONDS, () => {
-                audio.pause();
-                audio.src = '';
-            });
-        }
+        // Intentionally do NOT touch shared.audio here — the controller may
+        // disconnect during Turbo navigation while the audio should keep playing.
+        // The Audio is cleaned up on full page unload by the browser.
     }
 }
