@@ -1673,12 +1673,21 @@ a.crossings-line:hover {
     display: block;
 }
 
-/* When the page has no cover URL (legacyId missing) collapse the hero — just
- * show a slim band so the title still has a stage. */
+/* When the page has no cover URL (legacyId missing) OR the cover image 404s
+ * (onerror strips the class) collapse the hero — slim band with the title
+ * still visible. The content must flow statically here, otherwise the
+ * absolutely-positioned .hl-cover-content gets clipped by .hl-cover's
+ * overflow:hidden because absolute children don't contribute to parent
+ * height. */
 .hl-detail:not(.hl-detail-has-cover) .hl-cover {
     height: auto;
     min-height: 0;
     background: linear-gradient(135deg, #1a0010 0%, #3a0020 100%);
+}
+
+.hl-detail:not(.hl-detail-has-cover) .hl-cover-content {
+    position: static;
+    padding: 28px 24px 32px;
 }
 
 /* Gradient shade for legibility of the title and a smooth bleed into content. */
