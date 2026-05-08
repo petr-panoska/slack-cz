@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} — Wiki — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article docs-show">
+    <header class="docs-show-head">
+        <nav class="docs-breadcrumb">
+            <a href="{{ path('app_docs_index') }}">Wiki</a>
+            <span>›</span>
+            <span>{{ doc.label }}</span>
+        </nav>
+        <div class="docs-show-meta">
+            <a href="{{ doc.githubUrl }}" target="_blank" rel="noopener" class="docs-meta-link">
+                Zobrazit na GitHubu
+            </a>
+            <span class="docs-meta-sep">·</span>
+            <a href="{{ doc.githubEditUrl }}" target="_blank" rel="noopener" class="docs-meta-link">
+                Upravit
+            </a>
+        </div>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h2 class="docs-sidebar-title">Wiki</h2>
+            <ul class="docs-sidebar-list">
+                {% for entry in entries %}
+                    <li>
+                        <a
+                            href="{{ path('app_docs_show', {slug: entry.slug}) }}"
+                            class="docs-sidebar-link {% if entry.slug == doc.slug %}is-active{% endif %}"
+                        >{{ entry.label }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <div class="docs-prose">
+            {{ body_html|raw }}
+        </div>
+    </div>
+</article>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wiki — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article docs-index">
+    <header class="article-head">
+        <h1>Wiki</h1>
+        <p class="article-lead">
+            Živá dokumentace projektu. Obsah se načítá přímo z&nbsp;<a href="https://github.com/petr-panoska/slack-cz/tree/main/docs" target="_blank" rel="noopener">GitHub repa</a>
+            (větev <code>main</code>) — aktuální verze je vždy ta, kterou vidíš.
+        </p>
+    </header>
+
+    {% if entries is empty %}
+        <p class="docs-empty">
+            Wiki je momentálně nedostupná (GitHub neodpovídá a nemáme uložený poslední dobrý stav). Zkus to za chvíli.
+        </p>
+    {% else %}
+        <ul class="docs-list">
+            {% for entry in entries %}
+                <li class="docs-list-item">
+                    <a href="{{ path('app_docs_show', {slug: entry.slug}) }}" class="docs-list-link">
+                        <span class="docs-list-label">{{ entry.label }}</span>
+                        <span class="docs-list-filename">{{ entry.filename }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</article>
+{% endblock %}
