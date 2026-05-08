@@ -21,17 +21,17 @@ Aktuální dynamické porty: `docker compose port database 5432`, `docker compos
 
 ```
 src/
-  Controller/       # PagesController, HighlineController, Registration/Reset/Security
-  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, ResetPasswordRequest
-  Enum/             # HighlineType (a další)
+  Controller/       # PagesController, HighlineController, UserController, Registration/Reset/Security
+  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, ResetPasswordRequest
+  Enum/             # HighlineType, HighlineCrossingStyle
   Feed/             # YouTube feed + cache + dispatcher (mock fallback)
   Form/             # Symfony forms
-  Repository/       # Doctrine repos pro nové entity
+  Repository/       # Doctrine repos pro nové entity (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
   Old/              # LEGACY mapping (MySQL, EM old) — namespace App\Old\*
     Entity/         # legacy entity: Uzivatel
     Repository/     # repos pro legacy
-  Command/          # Console commands (import:*)
+  Command/          # Console commands: app:import:highlines, app:import:users, app:import:crossings
 ```
 
 ### Důležité — proč je `App\Old\Entity\` mimo `src/Entity/`
@@ -181,9 +181,12 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 
 ## Hotové features
 
-- ✅ **Highline mapa** s 254 lajnami z legacy DB (Leaflet + OSM, popup linkuje na detail)
+- ✅ **Highline import** — 254 / 254 lajn z legacy MySQL do Postgres (re-runnable s `--truncate`, GPS fallback přes `gps` table). Detaily v `docs/migration.md`.
+- ✅ **User import** — 441 unique-email userů (440 nových + 1 obohacený dev účet), 6 dropped legacy řádků mergováno. MD5 hesla 1:1 zachována, `migrate_from: legacy_md5` přehashuje na bcrypt při prvním přihlášení. Crossings remap přes merge mapu.
+- ✅ **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datu). Style enum (`App\Enum\HighlineCrossingStyle`, 9 hodnot, viz `docs/crossing-styles.md`), neznámé legacy hodnoty se reportují jako warning.
+- ✅ **Highline mapa** s 254 lajnami (Leaflet + OSM, popup linkuje na detail)
 - ✅ **Highline detail** `/highline/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
-- ✅ **Index page** se 2 panely: mini mapa + Slack.cz TV (YouTube feed)
+- ✅ **Index page** se 2 panely: mini mapa + Slack.cz TV (YouTube feed) + stripe „Posledních přechodů"
 - ✅ **Slack.cz TV** — YouTube feed, hashtag/search/channel zdroje, in-memory cache
 - ✅ **About / O projektu** s historií slacklive 2007 → slack.cz 2010 → ČAS 2011 → dnes, vč. archivního Kolouchova úvodního slova
 - ✅ Hlavní vizuál — světlý theme, magenta accent (`#e91e63` z původního slack.cz loga)

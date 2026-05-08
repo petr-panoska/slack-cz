@@ -14,15 +14,15 @@ Konkrétně to znamená:
 - Pořadí runů musí být dokumentované (entity závislosti)
 - Žádný import nesmí dělat side effect mimo svou cílovou tabulku (např. mazat něco, co jiný import zapsal)
 
-Standardní fresh import:
+Standardní fresh import (kompletně zabalené v `make legacyImportFresh`):
 
 ```bash
 docker compose exec php bin/console doctrine:database:drop --force --if-exists
 docker compose exec php bin/console doctrine:database:create
 docker compose exec php bin/console doctrine:migrations:migrate --no-interaction
 docker compose exec php bin/console app:import:highlines --truncate
-docker compose exec php bin/console app:import:users     --truncate   # TODO
-docker compose exec php bin/console app:import:crossings --truncate   # TODO
+docker compose exec php bin/console app:import:users     --truncate
+docker compose exec php bin/console app:import:crossings --truncate
 ```
 
 ## Princip 2 — exception reporting
@@ -58,10 +58,12 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 - Skipy: 0
 - Mapování `typ` (int) → `HighlineType` enum přes `HighlineType::fromLegacyId()`
 
-### 🚧 Users — PLANNED
+### ✅ Users — DONE
 
+- Command: `app:import:users`
 - Source: `uzivatel` (447 rows)
-- Cílová entita: `App\Entity\User` — bude potřeba rozšířit o legacy fieldy (viz níže)
+- Cílová entita: `App\Entity\User` — rozšířená o legacy fieldy (viz níže)
+- Výsledek: **441 / 441 unique-email userů v DB** (440 nově vytvořených + 1 obohacený existující dev účet), **6 dropped legacy řádků mergováno** do 5 canonical účtů (5 duplicitních emailů — 6. duplicita to byly 3 řádky pod jedním emailem). MD5 hesla zachována 1:1, `migrate_from: legacy_md5` přehashuje na bcrypt při prvním přihlášení.
 
 #### Stav dat v legacy
 
@@ -173,37 +175,41 @@ Když uživatel chce někdy v budoucnu duplicitu rozseknout zpátky, snapshot mu
 
 ---
 
-### 🚧 Highline crossings (přechody) — PLANNED
+### ✅ Highline crossings (přechody) — DONE
 
+- Command: `app:import:crossings`
 - Source: `highline_prechody` (995 rows)
-- Cílová entita: `App\Entity\HighlineCrossing` — bude vytvořena
+- Cílová entita: `App\Entity\HighlineCrossing`
+- Výsledek: **993 / 995 přechodů importováno**, 2 skipy kvůli neplatnému `0000-00-00` datu
 - 82 unique uživatelů aktivních (přechody dělalo)
 - 472 přechodů s ratingem (1–5 hvězd)
 - 552 s komentářem
 
-Schema cíle (návrh):
+Schema (implementováno v `App\Entity\HighlineCrossing`):
 
 ```php
 class HighlineCrossing
 {
-    private int $id;
-    private Highline $highline;     // ManyToOne
-    private User $user;             // ManyToOne (po user merge → vždy canonical)
-    private \DateTimeImmutable $crossedAt;
-    private ?HighlineCrossingStyle $style;   // enum, viz crossing-styles.md
-    private ?int $rating;           // 1–5
-    private ?string $comment;       // varchar 200 (legacy 100, nech rezervu)
-    private int $legacyId;
-    private \DateTimeImmutable $createdAt;
+    private ?int $id = null;
+    private Highline $highline;     // ManyToOne, not nullable
+    private User $user;             // ManyToOne, not nullable (po user merge → vždy canonical)
+    private \DateTimeImmutable $crossedAt;             // date_immutable (jen datum, ne čas)
+    private ?HighlineCrossingStyle $style = null;       // enum string col length 20, viz crossing-styles.md
+    private ?int $rating = null;                        // 1–5
+    private ?string $comment = null;                    // text (legacy bylo 100 — text dává rezervu)
+    private ?int $legacyId = null;                      // nullable, lookup index pro --truncate idempotenci
+    private \DateTimeImmutable $createdAt;              // datetime_immutable
 }
 ```
+
+Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí podle data.
 
 #### Mapování stylů — kompletní taxonomie viz [`crossing-styles.md`](crossing-styles.md)
 
 #### Závislosti
 
 - Vyžaduje, aby běžel **po** `app:import:users` (kvůli FK `User`)
-- Vyžaduje merge mapu z user importu (`dropped_legacy_id → canonical_user_id`) — pravděpodobně oba commandy budou sdílet `LegacyImportContext` službu, která merge mapu drží
+- Sdílí službu `App\Legacy\UserMergeMap` — singleton, kterou plní `app:import:users` (kept canonical + dropped → kept) a čte `app:import:crossings` přes `userMergeMap->find($legacyUzivatelId)`. Tím se přechody pod dropped emailem automaticky napárují na canonical User.
 
 #### Co NEbude v MVP
 
@@ -245,18 +251,29 @@ class HighlineCrossing
 
 ---
 
-## Summary commands (až budou hotové)
+## Summary commands
 
 ```bash
-# fresh import end-to-end
+# Fresh end-to-end (drop + create + migrate + full import).
+# Předpoklad: legacy MySQL má nahraný dump (`make loadLegacyDump` jednorázově po prvním `up`).
+make legacyImportFresh
+
+# Re-run importů uvnitř existujícího schématu (DELETE crossings → truncate highlines/users/crossings).
+# Použij když nepotřebuješ resetovat migrace, jen načíst data.
 make legacyImport
-# expanded:
-docker compose exec php bin/console doctrine:database:drop --force --if-exists
-docker compose exec php bin/console doctrine:database:create
-docker compose exec php bin/console doctrine:migrations:migrate -n
-docker compose exec php bin/console app:import:highlines --truncate
-docker compose exec php bin/console app:import:users --truncate
-docker compose exec php bin/console app:import:crossings --truncate
 ```
 
-Doplnit do `Makefile` až budou všechny commandy hotové.
+Detail jednotlivých kroků (oba targety dělají to samé, jen s/bez DB resetu):
+
+```bash
+# legacyImport: smaž crossings (FK constraint), pak truncate-import všeho
+docker compose exec -T php bin/console dbal:run-sql "DELETE FROM highline_crossing"
+docker compose exec -T php bin/console app:import:highlines --truncate
+docker compose exec -T php bin/console app:import:users --truncate
+docker compose exec -T php bin/console app:import:crossings --truncate
+
+# legacyImportFresh: navíc na začátku
+docker compose exec -T php bin/console doctrine:database:drop --force --if-exists
+docker compose exec -T php bin/console doctrine:database:create
+docker compose exec -T php bin/console doctrine:migrations:migrate -n
+```
