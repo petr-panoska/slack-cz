@@ -1058,12 +1058,12 @@ a.crossings-line:hover {
 }
 
 .map-tt-date {
-    flex: 0 0 auto;
-    min-width: 130px;
+    flex: 0 0 175px;
     font-size: 1.05rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: #fff;
+    white-space: nowrap;
 }
 
 .map-tt-slider {
@@ -1083,6 +1083,16 @@ a.crossings-line:hover {
     font-family: inherit;
     font-size: 0.85rem;
     cursor: pointer;
+}
+
+.map-tt-speed option {
+    background: #1a0011;
+    color: #fff;
+}
+
+.map-tt-speed option:checked {
+    background: var(--color-accent);
+    color: #fff;
 }
 
 .map-tt-counter {
