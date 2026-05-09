@@ -24,8 +24,7 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 ## Wiki
 
-- [ ] Doplnit chybějící obrázky — Google Docs export (úvodní seed) přenesl jen 8 z ~N obrázků, co jsou v rendrovaném dokumentu. Které kapitoly to postihuje a jak je dorovnat: (a) ručně přidat `![][imageN]` ref-defs s base64 do dotčených `wiki/<group>/<slug>.md`, (b) najít původní zdroj obrázků (DOCX export, original asset folder?). Zatím low-priority kosmetika.
-- [ ] Až bude obsah stable, smáznout `wiki-source/` a `scripts/wiki-import.php` — bootstrap-only artefakty z úvodního seedu, GH-direct flow je už živý.
+- [ ] Doplnit chybějící obrázky — úvodní Google Docs seed přenesl jen 8 z ~N obrázků, co jsou v rendrovaném dokumentu. Které kapitoly to postihuje a jak je dorovnat: editovat `wiki/<group>/<slug>.md` přímo na GitHubu, přidat `![][imageN]` ref-defs s base64 (případně inline `![](data:image/png;base64,...)`). Zatím low-priority kosmetika.
 
 ## Slack.cz TV
 

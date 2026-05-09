@@ -1,36 +1,36 @@
 <?php
 
-namespace App\Wiki;
+namespace App\Markdown\Section;
 
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
- * Wraps an inner WikiFetcher with cache + last-known-good fallback.
+ * Wrapper přes inner fetcher s cache + last-known-good fallbackem.
  *
  * Failure semantics:
- *  - Inner returns null (HTTP 404) → cached briefly, returned as-is
- *    (page genuinely gone; controller renders 404).
- *  - Inner throws (network / 5xx / 403 rate limit) → not cached;
- *    we serve the most recent successful response from LKG (if any).
+ *  - Inner returns null (HTTP 404) → krátká cache, vrátí null (page genuinely gone).
+ *  - Inner throws (network / 5xx / rate limit) → necachuje, vrátí poslední úspěšnou
+ *    odpověď z LKG (pokud existuje, jinak null / empty list).
  *
- * Stejný pattern jako App\Docs\CachedDocsFetcher.
+ * Cache klíče jsou prefixed `Config::name` (`docs.list`, `wiki.content.priprava`, ...).
  */
-final class CachedWikiFetcher implements WikiFetcherInterface
+final class CachedFetcher implements FetcherInterface
 {
     private const LAST_GOOD_TTL = 7 * 86400;
 
     public function __construct(
-        private readonly WikiFetcherInterface $inner,
+        private readonly FetcherInterface $inner,
         private readonly CacheInterface $cache,
+        private readonly string $cachePrefix,
         private readonly int $ttlSeconds = 600,
     ) {
     }
 
     public function list(): array
     {
-        $key = 'wiki.list';
-        $lkgKey = 'wiki.list.last_good';
+        $key = $this->cachePrefix . '.list';
+        $lkgKey = $key . '.last_good';
 
         try {
             $entries = $this->cache->get($key, function (ItemInterface $item) use ($lkgKey) {
@@ -51,9 +51,9 @@ final class CachedWikiFetcher implements WikiFetcherInterface
         return $this->readLastGood($lkgKey) ?? [];
     }
 
-    public function get(string $slug): ?WikiPage
+    public function get(string $slug): ?Page
     {
-        $key = 'wiki.content.' . $this->slugKey($slug);
+        $key = $this->cachePrefix . '.content.' . $this->slugKey($slug);
         $lkgKey = $key . '.last_good';
 
         try {

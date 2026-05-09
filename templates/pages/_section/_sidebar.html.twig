@@ -1,0 +1,32 @@
+{# Sidebar partial sdílený mezi index a show. Vstup:
+    - entries: list<App\Markdown\Section\Entry>
+    - index_route, show_route: route names dané sekce
+    - active_slug: 'README' nebo entry.slug — řídí is-active
+   Skupiny (`entry.group`) renderuje jako separator nadpisy, pokud aspoň jedna entry má group. #}
+
+{% set hasGroups = entries|filter(e => e.group != '')|length > 0 %}
+{% set lastGroup = null %}
+
+<aside class="md-sidebar">
+    <ul class="md-sidebar-list">
+        <li>
+            <a
+                href="{{ path(index_route) }}"
+                class="md-sidebar-link {% if active_slug|lower == 'readme' %}is-active{% endif %}"
+            >README.md</a>
+        </li>
+        {% for entry in entries %}
+            {% if hasGroups and entry.group != lastGroup %}
+                </ul><ul class="md-sidebar-list">
+                <li class="md-sidebar-group">{{ entry.group }}</li>
+                {% set lastGroup = entry.group %}
+            {% endif %}
+            <li>
+                <a
+                    href="{{ path(show_route, {slug: entry.slug}) }}"
+                    class="md-sidebar-link {% if entry.slug == active_slug %}is-active{% endif %}"
+                >{{ entry.label }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+</aside>

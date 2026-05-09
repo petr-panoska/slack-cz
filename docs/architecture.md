@@ -178,10 +178,8 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/reset-password`, `/reset-password/reset/{token}` | reset | ✓ |
 | `/verify/email` | email verify | login required |
 | `/old-users` | `app_old_users` | ✓ debug pohled na legacy uzivatele |
-| `/wiki` | `app_wiki_index` | ✓ highline guidebook (16 kapitol z `wiki/*.md`, live z GitHubu) |
-| `/wiki/{slug}` | `app_wiki_show` | ✓ detail kapitoly s pull-quote a sidebarem |
-| `/docs` | `app_docs_index` | ✓ technická dokumentace (interní), live z `docs/*.md` na GitHubu |
-| `/docs/{slug}` | `app_docs_show` | ✓ detail dokumentu |
+| `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (16 kapitol z `wiki/`, live z GitHubu, frontmatter title/lead/quote/group/order) |
+| `/docs`, `/docs/{slug}` | `app_docs_*` | ✓ technická dokumentace (interní), live z `docs/*.md` na GitHubu |
 
 ## Hotové features
 
@@ -200,15 +198,73 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Time-travel mapa** — historický playback highlines + crossings v čase, controly v `.map-tt-panel` (z-index 500)
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů
-- ✅ **Wiki / Highline guidebook** `/wiki` — 16 kapitol z `wiki/*.md` (frontmatter `title` / `lead` / `quote` / `group` / `order`). Index seskupený do tří skupin (Používání highline / Kotvení & Materiály / Napínání highline), detail má sticky sidebar a pull-quote pod nadpisem. `App\Wiki\*` zrcadlí `App\Docs\*` pattern (interface + GitHub fetcher + cache decorator s last-known-good fallbackem).
-  - **Source of truth**: `wiki-source/Highline guidebook.md` — jeden Google Docs MD export (File → Download → Markdown). Obrázky jsou v něm inline jako base64 ref-style definice (`[imageN]: data:image/...;base64,...`).
-  - **Importér**: `scripts/wiki-import.php` (re-runnable) splituje source na 16 `wiki/<group-folder>/<slug>.md`. Layout v repu:
-    ```
-    wiki/
-      README.md                            # generovaný index s linky
-      01-pouzivani-highline/               # 5 kapitol
-      02-kotveni-materialy/                # 8 kapitol
-      03-napinani-highline/                # 3 kapitoly
-    ```
-    Číselný prefix u skupin = chronologie + správný sort na GH browse view. Slugy zůstávají flat (`/wiki/priprava`, ne `/wiki/01-pouzivani-highline/priprava`); GithubWikiFetcher si dělá interní mapu slug → relativní path přes git trees API (`?recursive=1`, jeden API call). Každá kapitola má jen ty `[imageN]` ref-defs, které v ní reálně používá. Žádný pandoc, žádný separate media adresář.
-  - **Pozor na CommonMark gotcha**: ref-style image link def MUSÍ být `[imageN]: data:image/png;base64,...` (bare URL). Pokud obalíš angular brackets — `[imageN]: <data:...>` — CommonMark to fallne na autolink + odmítne parsovat při velkých URL (>10 KB), takže `<img>` tag se vůbec neudělá. Importér ref-defs zapisuje bez `<>`.
+- ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro GitHub-backed MD obsah. Detail níže.
+
+## Markdown sections (`/docs`, `/wiki`)
+
+Jeden generický subsystém v `App\Markdown\Section\*` slouží jak technické dokumentaci (`/docs` = `docs/*.md` v repu), tak highline guidebooku (`/wiki` = `wiki/<group-folder>/<slug>.md` v repu). Žádný per-sekci kód.
+
+### Komponenty
+
+```
+src/Markdown/Section/
+  Page.php                  # value object: slug, filename, body, frontmatter, GH urls
+  Entry.php                 # lightweight DTO pro sidebar (slug, label, group, order)
+  Config.php                # per-sekci konfigurace (owner/repo/branch/path/prefix/sidebarLabel)
+  FetcherInterface.php      # list() + get(slug)
+  GithubFetcher.php         # git trees API recursive, raw.githubusercontent.com fetch
+  CachedFetcher.php         # cache.app + 7d last-known-good fallback
+src/Controller/MarkdownSectionController.php   # 4 routes (docs index/show, wiki index/show)
+templates/pages/_section/
+  _sidebar.html.twig        # shared partial
+  index.html.twig           # README.md as index body + sidebar
+  show.html.twig            # detail body + sidebar (+ optional H1/quote z frontmatter)
+config/packages/markdown.yaml                  # per-sekci service wiring
+```
+
+### Service wiring
+
+Každá sekce = trojice services v `config/packages/markdown.yaml`:
+
+| Service ID | Třída | Účel |
+|---|---|---|
+| `app.section.<name>.config` | `Config` | GH coordinates + route prefix + sidebar label strategy |
+| `app.section.<name>.fetcher.inner` | `GithubFetcher` | actual HTTP fetch |
+| `app.section.<name>.fetcher` | `CachedFetcher` | cache wrapper, injected do controlleru |
+
+Přidání nové sekce = další trojice services + 2 route metody v controlleru. Controller binduje fetchery + configs přes `#[Autowire('@app.section.<name>.fetcher')]`.
+
+### Per-sekci rozdíly
+
+- **Sidebar label** — Docs zobrazují `filename` (`architecture.md`), Wiki `frontmatter title` (`Příprava`). Volba je v `Config::sidebarLabel` (`'filename'` / `'title'`).
+- **Frontmatter** — Docs ho nepoužívá (entries třídí abecedně podle filename). Wiki má `title`/`lead`/`quote`/`group`/`order`, řadí podle `order`. Group separators v sidebaru se zobrazí jen pokud aspoň jedna entry má `group != ''`.
+- **Layout v GH repu** — Docs flat (`docs/*.md`), Wiki nested (`wiki/01-pouzivani-highline/priprava.md`). Fetcher používá git trees API `?recursive=1` (jeden call), přijde mu jedno.
+- **Quote pull-quote** — render se v show.html.twig jen pokud `page.quote != ''`. Wiki má, Docs ne.
+
+### URL slug uniqueness
+
+Slug = filename bez `.md`, musí být unikátní napříč subtree dané sekce. Subfolder se v URL neobjevuje (`/wiki/priprava`, ne `/wiki/01-pouzivani-highline/priprava`). Kolize = první vyhrává, fetcher to neřeší.
+
+### README.md
+
+Index `/docs` resp. `/wiki` rendrují `README.md` z root sekce (pulluje se přes `get('README')`, mimo slugMap). `/docs/README` resp. `/wiki/README` redirectují 301 na index — nikdy nezobrazují README jako detail.
+
+### CommonMark gotcha (relevantní pro inline base64 obrázky ve Wiki)
+
+Wiki kapitoly můžou mít base64 obrázky inline jako MD reference-style:
+
+```markdown
+Text s ![alt][image1] obrázkem.
+
+[image1]: data:image/png;base64,iVBOR...
+```
+
+**MUSÍ být `[image1]: data:...` (bare URL).** Pokud obalíš angular brackets — `[image1]: <data:...>` — CommonMark to fallne na autolink + odmítne parsovat při velkých URL (>10 KB). Výsledek: `<img>` tag se vůbec neudělá, ref-def se vypíše jako text.
+
+### Cache
+
+`CachedFetcher` cachuje per-sekci s prefix klíčem (`docs.list`, `wiki.content.priprava`, ...) v `cache.app`, TTL 600 s. Failure mode: inner throw → fallback na last-known-good (7 dní). Po deployi se vyplatí `bin/console cache:pool:clear cache.app`, ať fetcher hned podruhé jde na GH (jinak čeká na expiraci).
+
+### Internal MD link rewriting
+
+`MarkdownRenderer::render($body, $internalRoutePrefix)` přepisuje relativní `*.md` linky (i v subfolderech: `01-pouzivani-highline/priprava.md`) na `/{prefix}/{basename}` (`/wiki/priprava`). Externí URL (s schemem `http:`, `mailto:` atd.) se ponechávají.

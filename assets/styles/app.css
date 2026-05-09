@@ -2538,62 +2538,16 @@ a.crossings-line:hover {
     }
 }
 
-/* ===== Wiki / Docs ===== */
+/* ===== Markdown sections (/docs, /wiki) =====
+   Single CSS namespace `.md-*` napříč všemi GitHub-backed MD sekcemi
+   (`App\Markdown\Section\*`). Žádný per-sekci styl — vše per-class.
+   Container width sjednocený s homepage `.page-grid` (1320 px). */
 
-/* Override .article's narrow reading width — docs/wiki need room for sidebar + prose.
-   Jednotná šířka 1320 px napříč všemi 4 stavy + homepage (`.page-grid`), aby
-   container nezužoval / nerozšiřoval mezi pages. */
-.article.docs-index,
-.article.docs-show,
-.article.wiki-index,
-.article.wiki-show {
+.article.md-section {
     max-width: 1320px;
 }
 
-.docs-index .docs-list {
-    list-style: none;
-    padding: 0;
-    margin: 24px 0 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
-}
-
-.docs-list-item {
-    margin: 0;
-}
-
-.docs-list-link {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 14px 18px;
-    border: 1px solid var(--color-line);
-    border-radius: 8px;
-    background: #fff;
-    text-decoration: none;
-    color: var(--color-fg);
-    transition: border-color .15s, transform .15s, box-shadow .15s;
-}
-
-.docs-list-link:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(225, 0, 91, .08);
-}
-
-.docs-list-label {
-    font-weight: 600;
-    font-size: 1.05rem;
-}
-
-.docs-list-filename {
-    color: var(--color-muted);
-    font-size: 0.85rem;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-}
-
-.docs-empty {
+.md-empty {
     margin-top: 24px;
     padding: 16px;
     border: 1px dashed var(--color-line);
@@ -2601,9 +2555,9 @@ a.crossings-line:hover {
     color: var(--color-muted);
 }
 
-/* --- Detail page --- */
+/* --- Section head (meta links napravo) --- */
 
-.docs-show-head {
+.md-section-head {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -2614,76 +2568,75 @@ a.crossings-line:hover {
     border-bottom: 1px solid var(--color-line);
 }
 
-.docs-breadcrumb {
-    color: var(--color-muted);
-    font-size: 0.9rem;
-}
-
-.docs-breadcrumb a {
-    color: var(--color-accent);
-    text-decoration: none;
-}
-
-.docs-breadcrumb a:hover {
-    text-decoration: underline;
-}
-
-.docs-breadcrumb span {
-    margin: 0 6px;
-}
-
-.docs-show-meta {
+.md-section-meta {
     font-size: 0.85rem;
     color: var(--color-muted);
     margin-left: auto;
 }
 
-.docs-meta-link {
+.md-meta-link {
     color: var(--color-accent);
     text-decoration: none;
 }
 
-.docs-meta-link:hover {
+.md-meta-link:hover {
     text-decoration: underline;
 }
 
-.docs-meta-sep {
+.md-meta-sep {
     margin: 0 6px;
     color: var(--color-line);
 }
 
-.docs-layout {
+/* --- Sidebar + main layout --- */
+
+.md-layout {
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 240px minmax(0, 1fr);
     gap: 32px;
     align-items: start;
 }
 
-.docs-sidebar {
+@media (max-width: 800px) {
+    .md-layout {
+        grid-template-columns: 1fr;
+    }
+    .md-sidebar {
+        position: static;
+    }
+}
+
+.md-sidebar {
     position: sticky;
     top: 16px;
 }
 
-.docs-sidebar-title {
-    margin: 0 0 8px;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-muted);
-}
-
-.docs-sidebar-list {
+.md-sidebar-list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 0 12px;
     border-left: 2px solid var(--color-line);
 }
 
-.docs-sidebar-list li {
+.md-sidebar-list li {
     margin: 0;
 }
 
-.docs-sidebar-link {
+.md-sidebar-group {
+    margin: 12px 0 4px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.md-sidebar-list li:first-child.md-sidebar-group {
+    margin-top: 0;
+}
+
+.md-sidebar-link {
     display: block;
     padding: 6px 10px;
     margin-left: -2px;
@@ -2691,108 +2644,112 @@ a.crossings-line:hover {
     color: var(--color-fg);
     text-decoration: none;
     font-size: 0.92rem;
+    line-height: 1.4;
 }
 
-.docs-sidebar-link:hover {
+.md-sidebar-link:hover {
     color: var(--color-accent);
 }
 
-.docs-sidebar-link.is-active {
+.md-sidebar-link.is-active {
     color: var(--color-accent);
     border-left-color: var(--color-accent);
     font-weight: 600;
 }
 
-@media (max-width: 800px) {
-    .docs-layout {
-        grid-template-columns: 1fr;
-    }
-    .docs-sidebar {
-        position: static;
-    }
+/* --- Main column: hand-rendered title + pull-quote (frontmatter `title`/`quote`) --- */
+
+.md-main {
+    min-width: 0;
+}
+
+/* H1 mimo `.md-prose` — drží stejné typografie jako `.md-prose h1`,
+   aby vizuálně sedělo s body, které pak začíná H2 z markdownu. */
+.md-title {
+    margin: 0 0 0.5em;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: 0.3em;
+}
+
+.md-quote {
+    margin: 0 0 24px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--color-accent);
+    background: rgba(233, 30, 99, 0.04);
+    color: var(--color-fg);
+    font-style: italic;
+    font-size: 1.05em;
+    line-height: 1.5;
 }
 
 /* --- Rendered markdown body --- */
 
-.docs-prose,
-.wiki-prose {
+.md-prose {
     line-height: 1.65;
     font-size: 1rem;
     max-width: 78ch;
     color: var(--color-fg);
 }
 
-.docs-prose h1,
-.docs-prose h2,
-.docs-prose h3,
-.docs-prose h4,
-.wiki-prose h1,
-.wiki-prose h2,
-.wiki-prose h3,
-.wiki-prose h4 {
+.md-prose h1,
+.md-prose h2,
+.md-prose h3,
+.md-prose h4 {
     margin: 1.6em 0 0.5em;
     font-weight: 700;
     line-height: 1.25;
 }
 
-.docs-prose h1,
-.wiki-prose h1 {
+.md-prose h1 {
     margin-top: 0;
     font-size: 2rem;
     border-bottom: 1px solid var(--color-line);
     padding-bottom: 0.3em;
 }
 
-.docs-prose h2,
-.wiki-prose h2 {
+.md-prose h2 {
     font-size: 1.45rem;
     border-bottom: 1px solid var(--color-line);
     padding-bottom: 0.25em;
 }
 
-.docs-prose h3,
-.wiki-prose h3 {
+.md-prose h3 {
     font-size: 1.18rem;
 }
 
-.docs-prose h4,
-.wiki-prose h4 {
+.md-prose h4 {
     font-size: 1.02rem;
     color: var(--color-muted);
 }
 
-.docs-prose p,
-.wiki-prose p {
+.md-prose p {
     margin: 0 0 1em;
 }
 
-.docs-prose a,
-.wiki-prose a {
+.md-prose a {
     color: var(--color-accent);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
 
-.docs-prose a:hover,
-.wiki-prose a:hover {
+.md-prose a:hover {
     color: var(--color-accent-hover);
 }
 
-.docs-prose ul,
-.docs-prose ol,
-.wiki-prose ul,
-.wiki-prose ol {
+.md-prose ul,
+.md-prose ol {
     padding-left: 1.4em;
     margin: 0 0 1em;
 }
 
-.docs-prose li,
-.wiki-prose li {
+.md-prose li {
     margin: 0.2em 0;
 }
 
-.docs-prose code,
-.wiki-prose code {
+.md-prose code {
     background: #f4f4f4;
     padding: 0.12em 0.4em;
     border-radius: 4px;
@@ -2800,8 +2757,7 @@ a.crossings-line:hover {
     font-size: 0.92em;
 }
 
-.docs-prose pre,
-.wiki-prose pre {
+.md-prose pre {
     background: #1a1a1a;
     color: #f5f5f5;
     padding: 14px 18px;
@@ -2812,16 +2768,14 @@ a.crossings-line:hover {
     margin: 1em 0;
 }
 
-.docs-prose pre code,
-.wiki-prose pre code {
+.md-prose pre code {
     background: transparent;
     color: inherit;
     padding: 0;
     font-size: inherit;
 }
 
-.docs-prose blockquote,
-.wiki-prose blockquote {
+.md-prose blockquote {
     margin: 1em 0;
     padding: 0.4em 1em;
     border-left: 4px solid var(--color-accent);
@@ -2829,8 +2783,7 @@ a.crossings-line:hover {
     background: #fafafa;
 }
 
-.docs-prose table,
-.wiki-prose table {
+.md-prose table {
     border-collapse: collapse;
     margin: 1em 0;
     font-size: 0.92rem;
@@ -2838,38 +2791,38 @@ a.crossings-line:hover {
     display: block;
 }
 
-.docs-prose table th,
-.docs-prose table td,
-.wiki-prose table th,
-.wiki-prose table td {
+.md-prose table th,
+.md-prose table td {
     border: 1px solid var(--color-line);
     padding: 6px 12px;
     text-align: left;
     vertical-align: top;
 }
 
-.docs-prose table th {
+.md-prose table th {
     background: #fafafa;
     font-weight: 600;
 }
 
-.docs-prose hr {
+.md-prose hr {
     border: 0;
     border-top: 1px solid var(--color-line);
     margin: 2em 0;
 }
 
-.docs-prose img {
+.md-prose img {
     max-width: 100%;
     height: auto;
+    border-radius: 4px;
+    margin: 12px 0;
 }
 
-.docs-prose ul.contains-task-list {
+.md-prose ul.contains-task-list {
     list-style: none;
     padding-left: 0.4em;
 }
 
-.docs-prose .task-list-item input {
+.md-prose .task-list-item input {
     margin-right: 0.4em;
 }
 
@@ -3064,240 +3017,4 @@ a.crossings-line:hover {
 .profile-actions .btn {
     flex: 1;
     text-align: center;
-}
-
-/* ---------- Wiki (highline guidebook) ----------
-   Width pro `.wiki-index` / `.wiki-show` je nahoře v consolidovaném selektoru
-   `.article.docs-index, .article.docs-show, .article.wiki-index, .article.wiki-show`. */
-
-.wiki-empty {
-    color: var(--color-muted);
-    padding: 24px 0;
-}
-
-.wiki-group + .wiki-group {
-    margin-top: 32px;
-}
-
-.wiki-group-title {
-    font-size: 0.85em;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-muted);
-    margin: 0 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--color-border, #e5e5e5);
-}
-
-.wiki-cards {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
-}
-
-.wiki-card {
-    margin: 0;
-}
-
-.wiki-card-link {
-    display: flex;
-    gap: 12px;
-    padding: 14px 16px;
-    background: var(--color-panel, #fff);
-    border: 1px solid var(--color-border, #e5e5e5);
-    border-radius: 6px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 120ms ease, transform 120ms ease;
-    height: 100%;
-}
-
-.wiki-card-link:hover {
-    border-color: var(--color-accent, #e91e63);
-    transform: translateY(-1px);
-}
-
-.wiki-card-num {
-    font-variant-numeric: tabular-nums;
-    color: var(--color-accent, #e91e63);
-    font-weight: 600;
-    font-size: 0.9em;
-    flex-shrink: 0;
-    line-height: 1.4;
-}
-
-.wiki-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-}
-
-.wiki-card-title {
-    font-weight: 600;
-    color: var(--color-fg);
-}
-
-.wiki-card-lead {
-    font-size: 0.9em;
-    color: var(--color-muted);
-    line-height: 1.45;
-}
-
-/* Detail */
-
-.wiki-show-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--color-border, #e5e5e5);
-}
-
-.wiki-breadcrumb {
-    color: var(--color-muted);
-    font-size: 0.9em;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-}
-
-.wiki-breadcrumb a {
-    color: var(--color-accent, #e91e63);
-    text-decoration: none;
-}
-
-.wiki-breadcrumb a:hover {
-    text-decoration: underline;
-}
-
-.wiki-show-meta {
-    font-size: 0.85em;
-    color: var(--color-muted);
-    margin-left: auto;
-}
-
-.wiki-meta-link {
-    color: var(--color-muted);
-    text-decoration: none;
-}
-
-.wiki-meta-link:hover {
-    color: var(--color-accent, #e91e63);
-}
-
-.wiki-meta-sep {
-    margin: 0 6px;
-    opacity: 0.6;
-}
-
-.wiki-layout {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 32px;
-}
-
-@media (max-width: 800px) {
-    .wiki-layout {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Sidebar — sjednoceno s Docs (`.docs-sidebar*`): tenký left-border guide,
-   items odsazené o 2 px doleva přes border, active = magenta border-left.
-   Wiki má navíc group separators (Používání / Kotvení / Napínání) — drží
-   se stejné typografie jako docs-sidebar-title (uppercase, muted). */
-.wiki-sidebar {
-    position: sticky;
-    top: 16px;
-    align-self: start;
-}
-
-.wiki-sidebar-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 12px;
-    border-left: 2px solid var(--color-line);
-}
-
-.wiki-sidebar-list li {
-    margin: 0;
-}
-
-.wiki-sidebar-group {
-    margin: 12px 0 4px;
-    padding: 0 10px;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    color: var(--color-muted);
-}
-
-.wiki-sidebar-list li:first-child.wiki-sidebar-group {
-    margin-top: 0;
-}
-
-.wiki-sidebar-link {
-    display: block;
-    padding: 6px 10px;
-    margin-left: -2px;
-    border-left: 2px solid transparent;
-    color: var(--color-fg);
-    text-decoration: none;
-    line-height: 1.4;
-}
-
-.wiki-sidebar-link:hover {
-    color: var(--color-accent);
-}
-
-.wiki-sidebar-link.is-active {
-    color: var(--color-accent);
-    border-left-color: var(--color-accent);
-    font-weight: 600;
-}
-
-.wiki-main {
-    min-width: 0;
-}
-
-/* H1 na detailu kapitoly (mimo `.wiki-prose`, takže nedědí jeho styly).
-   Drží se stejné typografie jako `.docs-prose h1` / `.wiki-prose h1`. */
-.wiki-title {
-    margin: 0 0 0.5em;
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.25;
-    border-bottom: 1px solid var(--color-line);
-    padding-bottom: 0.3em;
-}
-
-.wiki-quote {
-    margin: 0 0 24px;
-    padding: 12px 16px;
-    border-left: 3px solid var(--color-accent, #e91e63);
-    background: rgba(233, 30, 99, 0.04);
-    color: var(--color-fg);
-    font-style: italic;
-    font-size: 1.05em;
-    line-height: 1.5;
-}
-
-/* `.wiki-prose` styling sjednoceno s `.docs-prose` výše — jeden zdroj pravdy
-   pro headings/links/code/tables/blockquote. Wiki-specific overrides žijí jen
-   pro <img> (base64 inline obrázky v kapitolách). */
-.wiki-prose img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    margin: 12px 0;
 }

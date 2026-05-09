@@ -1,45 +1,29 @@
 <?php
 
-namespace App\Wiki;
+namespace App\Markdown\Section;
 
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Reads wiki .md files from a GitHub repository.
+ * Fetcher MD souborů z GitHub repa. Používá:
+ *  - git trees API (`?recursive=1`) pro list — jeden call, podporuje subfoldery
+ *  - raw.githubusercontent.com pro content — CDN, mimo API rate limit
  *
- * Stejný pattern jako App\Docs\GithubDocsFetcher, ale parsuje frontmatter
- * (title / lead / quote / group / order) z hlavičky každého MD souboru.
- *
- * `list()` provádí list+fetch obou v jediném průchodu (potřebujeme metadata
- * z frontmatter pro index pohled).
+ * Slug = filename bez `.md` a musí být unikátní napříč subtree (kolize = první vyhraje).
+ * README.md je root-level index — nečte ho list(), get('README') ho pulluje speciálně.
  */
-final class GithubWikiFetcher implements WikiFetcherInterface
+final class GithubFetcher implements FetcherInterface
 {
+    /** @var array<string,string>|null Mapa slug → relativní path (od `Config::path`). */
+    private ?array $slugMap = null;
+
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-        #[Autowire('%wiki.github.owner%')]
-        private readonly string $owner,
-        #[Autowire('%wiki.github.repo%')]
-        private readonly string $repo,
-        #[Autowire('%wiki.github.branch%')]
-        private readonly string $branch,
-        #[Autowire('%wiki.github.path%')]
-        private readonly string $path,
-        #[Autowire('%env(default::WIKI_GITHUB_TOKEN)%')]
-        private readonly ?string $token = null,
+        private readonly Config $config,
     ) {
     }
-
-    /**
-     * In-memory mapa slug → relativní cesta v rámci `wiki/` (např. `01-pouzivani-highline/priprava.md`).
-     * Naplní se z git trees API; sdílí ji `list()` i `get()` napříč jedním requestem.
-     *
-     * @var array<string,string>|null
-     */
-    private ?array $slugMap = null;
 
     public function list(): array
     {
@@ -49,30 +33,32 @@ final class GithubWikiFetcher implements WikiFetcherInterface
             if ($page === null) {
                 continue;
             }
-            $entries[] = new WikiEntry(
+            $entries[] = new Entry(
                 slug: $page->slug,
                 filename: $page->filename,
-                title: $page->title,
-                lead: $page->lead,
+                label: $this->config->sidebarLabel === Config::LABEL_TITLE && $page->title !== ''
+                    ? $page->title
+                    : $page->filename,
+                githubUrl: $page->githubUrl,
                 group: $page->group,
                 order: $page->order,
-                githubUrl: $page->githubUrl,
             );
         }
 
-        usort($entries, function (WikiEntry $a, WikiEntry $b) {
-            return $a->order <=> $b->order;
+        usort($entries, function (Entry $a, Entry $b) {
+            $cmp = $a->order <=> $b->order;
+            return $cmp !== 0 ? $cmp : strcmp($a->filename, $b->filename);
         });
 
         return $entries;
     }
 
-    public function get(string $slug): ?WikiPage
+    public function get(string $slug): ?Page
     {
         if (!self::isValidSlug($slug)) {
             return null;
         }
-        // README je root-level index, žije mimo slugMap (kapitoly jsou v subfolderech).
+        // README je root-level index, mimo slugMap (může být v subfolderech kapitol jiný README).
         $relPath = strcasecmp($slug, 'README') === 0
             ? 'README.md'
             : ($this->slugMap()[$slug] ?? null);
@@ -82,15 +68,14 @@ final class GithubWikiFetcher implements WikiFetcherInterface
         return $this->fetchByPath($slug, $relPath);
     }
 
-    private function fetchByPath(string $slug, string $relPath): ?WikiPage
+    private function fetchByPath(string $slug, string $relPath): ?Page
     {
-        $filename = basename($relPath);
         $url = sprintf(
             'https://raw.githubusercontent.com/%s/%s/%s/%s/%s',
-            rawurlencode($this->owner),
-            rawurlencode($this->repo),
-            rawurlencode($this->branch),
-            $this->path,
+            rawurlencode($this->config->owner),
+            rawurlencode($this->config->repo),
+            rawurlencode($this->config->branch),
+            $this->config->path,
             implode('/', array_map('rawurlencode', explode('/', $relPath))),
         );
 
@@ -111,9 +96,7 @@ final class GithubWikiFetcher implements WikiFetcherInterface
             throw new \RuntimeException(sprintf('GitHub raw returned HTTP %d for %s', $status, $url));
         }
 
-        $raw = $response->getContent(false);
-
-        return $this->parsePage($slug, $filename, $relPath, $raw);
+        return $this->parsePage($slug, basename($relPath), $relPath, $response->getContent(false));
     }
 
     /**
@@ -127,25 +110,18 @@ final class GithubWikiFetcher implements WikiFetcherInterface
 
         $tree = $this->fetchTree();
         $map = [];
-        $prefix = rtrim($this->path, '/') . '/';
+        $prefix = rtrim($this->config->path, '/') . '/';
         foreach ($tree as $node) {
             if (($node['type'] ?? null) !== 'blob') {
                 continue;
             }
             $path = $node['path'] ?? '';
-            if (!str_starts_with($path, $prefix)) {
+            if (!str_starts_with($path, $prefix) || !str_ends_with($path, '.md')) {
                 continue;
             }
-            if (!str_ends_with($path, '.md')) {
-                continue;
-            }
-            $rel = substr($path, strlen($prefix)); // např. `01-pouzivani-highline/priprava.md`
-            // Top-level README.md = index pro GH browse, ne kapitola.
+            $rel = substr($path, strlen($prefix));
+            // README na jakékoli úrovni přeskakujeme — je to index, ne kapitola.
             if ($rel === 'README.md' || str_ends_with($rel, '/README.md')) {
-                continue;
-            }
-            // Slug = filename bez `.md`. Ignorujeme top-level soubory (musí být v subfolderu).
-            if (!str_contains($rel, '/')) {
                 continue;
             }
             $slug = basename($rel, '.md');
@@ -164,9 +140,9 @@ final class GithubWikiFetcher implements WikiFetcherInterface
     {
         $url = sprintf(
             'https://api.github.com/repos/%s/%s/git/trees/%s?recursive=1',
-            rawurlencode($this->owner),
-            rawurlencode($this->repo),
-            rawurlencode($this->branch),
+            rawurlencode($this->config->owner),
+            rawurlencode($this->config->repo),
+            rawurlencode($this->config->branch),
         );
 
         $response = $this->httpClient->request('GET', $url, [
@@ -182,9 +158,9 @@ final class GithubWikiFetcher implements WikiFetcherInterface
         return $data['tree'] ?? [];
     }
 
-    private function parsePage(string $slug, string $filename, string $relPath, string $raw): WikiPage
+    private function parsePage(string $slug, string $filename, string $relPath, string $raw): Page
     {
-        $title = self::humanize($slug);
+        $title = '';
         $lead = '';
         $quote = '';
         $group = '';
@@ -217,17 +193,17 @@ final class GithubWikiFetcher implements WikiFetcherInterface
             $body = $m[2];
         }
 
-        return new WikiPage(
+        return new Page(
             slug: $slug,
             filename: $filename,
+            body: $body,
+            githubUrl: $this->buildBlobUrl($relPath),
+            githubEditUrl: $this->buildEditUrl($relPath),
             title: $title,
             lead: $lead,
             quote: $quote,
             group: $group,
             order: $order,
-            body: $body,
-            githubUrl: $this->buildBlobUrl($relPath),
-            githubEditUrl: $this->buildEditUrl($relPath),
         );
     }
 
@@ -235,10 +211,10 @@ final class GithubWikiFetcher implements WikiFetcherInterface
     {
         return sprintf(
             'https://github.com/%s/%s/blob/%s/%s/%s',
-            $this->owner,
-            $this->repo,
-            $this->branch,
-            $this->path,
+            $this->config->owner,
+            $this->config->repo,
+            $this->config->branch,
+            $this->config->path,
             $relPath,
         );
     }
@@ -247,10 +223,10 @@ final class GithubWikiFetcher implements WikiFetcherInterface
     {
         return sprintf(
             'https://github.com/%s/%s/edit/%s/%s/%s',
-            $this->owner,
-            $this->repo,
-            $this->branch,
-            $this->path,
+            $this->config->owner,
+            $this->config->repo,
+            $this->config->branch,
+            $this->config->path,
             $relPath,
         );
     }
@@ -262,10 +238,10 @@ final class GithubWikiFetcher implements WikiFetcherInterface
     private function headers(array $extra = []): array
     {
         $base = [
-            'User-Agent' => 'slack-cz-wiki/1.0',
+            'User-Agent' => 'slack-cz-md-section/1.0',
         ];
-        if ($this->token !== null && $this->token !== '') {
-            $base['Authorization'] = 'Bearer ' . $this->token;
+        if ($this->config->token !== null && $this->config->token !== '') {
+            $base['Authorization'] = 'Bearer ' . $this->config->token;
         }
         return $base + $extra;
     }
@@ -273,11 +249,5 @@ final class GithubWikiFetcher implements WikiFetcherInterface
     private static function isValidSlug(string $slug): bool
     {
         return $slug !== '' && preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*$/', $slug) === 1;
-    }
-
-    private static function humanize(string $slug): string
-    {
-        $s = str_replace(['-', '_'], ' ', $slug);
-        return ucfirst($s);
     }
 }

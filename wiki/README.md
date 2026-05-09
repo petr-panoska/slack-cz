@@ -6,9 +6,7 @@ Otevřená dokumentace highline pro začátečníky i zkušenější. Online ver
 
 Kapitoly se editují **[přímo na GitHubu](https://github.com/petr-panoska/slack-cz/tree/main/wiki)** — buď v editoru přes tlačítko 🖉, nebo pull requestem. Po mergi do `main` jsou změny live na <https://beta.slack.cz/wiki> (cache TTL 10 min).
 
-Frontmatter každé kapitoly (`title`, `lead`, `quote`, `group`, `order`) drží metadata pro index a sidebar. Když přidáváš novou kapitolu, dej ji do správné skupinové složky a `order` vyber tak, aby zapadla v rámci skupiny.
-
-Google Docs export (`wiki-source/Highline guidebook.md` + `scripts/wiki-import.php`) byl použitý jen jednou na úvodní seed obsahu. Od teď je tenhle adresář source of truth — Google Doc už se nepoužívá.
+Frontmatter každé kapitoly (`title`, `lead`, `quote`, `group`, `order`) drží metadata pro index a sidebar. Když přidáváš novou kapitolu, dej ji do správné skupinové složky a `order` vyber tak, aby zapadla v rámci skupiny. Obrázky můžou být inline jako reference-style base64 (`![][image1]` + `[image1]: data:image/png;base64,...` na konci souboru) — žádné separate media adresáře.
 
 ## Používání highline
 

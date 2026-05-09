@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ section_label }} — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article md-section">
+    {% if page is null %}
+        <p class="md-empty">
+            {{ section_label }} je momentálně nedostupná (GitHub neodpovídá a nemáme uložený poslední dobrý stav). Zkus to za chvíli.
+        </p>
+    {% else %}
+        <header class="md-section-head">
+            <div class="md-section-meta">
+                <a href="{{ page.githubUrl }}" target="_blank" rel="noopener" class="md-meta-link">
+                    Zobrazit na GitHubu
+                </a>
+                <span class="md-meta-sep">·</span>
+                <a href="{{ page.githubEditUrl }}" target="_blank" rel="noopener" class="md-meta-link">
+                    Upravit
+                </a>
+            </div>
+        </header>
+
+        <div class="md-layout">
+            {% include 'pages/_section/_sidebar.html.twig' %}
+
+            <div class="md-prose">
+                {{ body_html|raw }}
+            </div>
+        </div>
+    {% endif %}
+</article>
+{% endblock %}

@@ -10,6 +10,7 @@ Je míněn primárně pro vývojáře projektu (CAS).
 - [`crossing-styles.md`](crossing-styles.md) — taxonomie stylů přechodů highline, mapování legacy → nový enum
 - [`audio-player.md`](audio-player.md) — slackvibes 📻 přehrávač (states, storage, controller internals)
 - [`dev.md`](dev.md) — operační cheat sheet (Docker, console, DB, cache, smoke testy)
+- [`deploy.md`](deploy.md) — produkce (Hetzner VPS, Caddy, `make deploy`, `.github/workflows/deploy.yml`)
 - [`todo.md`](todo.md) — otevřené úkoly napříč projektem
 
 ## Kde hledat co
@@ -23,6 +24,8 @@ Je míněn primárně pro vývojáře projektu (CAS).
 | Mapovat legacy `styl` string na enum | `crossing-styles.md` |
 | Ladit YouTube feed / quota / cache | `architecture.md` § *Feed* |
 | Cokoli kolem `slackvibes` audio playeru | `audio-player.md` |
+| Pochopit `App\Markdown\Section\*` (jak `/docs` a `/wiki` jedou ze stejného kódu) | `architecture.md` § *Markdown sections* |
+| Deployovat (`make deploy`, GH Actions) | `deploy.md` § *Deploy* |
 | Vědět, co se má ještě udělat | `todo.md` |
 
 ## Konvence
