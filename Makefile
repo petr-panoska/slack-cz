@@ -39,3 +39,20 @@ legacyImportFresh:
 	docker compose exec -T php bin/console app:import:highlines --truncate
 	docker compose exec -T php bin/console app:import:users --truncate
 	docker compose exec -T php bin/console app:import:crossings --truncate
+
+# Push current local Postgres data to beta production (beta.slack.cz).
+# DESTRUCTIVE: drops + recreates all app tables on beta. Use until proper
+# legacy import runs natively on prod. Flow:
+#   1) pg_dump z lokálního kontejneru (plain SQL, --clean --if-exists, no owner)
+#   2) scp na deploy@178.105.81.158:/tmp/
+#   3) psql restore + cache:clear přes scripts/sync-beta-restore.sh
+syncBetaFromLocal:
+	@echo "→ pg_dump z slack-cz-database-1..."
+	docker exec slack-cz-database-1 pg_dump -U app -d app \
+		--clean --if-exists --no-owner --no-privileges --no-acl > /tmp/slack-cz.sql
+	@echo "→ scp na betu..."
+	scp -i ~/.ssh/slack_cz_prod /tmp/slack-cz.sql deploy@178.105.81.158:/tmp/slack-cz.sql
+	@echo "→ restore + cache:clear na betě..."
+	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' < scripts/sync-beta-restore.sh
+	@rm /tmp/slack-cz.sql
+	@echo "✓ Beta data synced from local."

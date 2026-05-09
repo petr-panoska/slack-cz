@@ -40,7 +40,7 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 Detailně v `deploy.md`. Krátce:
 
-- [ ] Doimport legacy dat — lokálně dotáhnout MySQL → Postgres + `pg_dump` na server
+- [ ] Doimport legacy dat — chybí first ascents (viz „Migrace dat (deferred)" výš). Sync lokál → beta je hotový (`make syncBetaFromLocal`, viz `deploy.md`).
 - [ ] `MAILER_DSN` přes externí SMTP relay (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound
 - [ ] Přepsat `.github/workflows/deploy.yml` na nový host `178.105.81.158`, user `deploy`, plný flow (composer + migrate + asset-map + cache:clear + reload php-fpm). Současný cílí na legacy 154.43.62.26 a dělá jen `git pull && composer install`.
 - [ ] DNS swap: A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only)

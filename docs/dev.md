@@ -45,6 +45,7 @@ docker compose exec -T php bin/console <cmd>
 | `make loadLegacyDump` | jednorázový load `slackcz_44953.sql` po fresh `docker compose down -v` |
 | `make legacyImport` | re-run importů uvnitř existujícího schématu (DELETE crossings → highlines/users/crossings truncate) |
 | `make legacyImportFresh` | drop + create + migrate + full import (předpokládá nahraný legacy dump) |
+| `make syncBetaFromLocal` | pg_dump lokál → scp → psql restore + cache:clear na `beta.slack.cz` (destruktivní, viz `deploy.md`) |
 
 ### Časté konzole příkazy
 

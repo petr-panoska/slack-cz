@@ -167,6 +167,31 @@ Pro úkony co potřebují čtení `.env.local` jako `www-data` (test perms):
 sudo -u www-data bash -c "cd /var/www/slack-cz && APP_ENV=prod php bin/console <cmd>"
 ```
 
+### Sync dat z lokálu na betu
+
+Když chceš dostat aktuální stav lokální Postgres DB (highlines, users, crossings, ...) na `beta.slack.cz`:
+
+```bash
+make syncBetaFromLocal
+```
+
+Co target dělá:
+
+1. `pg_dump` z kontejneru `slack-cz-database-1` (plain SQL, `--clean --if-exists --no-owner --no-privileges`) do `/tmp/slack-cz.sql`.
+2. `scp` přes `~/.ssh/slack_cz_prod` na `deploy@178.105.81.158:/tmp/slack-cz.sql`.
+3. Na serveru spustí `scripts/sync-beta-restore.sh` (přes SSH stdin), který:
+   - vytáhne `DATABASE_URL` z `/var/www/slack-cz/.env.local`,
+   - **strippne query string** (`?serverVersion=...&charset=...`) — Doctrine formát, který `psql` neumí,
+   - `psql -v ON_ERROR_STOP=1 -f /tmp/slack-cz.sql` jako role `slack_cz` (správný ownership),
+   - `APP_ENV=prod cache:clear --no-warmup` jako `www-data`,
+   - vypíše row counts pro sanity check,
+   - smaže `/tmp/slack-cz.sql` na serveru.
+4. Lokální `/tmp/slack-cz.sql` smaže taky.
+
+> ⚠ **Destruktivní na betě.** Dump má `DROP TABLE IF EXISTS` pro všechny app tabulky → kompletní replace. Dokud je beta jen staging bez vlastních dat, je to OK. Až bude na betě reálný traffic / uživatelské změny, nahradit za `INSERT ... ON CONFLICT` flow nebo migraci diff.
+
+> ⚠ Drží to **stejnou Doctrine migration version** na lokále i betě (`doctrine_migration_versions` se kopíruje). Po sync běž rovnou `make` deploy nebo manuální `composer install + migrate -n` jen když na lokále přibyla nová migrace.
+
 ### Manuální deploy (před tím, než bude .github/workflows/deploy.yml přepsaný)
 
 ```bash
@@ -255,6 +280,23 @@ Když přidáš site blok do Caddyfile **před** tím, než existuje DNS pro dom
 Po přidání DNS pak browsery uživatelů mohou ještě hodinu vidět jen AAAA (pokud byla přidána později než A) → fail na "no IPv4 + no IPv6 routing doma".
 
 Pravidlo: **vždy nejdřív DNS, pak Caddy**. Když se to udělá obráceně, čekat 30 min nebo přepnout DNS upstream na 1.1.1.1 / 9.9.9.9.
+
+### `psql` neumí Doctrine `DATABASE_URL` query string
+
+Symfony / Doctrine zapisuje DSN jako `postgresql://user:pass@host:port/db?serverVersion=16&charset=utf8`. Když ten celý URL pošleš do `psql`, vrátí:
+
+```
+psql: error: invalid URI query parameter: "serverVersion"
+```
+
+Fix: před voláním `psql` strippni vše po `?`:
+
+```bash
+DB_URL=$(grep -E '^DATABASE_URL=' .env.local | sed -E 's/^DATABASE_URL=//; s/^"//; s/"$//; s/\?.*$//')
+psql "$DB_URL" -c "..."
+```
+
+Tohle dělá `scripts/sync-beta-restore.sh` — kdybys chtěl ručně něco pgčíst na betě, použij stejný pattern.
 
 ### Doctrine `old` EM vyžaduje `php-mysql`
 
