@@ -1,10 +1,10 @@
 # Highline guidebook — Wiki
 
-Otevřená dokumentace highline pro začátečníky i zkušenější. Online verze (rendrovaná, s magenta accentem a sticky sidebarem) na <https://slack.cz/wiki>.
+Otevřená dokumentace highline pro začátečníky i zkušenější. Online verze na <https://beta.slack.cz/wiki>.
 
 ## Jak se to edituje
 
-Kapitoly se editují **přímo tady na GitHubu** — buď v editoru přes tlačítko 🖉, nebo PRem. Po mergi do `main` jsou změny live na <https://slack.cz/wiki> (cache TTL 10 min).
+Kapitoly se editují **[přímo na GitHubu](https://github.com/petr-panoska/slack-cz/tree/main/wiki)** — buď v editoru přes tlačítko 🖉, nebo pull requestem. Po mergi do `main` jsou změny live na <https://beta.slack.cz/wiki> (cache TTL 10 min).
 
 Frontmatter každé kapitoly (`title`, `lead`, `quote`, `group`, `order`) drží metadata pro index a sidebar. Když přidáváš novou kapitolu, dej ji do správné skupinové složky a `order` vyber tak, aby zapadla v rámci skupiny.
 
