@@ -22,6 +22,10 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Pretty-print legacy `kotveni` (často číselný kód) — namapovat na čitelný popis
 - [ ] CRUD pro přidávání nové highline (jen pro přihlášené, click na mapě = nastaví GPS)
 
+## Wiki
+
+- [ ] Google Docs MD export pravděpodobně ztrácí obrázky — v normálním zobrazení dokumentu je jich víc než 8, které se objeví v `wiki-source/Highline guidebook.md` jako `![][imageN]` ref-style. Zjistit kolik a které kapitoly to postihuje. Možnosti: (a) jiný export formát (HTML / Docx + manuální extract), (b) doplnit chybějící obrázky ručně do MD, (c) přijmout snížený obrazový rozsah. Vychází to ven, až z dvojího srovnání source MD vs. on-screen Docs view.
+
 ## Slack.cz TV
 
 - [ ] Až bude existovat YT kanál CAS, přidat jeho channel ID do `feed.youtube.channels`
