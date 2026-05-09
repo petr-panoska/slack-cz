@@ -3066,11 +3066,9 @@ a.crossings-line:hover {
     text-align: center;
 }
 
-/* ---------- Wiki (highline guidebook) ---------- */
-
-.wiki-index {
-    /* Width set výše (.article.docs-index, .article.docs-show, .article.wiki-*) — sjednoceno. */
-}
+/* ---------- Wiki (highline guidebook) ----------
+   Width pro `.wiki-index` / `.wiki-show` je nahoře v consolidovaném selektoru
+   `.article.docs-index, .article.docs-show, .article.wiki-index, .article.wiki-show`. */
 
 .wiki-empty {
     color: var(--color-muted);
@@ -3151,10 +3149,6 @@ a.crossings-line:hover {
 }
 
 /* Detail */
-
-.wiki-show {
-    /* Width set výše (.article.docs-index, .article.docs-show, .article.wiki-*) — sjednoceno. */
-}
 
 .wiki-show-head {
     display: flex;
