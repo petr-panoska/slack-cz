@@ -58,8 +58,9 @@ final class WikiController extends AbstractController
 
         // Pull-quote a title se renderují v template z frontmatter — odstřihnu úvodní H1
         // z body, aby se ve výsledku neobjevoval dvakrát (import script ho prependuje
-        // do MD jako fallback pro plain GitHub view).
-        $body = preg_replace('/^#\s+.+?\R+/u', '', $page->body, 1) ?? $page->body;
+        // do MD jako fallback pro plain GitHub view). `\s*` na začátku jí mezery / blank
+        // line, která zbyde po fronthmatter stripu (`---\n\n# Title`).
+        $body = preg_replace('/^\s*#\s+.+?\R+/u', '', $page->body, 1) ?? $page->body;
         $html = $this->renderer->render($body, $this->internalRoutePrefix);
 
         return $this->render('pages/wiki/show.html.twig', [
