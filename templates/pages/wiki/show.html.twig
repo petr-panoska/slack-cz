@@ -27,12 +27,14 @@
 
     <div class="wiki-layout">
         <aside class="wiki-sidebar">
-            <h2 class="wiki-sidebar-title">Wiki</h2>
             {% set lastGroup = null %}
             <ul class="wiki-sidebar-list">
+                <li>
+                    <a href="{{ path('app_wiki_index') }}" class="wiki-sidebar-link">README.md</a>
+                </li>
                 {% for entry in entries %}
                     {% if entry.group != lastGroup %}
-                        {% if not loop.first %}</ul><ul class="wiki-sidebar-list">{% endif %}
+                        </ul><ul class="wiki-sidebar-list">
                         <li class="wiki-sidebar-group">{{ entry.group }}</li>
                         {% set lastGroup = entry.group %}
                     {% endif %}

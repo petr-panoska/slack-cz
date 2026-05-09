@@ -1,15 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ title }} — Wiki — slack.cz{% endblock %}
+{% block title %}{{ title }} — Docs — slack.cz{% endblock %}
 
 {% block body %}
 <article class="article docs-show">
     <header class="docs-show-head">
-        <nav class="docs-breadcrumb">
-            <a href="{{ path('app_docs_index') }}">Wiki</a>
-            <span>›</span>
-            <span>{{ doc.label }}</span>
-        </nav>
         <div class="docs-show-meta">
             <a href="{{ doc.githubUrl }}" target="_blank" rel="noopener" class="docs-meta-link">
                 Zobrazit na GitHubu
@@ -23,14 +18,14 @@
 
     <div class="docs-layout">
         <aside class="docs-sidebar">
-            <h2 class="docs-sidebar-title">Wiki</h2>
             <ul class="docs-sidebar-list">
                 {% for entry in entries %}
+                    {% set isReadme = entry.slug|lower == 'readme' %}
                     <li>
                         <a
-                            href="{{ path('app_docs_show', {slug: entry.slug}) }}"
+                            href="{{ isReadme ? path('app_docs_index') : path('app_docs_show', {slug: entry.slug}) }}"
                             class="docs-sidebar-link {% if entry.slug == doc.slug %}is-active{% endif %}"
-                        >{{ entry.label }}</a>
+                        >{{ entry.filename }}</a>
                     </li>
                 {% endfor %}
             </ul>

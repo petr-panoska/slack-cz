@@ -2540,10 +2540,14 @@ a.crossings-line:hover {
 
 /* ===== Wiki / Docs ===== */
 
-/* Override .article's narrow reading width — docs need room for sidebar + prose. */
+/* Override .article's narrow reading width — docs/wiki need room for sidebar + prose.
+   Jednotná šířka 1320 px napříč všemi 4 stavy + homepage (`.page-grid`), aby
+   container nezužoval / nerozšiřoval mezi pages. */
 .article.docs-index,
-.article.docs-show {
-    max-width: 1180px;
+.article.docs-show,
+.article.wiki-index,
+.article.wiki-show {
+    max-width: 1320px;
 }
 
 .docs-index .docs-list {
@@ -2631,6 +2635,7 @@ a.crossings-line:hover {
 .docs-show-meta {
     font-size: 0.85rem;
     color: var(--color-muted);
+    margin-left: auto;
 }
 
 .docs-meta-link {
@@ -3042,7 +3047,7 @@ a.crossings-line:hover {
 /* ---------- Wiki (highline guidebook) ---------- */
 
 .wiki-index {
-    max-width: 920px;
+    /* Width set výše (.article.docs-index, .article.docs-show, .article.wiki-*) — sjednoceno. */
 }
 
 .wiki-empty {
@@ -3126,7 +3131,7 @@ a.crossings-line:hover {
 /* Detail */
 
 .wiki-show {
-    max-width: 1100px;
+    /* Width set výše (.article.docs-index, .article.docs-show, .article.wiki-*) — sjednoceno. */
 }
 
 .wiki-show-head {
@@ -3161,6 +3166,7 @@ a.crossings-line:hover {
 .wiki-show-meta {
     font-size: 0.85em;
     color: var(--color-muted);
+    margin-left: auto;
 }
 
 .wiki-meta-link {
@@ -3189,62 +3195,58 @@ a.crossings-line:hover {
     }
 }
 
+/* Sidebar — sjednoceno s Docs (`.docs-sidebar*`): tenký left-border guide,
+   items odsazené o 2 px doleva přes border, active = magenta border-left.
+   Wiki má navíc group separators (Používání / Kotvení / Napínání) — drží
+   se stejné typografie jako docs-sidebar-title (uppercase, muted). */
 .wiki-sidebar {
     position: sticky;
     top: 16px;
     align-self: start;
-    font-size: 0.92em;
-}
-
-.wiki-sidebar-title {
-    font-size: 0.8em;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-muted);
-    margin: 0 0 8px;
 }
 
 .wiki-sidebar-list {
     list-style: none;
-    margin: 0 0 16px;
     padding: 0;
+    margin: 0 0 12px;
+    border-left: 2px solid var(--color-line);
+}
+
+.wiki-sidebar-list li {
+    margin: 0;
 }
 
 .wiki-sidebar-group {
-    font-size: 0.78em;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    margin: 12px 0 4px;
+    padding: 0 10px;
+    font-size: 0.78rem;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
     color: var(--color-muted);
-    margin: 8px 0 4px;
-    padding-top: 6px;
-    border-top: 1px solid var(--color-border, #e5e5e5);
 }
 
 .wiki-sidebar-list li:first-child.wiki-sidebar-group {
-    border-top: none;
-    padding-top: 0;
     margin-top: 0;
 }
 
 .wiki-sidebar-link {
     display: block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    text-decoration: none;
+    padding: 6px 10px;
+    margin-left: -2px;
+    border-left: 2px solid transparent;
     color: var(--color-fg);
+    text-decoration: none;
     line-height: 1.4;
 }
 
 .wiki-sidebar-link:hover {
-    background: rgba(233, 30, 99, 0.06);
-    color: var(--color-accent, #e91e63);
+    color: var(--color-accent);
 }
 
 .wiki-sidebar-link.is-active {
-    background: rgba(233, 30, 99, 0.1);
-    color: var(--color-accent, #e91e63);
+    color: var(--color-accent);
+    border-left-color: var(--color-accent);
     font-weight: 600;
 }
 

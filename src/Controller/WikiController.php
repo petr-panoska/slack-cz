@@ -22,17 +22,16 @@ final class WikiController extends AbstractController
     #[Route('/wiki', name: 'app_wiki_index')]
     public function index(): Response
     {
-        $entries = $this->wiki->list();
-
-        $groups = [];
-        foreach ($entries as $entry) {
-            $groupKey = $entry->group !== '' ? $entry->group : '—';
-            $groups[$groupKey][] = $entry;
+        $readme = $this->wiki->get('README');
+        $bodyHtml = null;
+        if ($readme !== null) {
+            $bodyHtml = $this->renderer->render($readme->body, $this->internalRoutePrefix);
         }
 
         return $this->render('pages/wiki/index.html.twig', [
-            'entries' => $entries,
-            'groups' => $groups,
+            'readme' => $readme,
+            'entries' => $this->wiki->list(),
+            'body_html' => $bodyHtml,
         ]);
     }
 

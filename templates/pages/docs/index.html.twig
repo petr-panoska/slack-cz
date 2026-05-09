@@ -1,32 +1,45 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Wiki — slack.cz{% endblock %}
+{% block title %}Docs — slack.cz{% endblock %}
 
 {% block body %}
-<article class="article docs-index">
-    <header class="article-head">
-        <h1>Wiki</h1>
-        <p class="article-lead">
-            Živá dokumentace projektu. Obsah se načítá přímo z&nbsp;<a href="https://github.com/petr-panoska/slack-cz/tree/main/docs" target="_blank" rel="noopener">GitHub repa</a>
-            (větev <code>main</code>) — aktuální verze je vždy ta, kterou vidíš.
-        </p>
-    </header>
-
-    {% if entries is empty %}
+<article class="article docs-show">
+    {% if readme is null %}
         <p class="docs-empty">
-            Wiki je momentálně nedostupná (GitHub neodpovídá a nemáme uložený poslední dobrý stav). Zkus to za chvíli.
+            Dokumentace je momentálně nedostupná (GitHub neodpovídá a nemáme uložený poslední dobrý stav). Zkus to za chvíli.
         </p>
     {% else %}
-        <ul class="docs-list">
-            {% for entry in entries %}
-                <li class="docs-list-item">
-                    <a href="{{ path('app_docs_show', {slug: entry.slug}) }}" class="docs-list-link">
-                        <span class="docs-list-label">{{ entry.label }}</span>
-                        <span class="docs-list-filename">{{ entry.filename }}</span>
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
+        <header class="docs-show-head">
+            <div class="docs-show-meta">
+                <a href="{{ readme.githubUrl }}" target="_blank" rel="noopener" class="docs-meta-link">
+                    Zobrazit na GitHubu
+                </a>
+                <span class="docs-meta-sep">·</span>
+                <a href="{{ readme.githubEditUrl }}" target="_blank" rel="noopener" class="docs-meta-link">
+                    Upravit
+                </a>
+            </div>
+        </header>
+
+        <div class="docs-layout">
+            <aside class="docs-sidebar">
+                <ul class="docs-sidebar-list">
+                    {% for entry in entries %}
+                        {% set isReadme = entry.slug|lower == 'readme' %}
+                        <li>
+                            <a
+                                href="{{ isReadme ? path('app_docs_index') : path('app_docs_show', {slug: entry.slug}) }}"
+                                class="docs-sidebar-link {% if isReadme %}is-active{% endif %}"
+                            >{{ entry.filename }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </aside>
+
+            <div class="docs-prose">
+                {{ body_html|raw }}
+            </div>
+        </div>
     {% endif %}
 </article>
 {% endblock %}

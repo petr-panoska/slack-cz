@@ -72,7 +72,10 @@ final class GithubWikiFetcher implements WikiFetcherInterface
         if (!self::isValidSlug($slug)) {
             return null;
         }
-        $relPath = $this->slugMap()[$slug] ?? null;
+        // README je root-level index, žije mimo slugMap (kapitoly jsou v subfolderech).
+        $relPath = strcasecmp($slug, 'README') === 0
+            ? 'README.md'
+            : ($this->slugMap()[$slug] ?? null);
         if ($relPath === null) {
             return null;
         }

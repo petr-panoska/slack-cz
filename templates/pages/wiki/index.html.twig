@@ -3,41 +3,51 @@
 {% block title %}Wiki — Highline guidebook — slack.cz{% endblock %}
 
 {% block body %}
-<article class="article wiki-index">
-    <header class="article-head">
-        <h1>Wiki</h1>
-        <p class="article-lead">
-            Highline guidebook — příprava, materiály, kotvení, napínání. Vznikl jako otevřený text pro&nbsp;začátečníky i&nbsp;zkušenější
-            slacklinery v&nbsp;rámci ČAS. Obsah žije v&nbsp;<a href="https://github.com/petr-panoska/slack-cz/tree/main/wiki" target="_blank" rel="noopener">repu na&nbsp;GitHubu</a>;
-            úprava = pull request.
-        </p>
-    </header>
-
-    {% if entries is empty %}
+<article class="article wiki-show">
+    {% if readme is null %}
         <p class="wiki-empty">
             Wiki je momentálně nedostupná (GitHub neodpovídá a nemáme uložený poslední dobrý stav). Zkus to za chvíli.
         </p>
     {% else %}
-        {% for groupName, groupEntries in groups %}
-            <section class="wiki-group">
-                <h2 class="wiki-group-title">{{ groupName }}</h2>
-                <ul class="wiki-cards">
-                    {% for entry in groupEntries %}
-                        <li class="wiki-card">
-                            <a href="{{ path('app_wiki_show', {slug: entry.slug}) }}" class="wiki-card-link">
-                                <span class="wiki-card-num">{{ '%02d'|format(entry.order) }}</span>
-                                <span class="wiki-card-body">
-                                    <span class="wiki-card-title">{{ entry.title }}</span>
-                                    {% if entry.lead %}
-                                        <span class="wiki-card-lead">{{ entry.lead }}</span>
-                                    {% endif %}
-                                </span>
-                            </a>
+        <header class="wiki-show-head">
+            <div class="wiki-show-meta">
+                <a href="{{ readme.githubUrl }}" target="_blank" rel="noopener" class="wiki-meta-link">
+                    Zobrazit na GitHubu
+                </a>
+                <span class="wiki-meta-sep">·</span>
+                <a href="{{ readme.githubEditUrl }}" target="_blank" rel="noopener" class="wiki-meta-link">
+                    Upravit
+                </a>
+            </div>
+        </header>
+
+        <div class="wiki-layout">
+            <aside class="wiki-sidebar">
+                {% set lastGroup = null %}
+                <ul class="wiki-sidebar-list">
+                    <li>
+                        <a href="{{ path('app_wiki_index') }}" class="wiki-sidebar-link is-active">README.md</a>
+                    </li>
+                    {% for entry in entries %}
+                        {% if entry.group != lastGroup %}
+                            </ul><ul class="wiki-sidebar-list">
+                            <li class="wiki-sidebar-group">{{ entry.group }}</li>
+                            {% set lastGroup = entry.group %}
+                        {% endif %}
+                        <li>
+                            <a
+                                href="{{ path('app_wiki_show', {slug: entry.slug}) }}"
+                                class="wiki-sidebar-link"
+                            >{{ entry.title }}</a>
                         </li>
                     {% endfor %}
                 </ul>
-            </section>
-        {% endfor %}
+            </aside>
+
+            <div class="wiki-prose">
+                {{ body_html|raw }}
+            </div>
+        </div>
     {% endif %}
 </article>
 {% endblock %}

@@ -60,7 +60,14 @@ final class MarkdownRenderer
                     continue;
                 }
                 $url = $node->getUrl();
-                if (preg_match('/^([A-Za-z0-9._-]+)\.md(#.+)?$/', $url, $m) === 1) {
+                // Skip absolutních URL (http://, mailto:, ...) — `:` v schemě.
+                if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $url)) {
+                    continue;
+                }
+                // Match `(<folder>/...)?<basename>.md(#anchor)?` — i v subfolderu.
+                // Wiki README linkuje na `01-pouzivani-highline/priprava.md`, chceme
+                // ho přepsat na `/wiki/priprava` (slugy jsou flat napříč subfoldery).
+                if (preg_match('/^(?:.*\/)?([A-Za-z0-9._-]+)\.md(#.+)?$/', $url, $m) === 1) {
                     $node->setUrl($prefix . '/' . $m[1] . ($m[2] ?? ''));
                 }
             }
