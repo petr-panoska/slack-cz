@@ -197,7 +197,7 @@ Co target dělá:
 ```bash
 ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158
 cd /var/www/slack-cz
-git pull origin main
+git pull --ff-only origin main
 composer install --no-dev --optimize-autoloader --no-interaction
 APP_ENV=prod php bin/console doctrine:migrations:migrate -n
 APP_ENV=prod php bin/console asset-map:compile
@@ -205,7 +205,28 @@ APP_ENV=prod php bin/console cache:clear
 sudo systemctl reload php8.3-fpm
 ```
 
+> ⚠ Pořadí matters: `composer install` spustí přes post-install hooks `cache:clear` + `assets:install` + `importmap:install` (viz Gotchas). Náš následný `asset-map:compile` proto MUSÍ jít až po něm — jinak by `manifest.json` odkazoval na staré hashe. Druhý explicitní `cache:clear` není redundantní: vyčistí cache, kterou si composer hook právě naplnil starými hashe.
+
+> `--ff-only` chrání před tím, abys neúmyslně nemergeoval, kdyby na betě někdo udělal lokální commit (typicky když SSH-režíruješ nějaký quick fix).
+
 > Současný `.github/workflows/deploy.yml` cílí na **staré** `154.43.62.26` (legacy box) a dělá jen `git pull && composer install` — pro nový server nestačí ani vzdáleně. Přepsat při cutoveru.
+
+### Post-deploy smoke
+
+Rychlý sanity check po deployi (běží lokálně, target je beta):
+
+```bash
+for path in / /mapa /login /register /reset-password /profile /o-projektu; do
+  printf '%s  %s\n' "$(curl -s -o /dev/null -w '%{http_code}' https://beta.slack.cz$path)" "$path"
+done
+
+# /profile by mělo 302 (anon redirect na /login). Zbytek 200.
+
+# Ověř, že nový CSS hash je v HTML a obsahuje aktuální classes:
+CSS=$(curl -s https://beta.slack.cz/login | grep -oE 'assets/styles/app-[a-zA-Z0-9_-]+\.css' | head -1)
+echo "CSS asset: $CSS"
+curl -s "https://beta.slack.cz/$CSS" | grep -cE 'auth-page|panel'   # nenulové = nové styly živé
+```
 
 ### Logy aplikace
 
@@ -301,6 +322,18 @@ Tohle dělá `scripts/sync-beta-restore.sh` — kdybys chtěl ručně něco pgč
 ### Doctrine `old` EM vyžaduje `php-mysql`
 
 I když na prod nepoužíváme MySQL, `config/packages/doctrine.yaml` registruje `old` connection na boot. Bez `php8.3-mysql` extension by se Doctrine ani nezavedlo. Setup ho instaluje, `OLD_DATABASE_URL` v `.env.local` ukazuje do prázdna (`mysql://nobody:nobody@127.0.0.1:3306/none`), connection se nikdy neotevře.
+
+### `var/log` neexistuje, dokud Symfony poprvé nezaloguje
+
+Na čistém serveru po prvním deployi je `var/cache/` (vytvořila composer post-install hook), ale `var/log/` ještě **ne** — Symfony ji vytváří lazily při prvním zápisu logu. Když si do deploy skriptu šoupneš defenzivní `chown -R deploy:www-data var/log` před prvním zalogováním, padne `chown: cannot access 'var/log': No such file or directory`.
+
+Buď:
+
+```bash
+[ -d var/log ] && sudo chown -R deploy:www-data var/log
+```
+
+nebo nech ji vzniknout přirozeně (po prvním requestu se vytvoří jako `www-data`, což je správně — PHP-FPM tam zapisuje).
 
 ### Composer post-install scripts spouštějí cache:clear v prod
 
