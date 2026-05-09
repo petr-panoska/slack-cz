@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wiki — Highline guidebook — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article wiki-index">
+    <header class="article-head">
+        <h1>Wiki</h1>
+        <p class="article-lead">
+            Highline guidebook — příprava, materiály, kotvení, napínání. Vznikl jako otevřený text pro&nbsp;začátečníky i&nbsp;zkušenější
+            slacklinery v&nbsp;rámci ČAS. Obsah žije v&nbsp;<a href="https://github.com/petr-panoska/slack-cz/tree/main/wiki" target="_blank" rel="noopener">repu na&nbsp;GitHubu</a>;
+            úprava = pull request.
+        </p>
+    </header>
+
+    {% if entries is empty %}
+        <p class="wiki-empty">
+            Wiki je momentálně nedostupná (GitHub neodpovídá a nemáme uložený poslední dobrý stav). Zkus to za chvíli.
+        </p>
+    {% else %}
+        {% for groupName, groupEntries in groups %}
+            <section class="wiki-group">
+                <h2 class="wiki-group-title">{{ groupName }}</h2>
+                <ul class="wiki-cards">
+                    {% for entry in groupEntries %}
+                        <li class="wiki-card">
+                            <a href="{{ path('app_wiki_show', {slug: entry.slug}) }}" class="wiki-card-link">
+                                <span class="wiki-card-num">{{ '%02d'|format(entry.order) }}</span>
+                                <span class="wiki-card-body">
+                                    <span class="wiki-card-title">{{ entry.title }}</span>
+                                    {% if entry.lead %}
+                                        <span class="wiki-card-lead">{{ entry.lead }}</span>
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+    {% endif %}
+</article>
+{% endblock %}

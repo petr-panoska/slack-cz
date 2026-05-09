@@ -178,6 +178,10 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/reset-password`, `/reset-password/reset/{token}` | reset | ✓ |
 | `/verify/email` | email verify | login required |
 | `/old-users` | `app_old_users` | ✓ debug pohled na legacy uzivatele |
+| `/wiki` | `app_wiki_index` | ✓ highline guidebook (16 kapitol z `wiki/*.md`, live z GitHubu) |
+| `/wiki/{slug}` | `app_wiki_show` | ✓ detail kapitoly s pull-quote a sidebarem |
+| `/docs` | `app_docs_index` | ✓ technická dokumentace (interní), live z `docs/*.md` na GitHubu |
+| `/docs/{slug}` | `app_docs_show` | ✓ detail dokumentu |
 
 ## Hotové features
 
@@ -196,3 +200,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Time-travel mapa** — historický playback highlines + crossings v čase, controly v `.map-tt-panel` (z-index 500)
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů
+- ✅ **Wiki / Highline guidebook** `/wiki` — 16 kapitol z `wiki/*.md` (frontmatter `title` / `lead` / `quote` / `group` / `order`). Index seskupený do tří skupin (Používání highline / Kotvení & Materiály / Napínání highline), detail má sticky sidebar a pull-quote pod nadpisem. `App\Wiki\*` zrcadlí `App\Docs\*` pattern (interface + GitHub fetcher + cache decorator s last-known-good fallbackem).
+  - **Source of truth**: `wiki-source/Highline guidebook.md` — jeden Google Docs MD export (File → Download → Markdown). Obrázky jsou v něm inline jako base64 ref-style definice (`[imageN]: data:image/...;base64,...`).
+  - **Importér**: `scripts/wiki-import.php` (re-runnable) splituje source na 16 `wiki/*.md`. Každá kapitola má jen ty `[imageN]` ref-defs, které v ní reálně používá. Žádný pandoc, žádný separate media adresář.
+  - **Pozor na CommonMark gotcha**: ref-style image link def MUSÍ být `[imageN]: data:image/png;base64,...` (bare URL). Pokud obalíš angular brackets — `[imageN]: <data:...>` — CommonMark to fallne na autolink + odmítne parsovat při velkých URL (>10 KB), takže `<img>` tag se vůbec neudělá. Importér ref-defs zapisuje bez `<>`.

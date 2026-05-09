@@ -19,12 +19,30 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  */
 final class MarkdownRenderer
 {
-    private readonly MarkdownConverter $converter;
+    private readonly MarkdownConverter $defaultConverter;
 
     public function __construct(
         #[Autowire('%docs.internal_route_prefix%')]
         private readonly string $internalDocsRoutePrefix = '/docs',
     ) {
+        $this->defaultConverter = $this->buildConverter($this->internalDocsRoutePrefix);
+    }
+
+    /**
+     * @param string|null $internalRoutePrefix override pro relativní `*.md` linky
+     *   (např. `/wiki` při renderování wiki kapitol). `null` = injektovaný `%docs.internal_route_prefix%`.
+     */
+    public function render(string $markdown, ?string $internalRoutePrefix = null): string
+    {
+        $converter = $internalRoutePrefix === null
+            ? $this->defaultConverter
+            : $this->buildConverter($internalRoutePrefix);
+
+        return (string) $converter->convert($markdown);
+    }
+
+    private function buildConverter(string $internalRoutePrefix): MarkdownConverter
+    {
         $env = new Environment([
             'html_input' => 'allow',         // trusted source (our own GH repo)
             'allow_unsafe_links' => false,
@@ -35,7 +53,7 @@ final class MarkdownRenderer
         $env->addExtension(new CommonMarkCoreExtension());
         $env->addExtension(new GithubFlavoredMarkdownExtension());
 
-        $prefix = rtrim($this->internalDocsRoutePrefix, '/');
+        $prefix = rtrim($internalRoutePrefix, '/');
         $env->addEventListener(DocumentParsedEvent::class, function (DocumentParsedEvent $event) use ($prefix): void {
             foreach ($event->getDocument()->iterator() as $node) {
                 if (!$node instanceof Link) {
@@ -48,12 +66,7 @@ final class MarkdownRenderer
             }
         });
 
-        $this->converter = new MarkdownConverter($env);
-    }
-
-    public function render(string $markdown): string
-    {
-        return (string) $this->converter->convert($markdown);
+        return new MarkdownConverter($env);
     }
 
     public static function extractTitle(string $markdown): ?string

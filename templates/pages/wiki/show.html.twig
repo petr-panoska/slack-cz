@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ page.title }} — Wiki — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article wiki-show">
+    <header class="wiki-show-head">
+        <nav class="wiki-breadcrumb">
+            <a href="{{ path('app_wiki_index') }}">Wiki</a>
+            {% if page.group %}
+                <span>›</span>
+                <span>{{ page.group }}</span>
+            {% endif %}
+            <span>›</span>
+            <span>{{ page.title }}</span>
+        </nav>
+        <div class="wiki-show-meta">
+            <a href="{{ page.githubUrl }}" target="_blank" rel="noopener" class="wiki-meta-link">
+                Zobrazit na GitHubu
+            </a>
+            <span class="wiki-meta-sep">·</span>
+            <a href="{{ page.githubEditUrl }}" target="_blank" rel="noopener" class="wiki-meta-link">
+                Upravit
+            </a>
+        </div>
+    </header>
+
+    <div class="wiki-layout">
+        <aside class="wiki-sidebar">
+            <h2 class="wiki-sidebar-title">Wiki</h2>
+            {% set lastGroup = null %}
+            <ul class="wiki-sidebar-list">
+                {% for entry in entries %}
+                    {% if entry.group != lastGroup %}
+                        {% if not loop.first %}</ul><ul class="wiki-sidebar-list">{% endif %}
+                        <li class="wiki-sidebar-group">{{ entry.group }}</li>
+                        {% set lastGroup = entry.group %}
+                    {% endif %}
+                    <li>
+                        <a
+                            href="{{ path('app_wiki_show', {slug: entry.slug}) }}"
+                            class="wiki-sidebar-link {% if entry.slug == page.slug %}is-active{% endif %}"
+                        >{{ entry.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <div class="wiki-main">
+            <h1 class="wiki-title">{{ page.title }}</h1>
+            {% if page.quote %}
+                <blockquote class="wiki-quote">
+                    {{ page.quote }}
+                </blockquote>
+            {% endif %}
+            <div class="wiki-prose">
+                {{ body_html|raw }}
+            </div>
+        </div>
+    </div>
+</article>
+{% endblock %}
