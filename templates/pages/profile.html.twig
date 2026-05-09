@@ -1,12 +1,54 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}Můj profil{% endblock %}
 
 {% block body %}
-    <h1>User Profile</h1>
-    <div>
-        {# <p><strong>Username:</strong> {{ app.user.username }}</p> #}
-        <p><strong>Email:</strong> {{ app.user.email }}</p>
-        {# Add more user fields as needed #}
+    {% set user = app.user %}
+    <div class="auth-page profile-page">
+        <div class="auth-card">
+            <h1>Můj profil</h1>
+
+            <p class="profile-denik-link">
+                <a href="{{ path('app_user_denik', {id: user.id}) }}">Můj deník →</a>
+            </p>
+
+            <dl class="profile-info">
+                <dt>Email</dt>
+                <dd>{{ user.email }}</dd>
+
+                {% if user.nick %}
+                    <dt>Nick</dt>
+                    <dd>{{ user.nick }}</dd>
+                {% endif %}
+
+                {% if user.firstName or user.lastName %}
+                    <dt>Jméno</dt>
+                    <dd>{{ user.firstName }} {{ user.lastName }}</dd>
+                {% endif %}
+
+                {% if user.city %}
+                    <dt>Město</dt>
+                    <dd>{{ user.city }}</dd>
+                {% endif %}
+
+                {% if user.birthYear %}
+                    <dt>Ročník</dt>
+                    <dd>{{ user.birthYear }}</dd>
+                {% endif %}
+
+                {% if first_crossing_date %}
+                    <dt>První přechod</dt>
+                    <dd>{{ first_crossing_date|date('j. n. Y') }}</dd>
+                {% endif %}
+            </dl>
+
+            <div class="profile-actions">
+                <a class="btn btn-ghost" href="{{ path('app_logout') }}">Odhlásit se</a>
+            </div>
+
+            <p class="auth-help">
+                Editace profilu (avatar, bio, odkazy) je v plánu — viz <code>docs/todo.md</code>.
+            </p>
+        </div>
     </div>
 {% endblock %}

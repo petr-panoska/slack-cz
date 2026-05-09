@@ -22,11 +22,13 @@ final class PagesController extends AbstractController
     }
 
     #[Route('/profile', name: 'app_profile')]
-    public function profile(): Response
+    public function profile(HighlineCrossingRepository $crossings): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        return $this->render('pages/profile.html.twig');
+        return $this->render('pages/profile.html.twig', [
+            'first_crossing_date' => $crossings->findFirstCrossingDate($this->getUser()),
+        ]);
     }
 
     #[Route('/o-projektu', name: 'app_about')]
