@@ -36,6 +36,19 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] FA badge u přechodu / na profilu, jakmile dořešíme prvopřechody
 - [ ] Edit profile (po přihlášení) — město, ročník, telefon, gender
 
+## Cutover legacy slack.cz → nový VPS
+
+Detailně v `deploy.md`. Krátce:
+
+- [ ] Doimport legacy dat — lokálně dotáhnout MySQL → Postgres + `pg_dump` na server
+- [ ] `MAILER_DSN` přes externí SMTP relay (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound
+- [ ] Přepsat `.github/workflows/deploy.yml` na nový host `178.105.81.158`, user `deploy`, plný flow (composer + migrate + asset-map + cache:clear + reload php-fpm). Současný cílí na legacy 154.43.62.26 a dělá jen `git pull && composer install`.
+- [ ] DNS swap: A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only)
+- [ ] Přidat `slack.cz` blok do `/etc/caddy/Caddyfile` na produkci (analogický k `beta.slack.cz`)
+- [ ] Nastavit reálné `YOUTUBE_API_KEY` + `DOCS_GITHUB_TOKEN` v `.env.local` na serveru
+- [ ] (volitelné) `unattended-upgrades` na auto-security patches
+- [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery
+
 ## Ostatní
 
 - [ ] Restrikce YouTube API key v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — momentálně je key bez restriction, je v transkriptech konverzace

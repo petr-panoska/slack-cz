@@ -1,6 +1,6 @@
 # Architektura
 
-Symfony 7.3 / PHP 8.2+ aplikace. Vyvíjí se v Dockeru (Compose), produkce zatím není nasazená.
+Symfony 7.3 / PHP 8.2+ aplikace. Vyvíjí se v Dockeru (Compose); staging na <https://beta.slack.cz> (Hetzner CX22, native PHP 8.3 + Postgres 16 + Caddy — viz `deploy.md`), cutover legacy `slack.cz` ještě neproběhl.
 
 Dev běží na **native docker-ce** (Linux) — žádný Docker Desktop, žádný `linuxkit`, žádný FUSE wrapper. Bind mount je raw `ext4` přímo z hostu, atomic-rename funguje korektně (důležité, viz historie editací; DD's `fakeowner` FUSE měl invalidation bug).
 
