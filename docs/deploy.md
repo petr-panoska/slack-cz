@@ -192,7 +192,27 @@ Co target dělá:
 
 > ⚠ Drží to **stejnou Doctrine migration version** na lokále i betě (`doctrine_migration_versions` se kopíruje). Po sync běž rovnou `make` deploy nebo manuální `composer install + migrate -n` jen když na lokále přibyla nová migrace.
 
-### Manuální deploy (před tím, než bude .github/workflows/deploy.yml přepsaný)
+### Deploy
+
+```bash
+make deploy
+```
+
+Co target dělá:
+1. SSH na `deploy@178.105.81.158` přes `~/.ssh/slack_cz_prod`.
+2. Spustí `scripts/deploy.sh` (přes `bash -s` stdin):
+   - `git pull --ff-only origin main`
+   - `composer install --no-dev --optimize-autoloader`
+   - `APP_ENV=prod doctrine:migrations:migrate -n`
+   - `APP_ENV=prod asset-map:compile`
+   - `APP_ENV=prod cache:clear`
+   - `APP_ENV=prod cache:pool:clear cache.app` (vyhodí docs/wiki LKG fallback)
+   - `sudo systemctl reload php8.3-fpm` (refresh opcache)
+3. Smoke test: HTTP status pro `/`, `/mapa`, `/wiki`, `/docs`, `/o-projektu`.
+
+**Předpoklad**: commit + push do `origin/main` máš lokálně hotový — `make deploy` jen tahá na serveru.
+
+#### Ruční deploy (kdyby SSH script selhal)
 
 ```bash
 ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158

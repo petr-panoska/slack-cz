@@ -56,3 +56,15 @@ syncBetaFromLocal:
 	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' < scripts/sync-beta-restore.sh
 	@rm /tmp/slack-cz.sql
 	@echo "✓ Beta data synced from local."
+
+# Deploy aktuálního `main` na beta.slack.cz (jen pull+build na serveru, NEpushuje).
+# Předpoklad: commit + push do origin/main už máš hotový.
+#   make deploy
+deploy:
+	@echo "→ deploying origin/main na beta.slack.cz..."
+	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' < scripts/deploy.sh
+	@echo "→ smoke test:"
+	@for path in / /mapa /wiki /docs /o-projektu; do \
+		printf '  %s  %s\n' "$$(curl -s -o /dev/null -w '%{http_code}' https://beta.slack.cz$$path)" "$$path"; \
+	done
+	@echo "✓ Hotovo. https://beta.slack.cz"
