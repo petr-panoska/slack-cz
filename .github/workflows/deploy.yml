@@ -1,29 +1,71 @@
 name: deploy
 
-# Controls when the action will run. 
+# Auto-deploy push do main na beta.slack.cz (Hetzner VPS, native PHP-FPM + Postgres + Caddy).
+# Mirror lokálního `make deploy` — používá stejný `scripts/deploy.sh`.
+#
+# Required GH repo secrets:
+#   DEPLOY_SSH_KEY   — privátní SSH klíč pro user `deploy` (=ed25519, lokálně ~/.ssh/slack_cz_prod)
+#
+# Když workflow selže na "Permission denied (publickey)", musíš v GH repo
+# Settings → Secrets and variables → Actions přidat / aktualizovat DEPLOY_SSH_KEY.
+
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ main ]
+  workflow_dispatch:  # manuální trigger z GH UI bez nutnosti push
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Deploy using ssh
-      uses: appleboy/ssh-action@master
-      with:
-        host: 154.43.62.26
-        username: root
-        key: ${{ secrets.deploy_key }}
-        port: 22
-        script: |
-          cd /var/www/html/slack-cz
-          git pull origin main
-          git status
-          composer install
+      - name: SSH deploy → beta.slack.cz
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 178.105.81.158
+          username: deploy
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          script_stop: true   # první failnutý příkaz zabije celý job
+          command_timeout: 5m
+          script: |
+            set -euo pipefail
+            cd /var/www/slack-cz
+
+            echo "→ git pull --ff-only origin main"
+            git pull --ff-only origin main
+
+            echo "→ composer install --no-dev --optimize-autoloader"
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "→ doctrine:migrations:migrate"
+            APP_ENV=prod php bin/console doctrine:migrations:migrate -n
+
+            echo "→ asset-map:compile"
+            APP_ENV=prod php bin/console asset-map:compile
+
+            echo "→ cache:clear (prod)"
+            APP_ENV=prod php bin/console cache:clear
+
+            echo "→ cache:pool:clear cache.app (vyhodí docs/wiki LKG)"
+            APP_ENV=prod php bin/console cache:pool:clear cache.app
+
+            echo "→ systemctl reload php8.3-fpm (refresh opcache)"
+            sudo systemctl reload php8.3-fpm
+
+            echo "✓ Deploy hotový."
+
+      - name: Post-deploy smoke test
+        run: |
+          fail=0
+          for path in / /mapa /wiki /docs /o-projektu; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' "https://beta.slack.cz$path")
+            printf '  %s  %s\n' "$code" "$path"
+            if [ "$code" != "200" ] && [ "$code" != "302" ]; then
+              fail=1
+            fi
+          done
+          exit $fail
