@@ -33,23 +33,19 @@ final class GithubWikiFetcher implements WikiFetcherInterface
     ) {
     }
 
+    /**
+     * In-memory mapa slug → relativní cesta v rámci `wiki/` (např. `01-pouzivani-highline/priprava.md`).
+     * Naplní se z git trees API; sdílí ji `list()` i `get()` napříč jedním requestem.
+     *
+     * @var array<string,string>|null
+     */
+    private ?array $slugMap = null;
+
     public function list(): array
     {
-        $rows = $this->fetchContents();
         $entries = [];
-        foreach ($rows as $row) {
-            if (($row['type'] ?? null) !== 'file') {
-                continue;
-            }
-            $name = $row['name'] ?? '';
-            if (!str_ends_with($name, '.md')) {
-                continue;
-            }
-            $slug = substr($name, 0, -3);
-            if (!self::isValidSlug($slug)) {
-                continue;
-            }
-            $page = $this->get($slug);
+        foreach ($this->slugMap() as $slug => $relPath) {
+            $page = $this->fetchByPath($slug, $relPath);
             if ($page === null) {
                 continue;
             }
@@ -76,14 +72,23 @@ final class GithubWikiFetcher implements WikiFetcherInterface
         if (!self::isValidSlug($slug)) {
             return null;
         }
-        $filename = $slug . '.md';
+        $relPath = $this->slugMap()[$slug] ?? null;
+        if ($relPath === null) {
+            return null;
+        }
+        return $this->fetchByPath($slug, $relPath);
+    }
+
+    private function fetchByPath(string $slug, string $relPath): ?WikiPage
+    {
+        $filename = basename($relPath);
         $url = sprintf(
             'https://raw.githubusercontent.com/%s/%s/%s/%s/%s',
             rawurlencode($this->owner),
             rawurlencode($this->repo),
             rawurlencode($this->branch),
             $this->path,
-            rawurlencode($filename),
+            implode('/', array_map('rawurlencode', explode('/', $relPath))),
         );
 
         $response = $this->httpClient->request('GET', $url, [
@@ -105,19 +110,59 @@ final class GithubWikiFetcher implements WikiFetcherInterface
 
         $raw = $response->getContent(false);
 
-        return $this->parsePage($slug, $filename, $raw);
+        return $this->parsePage($slug, $filename, $relPath, $raw);
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private function slugMap(): array
+    {
+        if ($this->slugMap !== null) {
+            return $this->slugMap;
+        }
+
+        $tree = $this->fetchTree();
+        $map = [];
+        $prefix = rtrim($this->path, '/') . '/';
+        foreach ($tree as $node) {
+            if (($node['type'] ?? null) !== 'blob') {
+                continue;
+            }
+            $path = $node['path'] ?? '';
+            if (!str_starts_with($path, $prefix)) {
+                continue;
+            }
+            if (!str_ends_with($path, '.md')) {
+                continue;
+            }
+            $rel = substr($path, strlen($prefix)); // např. `01-pouzivani-highline/priprava.md`
+            // Top-level README.md = index pro GH browse, ne kapitola.
+            if ($rel === 'README.md' || str_ends_with($rel, '/README.md')) {
+                continue;
+            }
+            // Slug = filename bez `.md`. Ignorujeme top-level soubory (musí být v subfolderu).
+            if (!str_contains($rel, '/')) {
+                continue;
+            }
+            $slug = basename($rel, '.md');
+            if (!self::isValidSlug($slug)) {
+                continue;
+            }
+            $map[$slug] = $rel;
+        }
+        return $this->slugMap = $map;
     }
 
     /**
      * @return list<array<string,mixed>>
      */
-    private function fetchContents(): array
+    private function fetchTree(): array
     {
         $url = sprintf(
-            'https://api.github.com/repos/%s/%s/contents/%s?ref=%s',
+            'https://api.github.com/repos/%s/%s/git/trees/%s?recursive=1',
             rawurlencode($this->owner),
             rawurlencode($this->repo),
-            $this->path,
             rawurlencode($this->branch),
         );
 
@@ -127,13 +172,14 @@ final class GithubWikiFetcher implements WikiFetcherInterface
 
         $status = $response->getStatusCode();
         if ($status !== 200) {
-            throw new \RuntimeException(sprintf('GitHub contents API returned HTTP %d for %s', $status, $url));
+            throw new \RuntimeException(sprintf('GitHub git trees API returned HTTP %d for %s', $status, $url));
         }
 
-        return $response->toArray(false);
+        $data = $response->toArray(false);
+        return $data['tree'] ?? [];
     }
 
-    private function parsePage(string $slug, string $filename, string $raw): WikiPage
+    private function parsePage(string $slug, string $filename, string $relPath, string $raw): WikiPage
     {
         $title = self::humanize($slug);
         $lead = '';
@@ -177,12 +223,12 @@ final class GithubWikiFetcher implements WikiFetcherInterface
             group: $group,
             order: $order,
             body: $body,
-            githubUrl: $this->buildBlobUrl($filename),
-            githubEditUrl: $this->buildEditUrl($filename),
+            githubUrl: $this->buildBlobUrl($relPath),
+            githubEditUrl: $this->buildEditUrl($relPath),
         );
     }
 
-    private function buildBlobUrl(string $filename): string
+    private function buildBlobUrl(string $relPath): string
     {
         return sprintf(
             'https://github.com/%s/%s/blob/%s/%s/%s',
@@ -190,11 +236,11 @@ final class GithubWikiFetcher implements WikiFetcherInterface
             $this->repo,
             $this->branch,
             $this->path,
-            $filename,
+            $relPath,
         );
     }
 
-    private function buildEditUrl(string $filename): string
+    private function buildEditUrl(string $relPath): string
     {
         return sprintf(
             'https://github.com/%s/%s/edit/%s/%s/%s',
@@ -202,7 +248,7 @@ final class GithubWikiFetcher implements WikiFetcherInterface
             $this->repo,
             $this->branch,
             $this->path,
-            $filename,
+            $relPath,
         );
     }
 

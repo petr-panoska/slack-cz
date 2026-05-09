@@ -32,6 +32,13 @@ $inputMd  = $opts['input']  ?? $projectRoot . '/wiki-source/Highline guidebook.m
 $outputMd = $opts['output'] ?? $projectRoot . '/wiki';
 $dryRun   = isset($opts['dry-run']);
 
+// Folder slug per skupina (numbered prefix → sort na GH browse view sedí pořadí).
+const GROUP_SLUGS = [
+    'Používání highline'  => '01-pouzivani-highline',
+    'Kotvení & Materiály' => '02-kotveni-materialy',
+    'Napínání highline'   => '03-napinani-highline',
+];
+
 const CHAPTERS = [
     ['order' =>  1, 'group' => 'Používání highline',   'slug' => 'priprava',                'title' => 'Příprava'],
     ['order' =>  2, 'group' => 'Používání highline',   'slug' => 'bezpecnost',              'title' => 'Bezpečnost'],
@@ -140,18 +147,34 @@ if (!$dryRun) {
     if (!is_dir($outputMd)) {
         mkdir($outputMd, 0755, true);
     }
+    // Vyčistit staré výstupy: stary flat layout (wiki/*.md), stará README.md
+    // i existující subfoldery — re-import je single source of truth.
     foreach (glob($outputMd . '/*.md') ?: [] as $f) {
         unlink($f);
+    }
+    foreach (GROUP_SLUGS as $folderSlug) {
+        $dir = $outputMd . '/' . $folderSlug;
+        if (is_dir($dir)) {
+            foreach (glob($dir . '/*.md') ?: [] as $f) {
+                unlink($f);
+            }
+            @rmdir($dir);
+        }
+    }
+    foreach (GROUP_SLUGS as $folderSlug) {
+        mkdir($outputMd . '/' . $folderSlug, 0755, true);
     }
 }
 
 $totalImgs = 0;
 $missing = [];
 foreach ($results as $r) {
-    $path = $outputMd . '/' . $r['filename'];
+    $folderSlug = GROUP_SLUGS[$r['frontmatter']['group']] ?? '';
+    $relPath = ($folderSlug !== '' ? $folderSlug . '/' : '') . $r['filename'];
+    $path = $outputMd . '/' . $relPath;
     echo sprintf(
-        "  %-32s [%2d %-22s]  %7d B  imgs=%d\n",
-        $r['filename'],
+        "  %-50s  [%2d %-22s]  %7d B  imgs=%d\n",
+        $relPath,
         $r['frontmatter']['order'],
         $r['frontmatter']['group'],
         strlen($r['body']),
@@ -166,6 +189,12 @@ foreach ($results as $r) {
             exit(1);
         }
     }
+}
+
+if (!$dryRun) {
+    $readmePath = $outputMd . '/README.md';
+    file_put_contents($readmePath, renderReadme($results));
+    echo "  " . str_pad('README.md', 50) . "  index s linky\n";
 }
 
 echo "\nObrázků zachováno (inline base64): {$totalImgs}\n";
@@ -348,6 +377,44 @@ function cleanLeadOrQuote(string $s): string
     // Backslash escapy.
     $s = preg_replace('/\\\\([!\-])/u', '$1', $s);
     return trim($s);
+}
+
+function renderReadme(array $results): string
+{
+    $byGroup = [];
+    foreach ($results as $r) {
+        $byGroup[$r['frontmatter']['group']][] = $r;
+    }
+
+    $out  = "# Highline guidebook — Wiki\n\n";
+    $out .= "Otevřená dokumentace highline pro začátečníky i zkušenější. Online verze (rendrovaná, s magenta accentem a sticky sidebarem) na <https://slack.cz/wiki>.\n\n";
+    $out .= "## Jak se to edituje\n\n";
+    $out .= "Kapitoly se editují **přímo tady na GitHubu** — buď v editoru přes tlačítko 🖉, nebo PRem. Po mergi do `main` jsou změny live na <https://slack.cz/wiki> (cache TTL 10 min).\n\n";
+    $out .= "Frontmatter každé kapitoly (`title`, `lead`, `quote`, `group`, `order`) drží metadata pro index a sidebar. Když přidáváš novou kapitolu, dej ji do správné skupinové složky a `order` vyber tak, aby zapadla v rámci skupiny.\n\n";
+    $out .= "Google Docs export (`wiki-source/Highline guidebook.md` + `scripts/wiki-import.php`) byl použitý jen jednou na úvodní seed obsahu. Od teď je tenhle adresář source of truth — Google Doc už se nepoužívá.\n\n";
+
+    foreach (array_keys(GROUP_SLUGS) as $groupName) {
+        if (!isset($byGroup[$groupName])) {
+            continue;
+        }
+        $folderSlug = GROUP_SLUGS[$groupName];
+        $out .= "## {$groupName}\n\n";
+        foreach ($byGroup[$groupName] as $r) {
+            $title = $r['frontmatter']['title'];
+            $lead = $r['frontmatter']['lead'];
+            $out .= sprintf(
+                "%d. **[%s](%s/%s)**%s\n",
+                $r['frontmatter']['order'],
+                $title,
+                $folderSlug,
+                $r['filename'],
+                $lead !== '' ? ' — ' . $lead : '',
+            );
+        }
+        $out .= "\n";
+    }
+
+    return $out;
 }
 
 function renderFrontmatter(array $fm): string

@@ -202,5 +202,13 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů
 - ✅ **Wiki / Highline guidebook** `/wiki` — 16 kapitol z `wiki/*.md` (frontmatter `title` / `lead` / `quote` / `group` / `order`). Index seskupený do tří skupin (Používání highline / Kotvení & Materiály / Napínání highline), detail má sticky sidebar a pull-quote pod nadpisem. `App\Wiki\*` zrcadlí `App\Docs\*` pattern (interface + GitHub fetcher + cache decorator s last-known-good fallbackem).
   - **Source of truth**: `wiki-source/Highline guidebook.md` — jeden Google Docs MD export (File → Download → Markdown). Obrázky jsou v něm inline jako base64 ref-style definice (`[imageN]: data:image/...;base64,...`).
-  - **Importér**: `scripts/wiki-import.php` (re-runnable) splituje source na 16 `wiki/*.md`. Každá kapitola má jen ty `[imageN]` ref-defs, které v ní reálně používá. Žádný pandoc, žádný separate media adresář.
+  - **Importér**: `scripts/wiki-import.php` (re-runnable) splituje source na 16 `wiki/<group-folder>/<slug>.md`. Layout v repu:
+    ```
+    wiki/
+      README.md                            # generovaný index s linky
+      01-pouzivani-highline/               # 5 kapitol
+      02-kotveni-materialy/                # 8 kapitol
+      03-napinani-highline/                # 3 kapitoly
+    ```
+    Číselný prefix u skupin = chronologie + správný sort na GH browse view. Slugy zůstávají flat (`/wiki/priprava`, ne `/wiki/01-pouzivani-highline/priprava`); GithubWikiFetcher si dělá interní mapu slug → relativní path přes git trees API (`?recursive=1`, jeden API call). Každá kapitola má jen ty `[imageN]` ref-defs, které v ní reálně používá. Žádný pandoc, žádný separate media adresář.
   - **Pozor na CommonMark gotcha**: ref-style image link def MUSÍ být `[imageN]: data:image/png;base64,...` (bare URL). Pokud obalíš angular brackets — `[imageN]: <data:...>` — CommonMark to fallne na autolink + odmítne parsovat při velkých URL (>10 KB), takže `<img>` tag se vůbec neudělá. Importér ref-defs zapisuje bez `<>`.

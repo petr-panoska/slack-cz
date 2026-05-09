@@ -24,7 +24,8 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 ## Wiki
 
-- [ ] Google Docs MD export pravděpodobně ztrácí obrázky — v normálním zobrazení dokumentu je jich víc než 8, které se objeví v `wiki-source/Highline guidebook.md` jako `![][imageN]` ref-style. Zjistit kolik a které kapitoly to postihuje. Možnosti: (a) jiný export formát (HTML / Docx + manuální extract), (b) doplnit chybějící obrázky ručně do MD, (c) přijmout snížený obrazový rozsah. Vychází to ven, až z dvojího srovnání source MD vs. on-screen Docs view.
+- [ ] Doplnit chybějící obrázky — Google Docs export (úvodní seed) přenesl jen 8 z ~N obrázků, co jsou v rendrovaném dokumentu. Které kapitoly to postihuje a jak je dorovnat: (a) ručně přidat `![][imageN]` ref-defs s base64 do dotčených `wiki/<group>/<slug>.md`, (b) najít původní zdroj obrázků (DOCX export, original asset folder?). Zatím low-priority kosmetika.
+- [ ] Až bude obsah stable, smáznout `wiki-source/` a `scripts/wiki-import.php` — bootstrap-only artefakty z úvodního seedu, GH-direct flow je už živý.
 
 ## Slack.cz TV
 
