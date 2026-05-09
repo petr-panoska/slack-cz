@@ -69,6 +69,11 @@ a {
     border-bottom-color: var(--color-accent);
 }
 
+.site-nav a.is-active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
 .site-user {
     margin-left: auto;
     display: flex;

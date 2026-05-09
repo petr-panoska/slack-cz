@@ -3,12 +3,14 @@
         <img src="{{ asset('images/logo.png') }}" alt="slack.cz" />
     </a>
 
+    {# Aktivní stav per route: shoda na začátek route name. Logo nahoře je už link
+       na Domů, druhá položka v navu by byla redundantní. #}
+    {% set route = app.current_route|default('') %}
     <nav class="site-nav">
-        <a href="{{ path('app_index') }}">Domů</a>
-        <a href="{{ path('app_highline_map') }}">Mapa</a>
-        <a href="{{ path('app_about') }}">O projektu</a>
-        <a href="{{ path('app_wiki_index') }}">Wiki</a>
-        <a href="{{ path('app_docs_index') }}">Docs</a>
+        <a href="{{ path('app_highline_map') }}" class="{{ (route starts with 'app_highline_map' or route == 'app_highline_detail') ? 'is-active' : '' }}">Mapa</a>
+        <a href="{{ path('app_about') }}" class="{{ route == 'app_about' ? 'is-active' : '' }}">O projektu</a>
+        <a href="{{ path('app_wiki_index') }}" class="{{ route starts with 'app_wiki_' ? 'is-active' : '' }}">Wiki</a>
+        <a href="{{ path('app_docs_index') }}" class="{{ route starts with 'app_docs_' ? 'is-active' : '' }}">Docs</a>
     </nav>
 
     <div class="site-user">
