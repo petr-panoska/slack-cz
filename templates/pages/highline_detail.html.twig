@@ -115,6 +115,11 @@
                         <span class="panel-dot panel-dot-crossings"></span>
                         <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
                     </div>
+                    {% if app.user %}
+                        <a class="btn btn-primary btn-sm" href="{{ path('app_crossing_new', { slug: highline.slug }) }}">+ Přidat přechod</a>
+                    {% else %}
+                        <a class="btn btn-ghost btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+                    {% endif %}
                 </header>
                 {% if crossings|length > 0 %}
                     {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: false }) }}

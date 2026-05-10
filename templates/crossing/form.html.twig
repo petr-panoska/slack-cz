@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'edit' ? 'Upravit přechod' : 'Nový přechod' }} – {{ highline.name }} – slack.cz{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="auth-card crossing-form-card">
+        <a class="hl-back" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">← {{ highline.name }}</a>
+        <h1>{{ mode == 'edit' ? 'Upravit přechod' : 'Nový přechod' }}</h1>
+        <p class="crossing-form-line">Lajna: <strong>{{ highline.name }}</strong></p>
+
+        {{ form_errors(form) }}
+
+        {{ form_start(form) }}
+            <div class="form-group">
+                {{ form_label(form.crossedAt) }}
+                {{ form_widget(form.crossedAt) }}
+                {{ form_errors(form.crossedAt) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.style) }}
+                {{ form_widget(form.style) }}
+                {{ form_errors(form.style) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.rating) }}
+                {{ form_widget(form.rating) }}
+                {{ form_errors(form.rating) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.comment) }}
+                {{ form_widget(form.comment) }}
+                {{ form_errors(form.comment) }}
+            </div>
+
+            <div class="crossing-form-actions">
+                <button type="submit" class="btn btn-primary">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
+                {% if mode == 'edit' %}
+                    <a class="btn btn-ghost" href="{{ path('app_user_denik', { id: crossing.user.id }) }}">Zrušit</a>
+                {% else %}
+                    <a class="btn btn-ghost" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">Zrušit</a>
+                {% endif %}
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

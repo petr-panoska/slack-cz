@@ -3018,3 +3018,131 @@ a.crossings-line:hover {
     flex: 1;
     text-align: center;
 }
+
+/* ---------- Crossing form (new / edit) ---------- */
+
+.crossing-form-card {
+    max-width: 520px;
+}
+
+.crossing-form-card .hl-back {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--color-muted);
+    font-size: 0.9em;
+    text-decoration: none;
+}
+
+.crossing-form-card .hl-back:hover {
+    color: var(--color-accent);
+}
+
+.crossing-form-line {
+    margin: -12px 0 20px;
+    color: var(--color-muted);
+    font-size: 0.95em;
+}
+
+.crossing-form-line strong {
+    color: var(--color-fg);
+}
+
+.crossing-form-card input[type="date"],
+.crossing-form-card select,
+.crossing-form-card textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--color-fg);
+    background: var(--color-bg);
+    transition: border-color 0.15s;
+}
+
+.crossing-form-card textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.crossing-form-card input[type="date"]:focus,
+.crossing-form-card select:focus,
+.crossing-form-card textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.crossing-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.crossing-form-actions .btn {
+    flex: 1;
+    text-align: center;
+}
+
+/* The shared .auth-card form rule sets `button[type=submit] { width:100% }` —
+   override on the crossing form so the cancel button can sit next to submit. */
+.crossing-form-card button[type="submit"] {
+    width: auto;
+    margin-top: 0;
+}
+
+/* ---------- Crossing row actions (deník) ---------- */
+
+.crossings-item {
+    grid-template-areas:
+        "date    style"
+        "user    rating"
+        "line    line"
+        "comment comment"
+        "actions actions";
+}
+
+.crossings-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.crossings-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border: 1px solid var(--color-line);
+    border-radius: 3px;
+    background: var(--color-bg);
+    color: var(--color-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.crossings-action:hover {
+    border-color: var(--color-fg);
+    color: var(--color-fg);
+}
+
+.crossings-action-delete:hover {
+    border-color: #c0143c;
+    color: #c0143c;
+    background: #fdecea;
+}
+
+.crossings-delete-form {
+    display: inline;
+    margin: 0;
+}
+
+/* ---------- Small button modifier ---------- */
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.78rem;
+}

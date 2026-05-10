@@ -1,10 +1,12 @@
 {# Renders a list of recent highline crossings.
    Params:
-     crossings  – iterable of HighlineCrossing
-     layout     – 'panel' (default, vertical list) or 'stripe' (horizontal scroll)
-     show_line  – include the highline name (default true). Set false on a highline detail page where it's redundant. #}
+     crossings    – iterable of HighlineCrossing
+     layout       – 'panel' (default, vertical list) or 'stripe' (horizontal scroll)
+     show_line    – include the highline name (default true). Set false on a highline detail page where it's redundant.
+     show_actions – render edit/delete buttons next to crossings owned by the current user. Set true on the user's own deník. #}
 {% set layout = layout|default('panel') %}
 {% set show_line = show_line ?? true %}
+{% set show_actions = show_actions ?? false %}
 {% if crossings|length > 0 %}
 <ul class="crossings-list crossings-list-{{ layout }}">
     {% for c in crossings %}
@@ -28,6 +30,15 @@
             {% endif %}
             {% if c.comment %}
                 <p class="crossings-comment">{{ c.comment }}</p>
+            {% endif %}
+            {% if show_actions and app.user and c.user.id == app.user.id %}
+                <div class="crossings-actions">
+                    <a class="crossings-action crossings-action-edit" href="{{ path('app_crossing_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
+                    <form method="post" action="{{ path('app_crossing_delete', { id: c.id }) }}" class="crossings-delete-form" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-crossing-' ~ c.id) }}">
+                        <button type="submit" class="crossings-action crossings-action-delete" title="Smazat přechod">Smazat</button>
+                    </form>
+                </div>
             {% endif %}
         </li>
     {% endfor %}
