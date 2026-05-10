@@ -22,6 +22,8 @@ export default class extends Controller {
         p1LngInput: String,
         p2LatInput: String,
         p2LngInput: String,
+        parkingLatInput: String,
+        parkingLngInput: String,
         initLat: Number,
         initLng: Number,
         iconUrl: String,
@@ -29,7 +31,7 @@ export default class extends Controller {
         shadowUrl: String,
     };
 
-    static targets = ['canvas', 'distance'];
+    static targets = ['canvas', 'distance', 'parkingToggle'];
 
     connect() {
         L.Icon.Default.mergeOptions({
@@ -43,9 +45,12 @@ export default class extends Controller {
             p1Lng: document.getElementById(this.p1LngInputValue),
             p2Lat: document.getElementById(this.p2LatInputValue),
             p2Lng: document.getElementById(this.p2LngInputValue),
+            parkingLat: this.hasParkingLatInputValue ? document.getElementById(this.parkingLatInputValue) : null,
+            parkingLng: this.hasParkingLngInputValue ? document.getElementById(this.parkingLngInputValue) : null,
         };
 
         this.points = [readPair(this.inputs.p1Lat, this.inputs.p1Lng), readPair(this.inputs.p2Lat, this.inputs.p2Lng)];
+        this.parking = readPair(this.inputs.parkingLat, this.inputs.parkingLng);
 
         const center = computeCenter(this.points, [this.initLatValue, this.initLngValue]);
         const zoom = (this.points[0] || this.points[1]) ? 15 : 7;
@@ -57,15 +62,25 @@ export default class extends Controller {
         }).addTo(this.map);
 
         this.markers = [null, null];
+        this.parkingMarkerRef = null;
         this.polyline = null;
         this.nextSlot = this.points[0] && !this.points[1] ? 1 : 0;
+        this.parkingMode = false;
 
         if (this.points[0]) this.placeMarker(0, this.points[0], false);
         if (this.points[1]) this.placeMarker(1, this.points[1], false);
+        if (this.parking) this.placeParkingMarker(this.parking, false);
         this.refreshLine();
+        this.refreshParkingToggle();
 
         this.map.on('click', (event) => {
             const { lat, lng } = event.latlng;
+            if (this.parkingMode) {
+                this.placeParkingMarker([lat, lng], true);
+                this.parkingMode = false;
+                this.refreshParkingToggle();
+                return;
+            }
             const slot = this.nextSlot;
             this.placeMarker(slot, [lat, lng], true);
             this.nextSlot = slot === 0 ? 1 : 0;
@@ -73,10 +88,79 @@ export default class extends Controller {
 
         this.inputListeners = [];
         Object.entries(this.inputs).forEach(([key, el]) => {
+            if (!el) return;
             const handler = () => this.syncFromInputs();
             el.addEventListener('input', handler);
             this.inputListeners.push([el, handler]);
         });
+    }
+
+    toggleParkingMode(event) {
+        event.preventDefault();
+        if (this.parking) {
+            this.removeParking();
+            return;
+        }
+        this.parkingMode = !this.parkingMode;
+        this.refreshParkingToggle();
+    }
+
+    refreshParkingToggle() {
+        if (!this.hasParkingToggleTarget) return;
+        const btn = this.parkingToggleTarget;
+        if (this.parking) {
+            btn.textContent = 'Smazat parkování';
+            btn.classList.add('is-active');
+        } else if (this.parkingMode) {
+            btn.textContent = 'Klikni do mapy…';
+            btn.classList.add('is-active');
+        } else {
+            btn.textContent = 'Přidat parkování';
+            btn.classList.remove('is-active');
+        }
+    }
+
+    removeParking() {
+        if (this.parkingMarkerRef) {
+            this.map.removeLayer(this.parkingMarkerRef);
+            this.parkingMarkerRef = null;
+        }
+        this.parking = null;
+        if (this.inputs.parkingLat) this.inputs.parkingLat.value = '';
+        if (this.inputs.parkingLng) this.inputs.parkingLng.value = '';
+        this.parkingMode = false;
+        this.refreshParkingToggle();
+    }
+
+    placeParkingMarker(coord, writeBack) {
+        if (!this.parkingMarkerRef) {
+            const icon = L.divIcon({
+                className: 'hl-parking-marker',
+                html: '<span class="hl-parking-marker-glyph">P</span>',
+                iconSize: [26, 26],
+                iconAnchor: [13, 13],
+            });
+            const marker = L.marker(coord, { icon, draggable: true, title: 'Parkování' }).addTo(this.map);
+            marker.on('dragend', () => {
+                const { lat, lng } = marker.getLatLng();
+                this.parking = [lat, lng];
+                this.writeParkingInputs(lat, lng);
+            });
+            this.parkingMarkerRef = marker;
+        } else {
+            this.parkingMarkerRef.setLatLng(coord);
+        }
+        this.parking = coord;
+        if (writeBack) this.writeParkingInputs(coord[0], coord[1]);
+        this.refreshParkingToggle();
+    }
+
+    writeParkingInputs(lat, lng) {
+        if (!this.inputs.parkingLat || !this.inputs.parkingLng) return;
+        this.inputs.parkingLat.value = round(lat);
+        this.inputs.parkingLng.value = round(lng);
+        this.inputs.parkingLat.dispatchEvent(new Event('change', { bubbles: true }));
+        this.inputs.parkingLng.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     disconnect() {
@@ -127,6 +211,15 @@ export default class extends Controller {
         const p2 = readPair(this.inputs.p2Lat, this.inputs.p2Lng);
         if (p1) this.placeMarker(0, p1, false);
         if (p2) this.placeMarker(1, p2, false);
+        const parking = readPair(this.inputs.parkingLat, this.inputs.parkingLng);
+        if (parking) {
+            this.placeParkingMarker(parking, false);
+        } else if (this.parkingMarkerRef) {
+            this.map.removeLayer(this.parkingMarkerRef);
+            this.parkingMarkerRef = null;
+            this.parking = null;
+            this.refreshParkingToggle();
+        }
         this.refreshLine();
     }
 
@@ -151,6 +244,7 @@ export default class extends Controller {
 }
 
 function readPair(latInput, lngInput) {
+    if (!latInput || !lngInput) return null;
     const lat = parseFloat(latInput.value);
     const lng = parseFloat(lngInput.value);
     return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;

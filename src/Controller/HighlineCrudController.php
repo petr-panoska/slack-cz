@@ -42,6 +42,7 @@ final class HighlineCrudController extends AbstractController
     private const FIELDS = [
         'name', 'type', 'height',
         'point1Latitude', 'point1Longitude', 'point2Latitude', 'point2Longitude',
+        'parkingLatitude', 'parkingLongitude',
         'length', 'latitude', 'longitude',
         'country', 'region', 'area',
         'description', 'pointOneInfo', 'pointTwoInfo',
@@ -313,6 +314,8 @@ final class HighlineCrudController extends AbstractController
             'point1Longitude' => $h->getPoint1Longitude(),
             'point2Latitude' => $h->getPoint2Latitude(),
             'point2Longitude' => $h->getPoint2Longitude(),
+            'parkingLatitude' => $h->getParkingLatitude(),
+            'parkingLongitude' => $h->getParkingLongitude(),
             'country' => $h->getCountry(),
             'region' => $h->getRegion(),
             'area' => $h->getArea(),
@@ -340,6 +343,8 @@ final class HighlineCrudController extends AbstractController
         $h->setPoint1Longitude(isset($s['point1Longitude']) ? (string) $s['point1Longitude'] : null);
         $h->setPoint2Latitude(isset($s['point2Latitude']) ? (string) $s['point2Latitude'] : null);
         $h->setPoint2Longitude(isset($s['point2Longitude']) ? (string) $s['point2Longitude'] : null);
+        $h->setParkingLatitude(isset($s['parkingLatitude']) ? (string) $s['parkingLatitude'] : null);
+        $h->setParkingLongitude(isset($s['parkingLongitude']) ? (string) $s['parkingLongitude'] : null);
         $h->setCountry($s['country'] ?? null);
         $h->setRegion($s['region'] ?? null);
         $h->setArea($s['area'] ?? null);

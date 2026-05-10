@@ -42,6 +42,8 @@
                     data-highline-form-map-p1-lng-input-value="{{ form.point1Longitude.vars.id }}"
                     data-highline-form-map-p2-lat-input-value="{{ form.point2Latitude.vars.id }}"
                     data-highline-form-map-p2-lng-input-value="{{ form.point2Longitude.vars.id }}"
+                    data-highline-form-map-parking-lat-input-value="{{ form.parkingLatitude.vars.id }}"
+                    data-highline-form-map-parking-lng-input-value="{{ form.parkingLongitude.vars.id }}"
                     data-highline-form-map-init-lat-value="{{ form.point1Latitude.vars.value ?: '50.0598' }}"
                     data-highline-form-map-init-lng-value="{{ form.point1Longitude.vars.value ?: '14.4656' }}"
                     data-highline-form-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
@@ -49,6 +51,14 @@
                     data-highline-form-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
                 >
                     <div class="hl-form-map-canvas" data-highline-form-map-target="canvas"></div>
+                    <div class="hl-form-map-overlay">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm hl-form-parking-toggle"
+                            data-highline-form-map-target="parkingToggle"
+                            data-action="click->highline-form-map#toggleParkingMode"
+                        >Přidat parkování</button>
+                    </div>
                     <div class="hl-form-distance">
                         <span class="hl-form-distance-label">Délka</span>
                         <span class="hl-form-distance-value is-empty" data-highline-form-map-target="distance">Nastav oba body</span>
@@ -70,6 +80,13 @@
                             <div class="form-group">{{ form_label(form.point2Longitude) }}{{ form_widget(form.point2Longitude) }}{{ form_errors(form.point2Longitude) }}</div>
                         </div>
                         <div class="form-group">{{ form_label(form.pointTwoInfo) }}{{ form_widget(form.pointTwoInfo) }}{{ form_errors(form.pointTwoInfo) }}</div>
+                    </div>
+                    <div class="hl-form-point hl-form-point-parking">
+                        <h3>Parkování <span class="hl-form-optional">(volitelné)</span></h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">{{ form_label(form.parkingLatitude) }}{{ form_widget(form.parkingLatitude) }}{{ form_errors(form.parkingLatitude) }}</div>
+                            <div class="form-group">{{ form_label(form.parkingLongitude) }}{{ form_widget(form.parkingLongitude) }}{{ form_errors(form.parkingLongitude) }}</div>
+                        </div>
                     </div>
                 </div>
                 <div class="form-grid-3">

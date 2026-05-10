@@ -11,6 +11,8 @@ export default class extends Controller {
         p1Lng: Number,
         p2Lat: Number,
         p2Lng: Number,
+        parkingLat: Number,
+        parkingLng: Number,
         iconUrl: String,
         iconRetinaUrl: String,
         shadowUrl: String,
@@ -37,6 +39,8 @@ export default class extends Controller {
             this.hasP1LatValue && this.hasP1LngValue &&
             this.hasP2LatValue && this.hasP2LngValue;
 
+        const bounds = [];
+
         if (hasPolyline) {
             const p1 = [this.p1LatValue, this.p1LngValue];
             const p2 = [this.p2LatValue, this.p2LngValue];
@@ -50,9 +54,20 @@ export default class extends Controller {
             this.endpointMarker(p1, 'Bod 1');
             this.endpointMarker(p2, 'Bod 2');
 
-            this.map.fitBounds([p1, p2], { padding: [50, 50], maxZoom: 17 });
+            bounds.push(p1, p2);
         } else {
             L.marker(center).bindPopup(escapeHtml(this.nameValue || '')).addTo(this.map);
+            bounds.push(center);
+        }
+
+        if (this.hasParkingLatValue && this.hasParkingLngValue) {
+            const parking = [this.parkingLatValue, this.parkingLngValue];
+            this.parkingMarker(parking);
+            bounds.push(parking);
+        }
+
+        if (bounds.length > 1) {
+            this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
         }
     }
 
@@ -71,6 +86,16 @@ export default class extends Controller {
             radius: 6,
             weight: 3,
         }).bindTooltip(label, { permanent: false, direction: 'top' }).addTo(this.map);
+    }
+
+    parkingMarker(coord) {
+        const icon = L.divIcon({
+            className: 'hl-parking-marker',
+            html: '<span class="hl-parking-marker-glyph">P</span>',
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+        });
+        L.marker(coord, { icon }).bindTooltip('Parkování', { direction: 'top' }).addTo(this.map);
     }
 }
 

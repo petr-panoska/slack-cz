@@ -59,10 +59,13 @@ final class ImportHighlinesCommand extends Command
                    CAST(g1.lng AS CHAR) AS point1_lng,
                    CAST(g2.lat AS CHAR) AS point2_lat,
                    CAST(g2.lng AS CHAR) AS point2_lng,
+                   CAST(gp.lat AS CHAR) AS parking_lat,
+                   CAST(gp.lng AS CHAR) AS parking_lng,
                    h.nameHistory, h.timeApproach, h.timeTensioning
             FROM highline h
             LEFT JOIN gps g1 ON g1.id = h.point1_id
             LEFT JOIN gps g2 ON g2.id = h.point2_id
+            LEFT JOIN gps gp ON gp.id = h.parking_id AND gp.type = "PARKING"
         ');
 
         $io->info(sprintf('Found %d highlines in legacy DB', count($rows)));
@@ -100,6 +103,8 @@ final class ImportHighlinesCommand extends Command
             $h->setPoint1Longitude($this->normalizeNullableCoord($row['point1_lng']));
             $h->setPoint2Latitude($this->normalizeNullableCoord($row['point2_lat']));
             $h->setPoint2Longitude($this->normalizeNullableCoord($row['point2_lng']));
+            $h->setParkingLatitude($this->normalizeNullableCoord($row['parking_lat']));
+            $h->setParkingLongitude($this->normalizeNullableCoord($row['parking_lng']));
             $h->setCountry($row['stat'] ?: null);
             $h->setArea($row['oblast'] ?: null);
             $h->setRegion($row['kraj'] ?: null);

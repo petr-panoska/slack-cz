@@ -60,6 +60,14 @@ class Highline
     #[Assert\Range(min: -180, max: 180)]
     private ?string $point2Longitude = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    #[Assert\Range(min: -90, max: 90)]
+    private ?string $parkingLatitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    #[Assert\Range(min: -180, max: 180)]
+    private ?string $parkingLongitude = null;
+
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $country = null;
 
@@ -252,6 +260,33 @@ class Highline
             && $this->point1Longitude !== null
             && $this->point2Latitude !== null
             && $this->point2Longitude !== null;
+    }
+
+    public function getParkingLatitude(): ?string
+    {
+        return $this->parkingLatitude;
+    }
+
+    public function setParkingLatitude(?string $parkingLatitude): static
+    {
+        $this->parkingLatitude = $parkingLatitude;
+        return $this;
+    }
+
+    public function getParkingLongitude(): ?string
+    {
+        return $this->parkingLongitude;
+    }
+
+    public function setParkingLongitude(?string $parkingLongitude): static
+    {
+        $this->parkingLongitude = $parkingLongitude;
+        return $this;
+    }
+
+    public function hasParking(): bool
+    {
+        return $this->parkingLatitude !== null && $this->parkingLongitude !== null;
     }
 
     public function getCountry(): ?string

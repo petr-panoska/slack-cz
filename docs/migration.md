@@ -52,16 +52,15 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 ### ✅ Highlines — DONE
 
 - Command: `app:import:highlines`
-- Source: `highline` + LEFT JOIN `gps` (přes `point1_id` jako fallback pro chybějící `lat`/`lng`)
+- Source: `highline` + LEFT JOIN `gps` (přes `point1_id` jako fallback pro chybějící `lat`/`lng`, `parking_id` pro parkování)
 - Cílová entita: `App\Entity\Highline` (FK `legacyId` na původní `highline.id`)
-- Importováno: **254 / 254** (před fallbackem to bylo 138, 116 mělo prázdné lat/lng — viz `gps` table fallback)
+- Importováno: **254 / 254** (před fallbackem to bylo 138, 116 mělo prázdné lat/lng — viz `gps` table fallback). 133 / 254 má parkování naimportované z `gps WHERE type='PARKING'`.
 - Skipy: 0
 - Mapování `typ` (int) → `HighlineType` enum přes `HighlineType::fromLegacyId()`
 - **Verifikační flag** — migrace `Version20260510113004` flaguje všech 254 importovaných lajn jako `is_verified = true` (`UPDATE highline SET is_verified = TRUE WHERE legacy_id IS NOT NULL`). Tím se na ně automaticky aplikuje proposal flow pro budoucí edity. Detail v `docs/highline-edits.md`.
 
 #### Co se ZTRATILO při importu
 
-- **Parking GPS** — legacy `gps` tabulka má `type='PARKING'` (147 záznamů) odkazované přes `highline.parking_id`. Aktuální import čte jen `LINE_POINT` body, parking ignoruje. Open follow-up v `todo.md` → „Migrace dat (deferred)".
 - **Foto galerie** (`highline_foto`, `highline_media`) — celé skipnuté. Cover photo se zatím tahá z legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`. Plán: PR2 = own foto galerie + likes/komentáře, viz `todo.md`.
 
 ### ✅ Users — DONE

@@ -61,6 +61,20 @@ class HighlineForm extends AbstractType
                 'attr' => ['step' => 'any', 'min' => -180, 'max' => 180, 'inputmode' => 'decimal'],
                 'constraints' => [new NotBlank(message: 'Nastav oba kotvící body lajny.')],
             ])
+            ->add('parkingLatitude', NumberType::class, [
+                'label' => 'Parkování — šířka',
+                'required' => false,
+                'scale' => 7,
+                'html5' => true,
+                'attr' => ['step' => 'any', 'min' => -90, 'max' => 90, 'inputmode' => 'decimal'],
+            ])
+            ->add('parkingLongitude', NumberType::class, [
+                'label' => 'Parkování — délka',
+                'required' => false,
+                'scale' => 7,
+                'html5' => true,
+                'attr' => ['step' => 'any', 'min' => -180, 'max' => 180, 'inputmode' => 'decimal'],
+            ])
             ->add('country', TextType::class, [
                 'label' => 'Země',
                 'required' => false,

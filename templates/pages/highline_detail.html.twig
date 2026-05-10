@@ -106,6 +106,16 @@
                             </a>
                         </td>
                     </tr>
+                    {% if highline.hasParking %}
+                        <tr>
+                            <th>Parkování</th>
+                            <td>
+                                <a href="https://mapy.cz/turisticka?source=coor&id={{ highline.parkingLongitude }}%2C{{ highline.parkingLatitude }}" target="_blank" rel="noopener">
+                                    {{ highline.parkingLatitude }}, {{ highline.parkingLongitude }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
                 </table>
             </section>
 
@@ -127,6 +137,10 @@
                     data-highline-detail-map-p1-lng-value="{{ highline.point1Longitude }}"
                     data-highline-detail-map-p2-lat-value="{{ highline.point2Latitude }}"
                     data-highline-detail-map-p2-lng-value="{{ highline.point2Longitude }}"
+                    {% endif %}
+                    {% if highline.hasParking %}
+                    data-highline-detail-map-parking-lat-value="{{ highline.parkingLatitude }}"
+                    data-highline-detail-map-parking-lng-value="{{ highline.parkingLongitude }}"
                     {% endif %}
                     data-highline-detail-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
                     data-highline-detail-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"

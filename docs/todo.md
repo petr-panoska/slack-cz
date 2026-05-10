@@ -9,7 +9,6 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 ## Migrace dat (deferred)
 
 - [ ] First ascents (`prvni_prechody_hl`, 124 řádků) — rozhodnout sloučení s běžnými přechody vs vlastní entita; doptat se Koloucha o smyslu / UI prezentaci. 49 orphans (NULL `uzivatel_id` s textovým nickem) potřebují fallback strategii.
-- [ ] **Parking GPS** — legacy `gps` tabulka má `type='PARKING'` (147 záznamů) a `highline.parking_id` ref. Aktuální `app:import:highlines` čte jen `LINE_POINT` body, parking se ztratil. Navrhované řešení: přidat `Highline.parkingLatitude/Longitude` (nullable decimal), v importu LEFT JOIN `gps ON id = highline.parking_id AND type = 'PARKING'`, na detailu zobrazit „Parkování" link na mapy.cz. Pokud se ten údaj zdá málo užitečný, zvážit zda investovat čas (Kolouchovi to ale chybělo na OG webu, takže ano).
 - [ ] Doptat se Koloucha co znamená `record` role (1 uživatel) — máme něco zachovat?
 - [ ] Doptat se proč 6 uživatelů má `enabled=0` — má být login disabled, nebo skryti úplně?
 
@@ -85,6 +84,7 @@ Detailně v `deploy.md`. Krátce:
 
 ## Dokončené (krátký archiv)
 
+- [x] **Parking GPS import** (session 2026-05-10) — `Highline.parkingLatitude/Longitude` (nullable decimal), `ImportHighlinesCommand` LEFT JOIN `gps WHERE type='PARKING'` přes `highline.parking_id` (133 / 254 lajn má parking po backfillu). Detail: tabulka „Parkování" s mapy.cz linkem + modrý P marker na mapě. Form: optional sekce + „Přidat parkování" toggle button na mapě (next click = parking, drag = move, klik na aktivní = smazat). Migrace `Version20260510175252`.
 - [x] **Highline CRUD + verifikační/proposal flow** (session 2026-05-10) — `HighlineCrudController` (new/edit/delete/verify + admin proposal queue), `Highline.isVerified` + `Highline.createdBy`, `HighlineEdit` entita coby unified audit log + pending queue (statuses `applied`/`pending`/`rejected`), 254 legacy lajn flagnuté `verified=true` při migraci. `ROLE_ADMIN` + `app:admin:grant` console command. Stimulus `highline_form_map_controller` jako 2-endpoint GPS picker s haversine length + midpoint computation. Detaily v `docs/highline-edits.md`.
 - [x] **Crossing form (CRUD pro přechody)** — `CrossingController` + `HighlineCrossingForm`. Tlačítko „Přidat přechod" na detailu lajny (logged-in), edit/delete vlastních přechodů z deníku (`show_actions` flag v `_recent_crossings.html.twig` partial).
 - [x] **Deník uživatele `/denik/{id}`** — `UserController::denik` + `pages/user_denik.html.twig`. Hlavička (nick, město, ročník, datum prvního přechodu přes `findFirstCrossingDate`), mini-mapa s body všech navštívených highlines (zoom na bbox, popup s odkazem na detail), tabulka přechodů. Linkováno z „Posledních přechodů" stripe a z popupu uživatele na `/mapa`.
