@@ -23,9 +23,26 @@
         {{ form_errors(form) }}
 
         {{ form_start(form, { attr: { class: 'hl-form', novalidate: 'novalidate' } }) }}
+            {% if mode == 'edit' and not highline.isVerified %}
+                <div
+                    class="hl-form-url-panel"
+                    data-controller="live-slug"
+                    data-live-slug-name-input-value="{{ form.name.vars.id }}"
+                >
+                    <span class="hl-form-url-label">URL lajny</span>
+                    <code class="hl-form-url" data-live-slug-target="urlPath">/highline/{{ highline.slug }}</code>
+                    <span class="hl-form-url-hint">Lajna ještě není verifikovaná — při změně názvu se aktualizuje i URL.</span>
+                </div>
+            {% endif %}
             <div class="hl-form-section">
                 <h2>Základ</h2>
-                <div class="form-group">{{ form_label(form.name) }}{{ form_widget(form.name) }}{{ form_errors(form.name) }}</div>
+                <div class="form-group">
+                    <label for="{{ form.name.vars.id }}">
+                        Název{% if highline.isVerified %} <span class="hl-form-lock" tabindex="0" aria-label="Název je pevný" title="URL: /highline/{{ highline.slug }}&#10;Název je pevný, aby existující odkazy nepřestaly fungovat.">🔒</span>{% endif %}
+                    </label>
+                    {{ form_widget(form.name) }}
+                    {{ form_errors(form.name) }}
+                </div>
                 <div class="form-grid-2">
                     <div class="form-group">{{ form_label(form.type) }}{{ form_widget(form.type) }}{{ form_errors(form.type) }}</div>
                     <div class="form-group">{{ form_label(form.height) }}{{ form_widget(form.height) }}{{ form_errors(form.height) }}</div>

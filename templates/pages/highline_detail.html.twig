@@ -41,6 +41,9 @@
                     <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_edit', { slug: highline.slug }) }}">
                         {{ highline.isVerified and not isAdmin ? 'Navrhnout úpravu' : 'Upravit' }}
                     </a>
+                    {% if historyCount > 0 %}
+                        <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_history', { slug: highline.slug }) }}">Historie ({{ historyCount }})</a>
+                    {% endif %}
                     {% if isAdmin and not highline.isVerified %}
                         <form method="post" action="{{ path('app_highline_verify', { slug: highline.slug }) }}" class="hl-action-form" data-turbo="false">
                             <input type="hidden" name="_token" value="{{ csrf_token('verify-highline-' ~ highline.id) }}">

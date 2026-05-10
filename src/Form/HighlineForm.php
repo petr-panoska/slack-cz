@@ -19,10 +19,25 @@ class HighlineForm extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Once a highline is verified the name becomes immutable — keeping it stable
+        // protects the slug (and therefore every existing inbound link) from drifting.
+        $data = $builder->getData();
+        $nameLocked = $data instanceof Highline && $data->isVerified();
+        $nameAttrs = ['maxlength' => 150];
+        if ($nameLocked) {
+            $nameAttrs['title'] = sprintf(
+                'URL: /highline/%s — název je pevný, aby existující odkazy nepřestaly fungovat.',
+                $data->getSlug() ?? '',
+            );
+        } else {
+            $nameAttrs['autofocus'] = true;
+        }
+
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Název',
-                'attr' => ['maxlength' => 150, 'autofocus' => true],
+                'attr' => $nameAttrs,
+                'disabled' => $nameLocked,
             ])
             ->add('type', EnumType::class, [
                 'label' => 'Typ',

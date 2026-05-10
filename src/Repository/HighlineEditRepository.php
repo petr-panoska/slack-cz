@@ -55,4 +55,51 @@ class HighlineEditRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Most recent APPLIED edit for a highline, or null if none exists.
+     * Used after history deletion to restore the highline to whatever snapshot
+     * is now considered canonical.
+     */
+    public function findLatestAppliedFor(Highline $highline): ?HighlineEdit
+    {
+        $row = $this->createQueryBuilder('e')
+            ->andWhere('e.highline = :h')->setParameter('h', $highline)
+            ->andWhere('e.status = :applied')->setParameter('applied', HighlineEditStatus::APPLIED)
+            ->orderBy('e.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $row;
+    }
+
+    public function countHistoryFor(Highline $highline): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->andWhere('e.highline = :h')->setParameter('h', $highline)
+            ->andWhere('e.status != :pending')->setParameter('pending', HighlineEditStatus::PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Audit history (excludes PENDING — those live in the admin queue).
+     * Eager-loads proposer + reviewer to keep the template simple.
+     *
+     * @return list<HighlineEdit>
+     */
+    public function findHistoryFor(Highline $highline): array
+    {
+        return $this->createQueryBuilder('e')
+            ->addSelect('p', 'r')
+            ->leftJoin('e.proposedBy', 'p')
+            ->leftJoin('e.reviewedBy', 'r')
+            ->andWhere('e.highline = :h')->setParameter('h', $highline)
+            ->andWhere('e.status != :pending')->setParameter('pending', HighlineEditStatus::PENDING)
+            ->orderBy('e.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

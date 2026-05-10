@@ -38,6 +38,18 @@ class HighlineEdit
     #[ORM\Column(type: 'json')]
     private array $snapshot = [];
 
+    /**
+     * Snapshot of the highline state right before this edit was applied — set at write time
+     * and never recomputed. Lets the history view diff each row independently of its neighbours,
+     * so deleting a middle row doesn't bleed its changes into the next one.
+     *
+     * NULL = creation row (no prior state).
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $beforeSnapshot = null;
+
     #[ORM\Column(length: 16, enumType: HighlineEditStatus::class)]
     private HighlineEditStatus $status = HighlineEditStatus::PENDING;
 
@@ -93,6 +105,19 @@ class HighlineEdit
     public function setSnapshot(array $snapshot): static
     {
         $this->snapshot = $snapshot;
+        return $this;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getBeforeSnapshot(): ?array
+    {
+        return $this->beforeSnapshot;
+    }
+
+    /** @param array<string, mixed>|null $beforeSnapshot */
+    public function setBeforeSnapshot(?array $beforeSnapshot): static
+    {
+        $this->beforeSnapshot = $beforeSnapshot;
         return $this;
     }
 

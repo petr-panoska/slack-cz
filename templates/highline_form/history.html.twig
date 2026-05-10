@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historie — {{ highline.name }} – slack.cz{% endblock %}
+
+{% block body %}
+<div class="proposals-page">
+    <header class="proposals-header">
+        <a class="hl-back" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">← {{ highline.name }}</a>
+        <h1>Historie úprav</h1>
+        {% set n = entries|length %}
+        <p class="proposals-meta">{{ n }} {{ n == 1 ? 'záznam' : (n >= 2 and n <= 4 ? 'záznamy' : 'záznamů') }}</p>
+    </header>
+
+    {% if entries|length == 0 %}
+        <p class="hl-empty">Žádné historické úpravy.</p>
+    {% else %}
+        <ul class="proposals-list">
+            {% for entry in entries %}
+                {% set edit = entry.edit %}
+                {% set status = edit.status.value %}
+                <li class="proposals-item panel">
+                    <header class="panel-header">
+                        <div class="panel-title">
+                            <span class="panel-dot panel-dot-crossings"></span>
+                            <h2>
+                                #{{ edit.id }}
+                                {% if status == 'applied' %}
+                                    <span class="hl-history-badge hl-history-applied">{{ entry.isCreation ? 'Vytvořeno' : 'Aplikováno' }}</span>
+                                {% elseif status == 'rejected' %}
+                                    <span class="hl-history-badge hl-history-rejected">Zamítnuto</span>
+                                {% endif %}
+                            </h2>
+                        </div>
+                        <div class="proposals-meta">
+                            {% if edit.proposedBy %}
+                                <a href="{{ path('app_user_denik', { id: edit.proposedBy.id }) }}">{{ edit.proposedBy.displayName }}</a>
+                            {% else %}
+                                <em>(systém / smazaný účet)</em>
+                            {% endif %}
+                            · <time datetime="{{ edit.createdAt|date('c') }}">{{ edit.createdAt|date('j. n. Y H:i') }}</time>
+                            {% if edit.reviewedBy and edit.reviewedBy.id != (edit.proposedBy.id ?? null) %}
+                                · schválil/zamítl <a href="{{ path('app_user_denik', { id: edit.reviewedBy.id }) }}">{{ edit.reviewedBy.displayName }}</a>
+                            {% endif %}
+                        </div>
+                    </header>
+
+                    {% if entry.isCreation %}
+                        <table class="proposals-diff">
+                            <thead>
+                                <tr><th>Pole</th><th>Hodnota</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for field, value in edit.snapshot %}
+                                    {% if value is not null and value != '' %}
+                                        <tr>
+                                            <td class="proposals-field">{{ field }}</td>
+                                            <td class="proposals-after">{{ value }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% elseif entry.diff is empty and status == 'rejected' %}
+                        <p class="hl-empty">Návrh zamítnut — pole z návrhu se neaplikovala.</p>
+                    {% else %}
+                        <table class="proposals-diff">
+                            <thead>
+                                <tr><th>Pole</th><th>Před</th><th>Po</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for field, change in entry.diff %}
+                                    <tr>
+                                        <td class="proposals-field">{{ field }}</td>
+                                        <td class="proposals-before">{{ change.before is null ? '—' : change.before }}</td>
+                                        <td class="proposals-after">{{ change.after is null ? '—' : change.after }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+
+                    {# Stack-pop: smazat lze jen úplně poslední revizi. Entries jsou newest-first,
+                       takže poslední (chronologicky) = loop.first. Prvotní záznam (loop.last) je
+                       jediný, který nelze smazat — když je v historii jen on sám, |length == 1. #}
+                    {% if is_granted('ROLE_ADMIN') and loop.first and entries|length > 1 %}
+                        <footer class="proposals-actions">
+                            <form method="post" action="{{ path('app_highline_history_delete', { slug: highline.slug, editId: edit.id }) }}" data-turbo="false" onsubmit="return confirm('Smazat poslední revizi? Lajna se vrátí do předchozího stavu.');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('history-delete-' ~ edit.id) }}">
+                                <button type="submit" class="btn btn-ghost btn-sm hl-action-delete">Smazat poslední revizi</button>
+                            </form>
+                        </footer>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+{% endblock %}

@@ -2043,6 +2043,28 @@ a.crossings-line:hover {
     -webkit-backdrop-filter: blur(4px);
 }
 
+/* Action buttons sit over a dark cover photo — default ghost variant has dark text on transparent
+ * bg → invisible. Reskin them with a translucent scrim + light text only inside the cover. */
+.hl-cover-content .btn-ghost {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.hl-cover-content .btn-ghost:hover {
+    background: rgba(0, 0, 0, 0.55);
+    border-color: #fff;
+    color: #fff;
+}
+
+.hl-cover-content .hl-action-delete:hover {
+    background: rgba(192, 20, 60, 0.6);
+    border-color: #fff;
+    color: #fff;
+}
+
 .hl-back {
     display: inline-block;
     font-size: 0.85rem;
@@ -3296,6 +3318,56 @@ a.crossings-line:hover {
     margin: -6px 0 12px;
 }
 
+.hl-form-lock {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.85em;
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.hl-form-lock:hover,
+.hl-form-lock:focus {
+    opacity: 1;
+    outline: none;
+}
+
+.hl-form-url-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    background: rgba(233, 30, 99, 0.06);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.hl-form-url-label {
+    color: var(--color-muted);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hl-form-url {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--color-fg);
+    font-weight: 600;
+    background: transparent;
+    padding: 0;
+}
+
+.hl-form-url-hint {
+    flex-basis: 100%;
+    color: var(--color-muted);
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
 .hl-form-distance {
     position: absolute;
     bottom: 12px;
@@ -3509,6 +3581,44 @@ a.crossings-line:hover {
 
 .proposals-actions form {
     margin: 0;
+}
+
+.hl-history-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hl-history-applied {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2e7d32;
+}
+
+.hl-history-rejected {
+    background: rgba(192, 20, 60, 0.1);
+    color: #c0143c;
+}
+
+.hl-history-firstnote {
+    font-style: normal;
+    color: var(--color-muted);
+}
+
+/* History stack-pop button — destruktivní, ať to vypadá jako destruktivní. */
+.proposals-actions .hl-action-delete {
+    color: #c0143c;
+    border-color: rgba(192, 20, 60, 0.5);
+}
+
+.proposals-actions .hl-action-delete:hover {
+    background: #c0143c;
+    border-color: #c0143c;
+    color: #fff;
 }
 
 /* ---------- Site nav admin tint ---------- */

@@ -75,7 +75,8 @@ final class HighlineCrudController extends AbstractController
             $em->persist($highline);
             $em->flush();
 
-            $audit = $this->buildEdit($highline, $user, HighlineEditStatus::APPLIED);
+            // Creation row — no prior state to diff against; beforeSnapshot stays null.
+            $audit = $this->buildEdit($highline, $user, HighlineEditStatus::APPLIED, null);
             $em->persist($audit);
             $em->flush();
 
@@ -99,6 +100,8 @@ final class HighlineCrudController extends AbstractController
         #[MapEntity(mapping: ['slug' => 'slug'])]
         Highline $highline,
         EntityManagerInterface $em,
+        SluggerInterface $slugger,
+        HighlineRepository $highlines,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -111,6 +114,11 @@ final class HighlineCrudController extends AbstractController
             // Unverified lajna patří jen ownerovi (a adminovi). Cizí user nesmí editovat.
             throw $this->createAccessDeniedException('Tuhle neverifikovanou lajnu může upravit jen její autor.');
         }
+
+        // Capture the pre-edit snapshot BEFORE form binding so we can persist the row's own
+        // beforeSnapshot. This makes the audit row self-describing — its diff doesn't depend
+        // on the existence of neighbouring rows.
+        $beforeSnapshot = $this->snapshot($highline);
 
         $form = $this->createForm(HighlineForm::class, $highline);
         $form->handleRequest($request);
@@ -126,18 +134,41 @@ final class HighlineCrudController extends AbstractController
                 $snapshot = $this->snapshot($highline);
                 $em->refresh($highline);
 
+                // No-op submit (uživatel jen klikl Uložit bez změn) — neneřaduju prázdný návrh
+                // do queue. Bez tohohle by admin viděl proposal s prázdným diffem.
+                if ($this->diff($beforeSnapshot, $snapshot) === []) {
+                    $this->addFlash('info', 'Žádné změny — návrh se neukládal.');
+                    return $this->redirectToRoute('app_highline_detail', ['slug' => $highline->getSlug()]);
+                }
+
                 $proposal = new HighlineEdit();
                 $proposal->setHighline($highline);
                 $proposal->setProposedBy($user);
                 $proposal->setSnapshot($snapshot);
+                $proposal->setBeforeSnapshot($beforeSnapshot);
                 $proposal->setStatus(HighlineEditStatus::PENDING);
                 $em->persist($proposal);
                 $em->flush();
 
                 $this->addFlash('success', 'Návrh úpravy odeslán k schválení adminovi.');
             } else {
+                $afterSnapshot = $this->snapshot($highline);
+                if ($this->diff($beforeSnapshot, $afterSnapshot) === []) {
+                    // No-op direct edit — entitě sice projde flush (žádné změny), ale netřeba
+                    // zapisovat audit row, který nic neříká.
+                    $this->addFlash('info', 'Žádné změny — záznam historie se neukládal.');
+                    return $this->redirectToRoute('app_highline_detail', ['slug' => $highline->getSlug()]);
+                }
+
+                // Unverified lajny mají URL stále vázaný na aktuální název — když user přejmenuje,
+                // regeneruje se i slug. Verified lajny si slug drží napevno (name field je v takovém
+                // případě disabled, sem to nikdy nedoteče).
+                if (!$highline->isVerified() && ($beforeSnapshot['name'] ?? null) !== $highline->getName()) {
+                    $highline->setSlug($this->makeUniqueSlug((string) $highline->getName(), $slugger, $highlines, $highline->getId()));
+                }
+
                 $em->flush();
-                $audit = $this->buildEdit($highline, $user, HighlineEditStatus::APPLIED);
+                $audit = $this->buildEdit($highline, $user, HighlineEditStatus::APPLIED, $beforeSnapshot);
                 $em->persist($audit);
                 $em->flush();
                 $this->addFlash('success', 'Lajna upravena.');
@@ -194,17 +225,121 @@ final class HighlineCrudController extends AbstractController
         #[MapEntity(mapping: ['slug' => 'slug'])]
         Highline $highline,
         EntityManagerInterface $em,
+        HighlineEditRepository $edits,
     ): Response {
         $token = (string) $request->request->get('_token', '');
         if (!$this->isCsrfTokenValid('verify-highline-' . $highline->getId(), $token)) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        /** @var User $admin */
+        $admin = $this->getUser();
+
         $highline->setIsVerified(true);
         $em->flush();
-        $this->addFlash('success', sprintf('Lajna „%s" verifikována.', $highline->getName()));
+
+        // Verifikace = "fresh slate" pro audit log. Smažeme všechny existující revize (rename-y
+        // z unverified éry, které by po stack-popu měnily title → slug, což u verified lajny
+        // nechceme) a zapíšeme jeden APPLIED row se snapshotem současného stavu jako novou
+        // creation. Original autor zůstává jako proposedBy, admin je reviewer.
+        foreach ($edits->findForHighline($highline) as $row) {
+            $em->remove($row);
+        }
+        $em->flush();
+
+        $seed = new HighlineEdit();
+        $seed->setHighline($highline);
+        $seed->setProposedBy($highline->getCreatedBy());
+        $seed->setSnapshot($this->snapshot($highline));
+        $seed->setBeforeSnapshot(null);
+        $seed->setStatus(HighlineEditStatus::APPLIED);
+        $seed->setReviewedBy($admin);
+        $seed->setReviewedAt(new \DateTimeImmutable());
+        $em->persist($seed);
+        $em->flush();
+
+        $this->addFlash('success', sprintf('Lajna „%s" verifikována. Historie sloučena do jedné creation revize.', $highline->getName()));
 
         return $this->redirectToRoute('app_highline_detail', ['slug' => $highline->getSlug()]);
+    }
+
+    #[Route('/highline/{slug}/historie', name: 'app_highline_history', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET'])]
+    public function history(
+        #[MapEntity(mapping: ['slug' => 'slug'])]
+        Highline $highline,
+        HighlineEditRepository $edits,
+    ): Response {
+        $rows = $edits->findHistoryFor($highline);
+
+        // Each row is self-describing: diff comes from its own beforeSnapshot, not the
+        // neighbouring row's. Deleting a middle row therefore can't bleed its changes
+        // into the next one.
+        $entries = [];
+        foreach ($rows as $edit) {
+            $before = $edit->getBeforeSnapshot();
+            $diff = $before !== null ? $this->diff($before, $edit->getSnapshot()) : [];
+            $isCreation = $before === null && $edit->getStatus() === HighlineEditStatus::APPLIED;
+            $entries[] = ['edit' => $edit, 'diff' => $diff, 'isCreation' => $isCreation];
+        }
+
+        // Newest first for display.
+        $entries = array_reverse($entries);
+
+        return $this->render('highline_form/history.html.twig', [
+            'highline' => $highline,
+            'entries' => $entries,
+        ]);
+    }
+
+    #[Route('/highline/{slug}/historie/{editId}/smazat', name: 'app_highline_history_delete', requirements: ['slug' => '[a-z0-9-]+', 'editId' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function historyDelete(
+        Request $request,
+        #[MapEntity(mapping: ['slug' => 'slug'])]
+        Highline $highline,
+        #[MapEntity(mapping: ['editId' => 'id'])]
+        HighlineEdit $edit,
+        EntityManagerInterface $em,
+        HighlineEditRepository $edits,
+    ): Response {
+        if ($edit->getHighline()->getId() !== $highline->getId()) {
+            throw $this->createAccessDeniedException('Záznam nepatří k této lajně.');
+        }
+
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('history-delete-' . $edit->getId(), $token)) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        // Mažeme jen úplně poslední revizi (stack-pop). Smazání prostředního řádku by zanechalo
+        // nekonzistenci mezi audit logem a stavem lajny, takže to vůbec nepovolujeme.
+        $history = $edits->findHistoryFor($highline); // chrono ASC
+        if ($history === []) {
+            throw $this->createAccessDeniedException('Historie je prázdná.');
+        }
+        $latestRow = $history[count($history) - 1];
+        if ($latestRow->getId() !== $edit->getId()) {
+            throw $this->createAccessDeniedException('Smazat lze jen poslední revizi.');
+        }
+        if ($history[0]->getId() === $edit->getId()) {
+            // Stejný záznam je první i poslední → jediný v historii (creation). Nemazat.
+            throw $this->createAccessDeniedException('První záznam historie smazat nelze.');
+        }
+
+        $em->remove($edit);
+        $em->flush();
+
+        // Po popnutí latest se lajna vrátí do snapshot-u toho, co bylo před smazaným editem.
+        // Refresh z DB zruší případné Doctrine in-memory vazby na smazaný edit.
+        $em->refresh($highline);
+        $newLatest = $edits->findLatestAppliedFor($highline);
+        if ($newLatest !== null) {
+            $this->applySnapshot($highline, $newLatest->getSnapshot());
+            $em->flush();
+        }
+
+        $this->addFlash('success', sprintf('Revize #%d smazána, lajna vrácena do předchozího stavu.', $edit->getId()));
+        return $this->redirectToRoute('app_highline_history', ['slug' => $highline->getSlug()]);
     }
 
     #[Route('/admin/navrhy', name: 'app_admin_proposals', methods: ['GET'])]
@@ -284,12 +419,16 @@ final class HighlineCrudController extends AbstractController
         }
     }
 
-    private function buildEdit(Highline $highline, ?User $author, HighlineEditStatus $status): HighlineEdit
+    /**
+     * @param array<string, mixed>|null $beforeSnapshot — pre-edit state; NULL means creation row.
+     */
+    private function buildEdit(Highline $highline, ?User $author, HighlineEditStatus $status, ?array $beforeSnapshot): HighlineEdit
     {
         $edit = new HighlineEdit();
         $edit->setHighline($highline);
         $edit->setProposedBy($author);
         $edit->setSnapshot($this->snapshot($highline));
+        $edit->setBeforeSnapshot($beforeSnapshot);
         $edit->setStatus($status);
         if ($status === HighlineEditStatus::APPLIED) {
             $edit->setReviewedBy($author);
@@ -379,8 +518,11 @@ final class HighlineCrudController extends AbstractController
         }
 
         $h->setLength((int) round($this->haversineMeters($p1Lat, $p1Lng, $p2Lat, $p2Lng)));
-        $h->setLatitude((string) (($p1Lat + $p2Lat) / 2));
-        $h->setLongitude((string) (($p1Lng + $p2Lng) / 2));
+        // Clamp to the column's NUMERIC(10,7) precision — bez tohohle PHP cast (float → string)
+        // vyplivne 8+ desetinných míst, DB to truncuje na 7 při zápisu, a další load vrátí
+        // jinou hodnotu, takže snapshot diff hlásí změnu i když user nic nesáhl.
+        $h->setLatitude(number_format(($p1Lat + $p2Lat) / 2, 7, '.', ''));
+        $h->setLongitude(number_format(($p1Lng + $p2Lng) / 2, 7, '.', ''));
     }
 
     private function floatOrNull(?string $v): ?float
@@ -421,7 +563,11 @@ final class HighlineCrudController extends AbstractController
         return $diff;
     }
 
-    private function makeUniqueSlug(string $name, SluggerInterface $slugger, HighlineRepository $repo): string
+    /**
+     * @param int|null $excludeId — když přepočítáváme slug pro existující lajnu (rename na unverified),
+     *                              nesmíme se srážet sami se sebou v DB.
+     */
+    private function makeUniqueSlug(string $name, SluggerInterface $slugger, HighlineRepository $repo, ?int $excludeId = null): string
     {
         $base = strtolower($slugger->slug($name)->toString());
         if ($base === '') {
@@ -429,7 +575,11 @@ final class HighlineCrudController extends AbstractController
         }
         $slug = $base;
         $i = 2;
-        while ($repo->findOneBy(['slug' => $slug]) !== null) {
+        while (true) {
+            $existing = $repo->findOneBy(['slug' => $slug]);
+            if ($existing === null || $existing->getId() === $excludeId) {
+                break;
+            }
             $slug = $base . '-' . $i++;
         }
         return $slug;

@@ -47,16 +47,20 @@ Index `idx_highline_edit_status` — admin queue často filtruje `WHERE status='
 | `GET\|POST /highline/nova` | `app_highline_new` | `ROLE_USER` | nová lajna; submit ⇒ `unverified` + `createdBy=user` + audit `APPLIED` |
 | `GET\|POST /highline/{slug}/upravit` | `app_highline_edit` | `ROLE_USER` | direct edit (owner of unverified / admin) NEBO proposal (verified + non-admin) |
 | `POST /highline/{slug}/smazat` | `app_highline_delete` | `ROLE_USER` | owner-of-unverified nebo admin |
-| `POST /highline/{slug}/verify` | `app_highline_verify` | `ROLE_ADMIN` | flag `isVerified = true` |
+| `POST /highline/{slug}/verify` | `app_highline_verify` | `ROLE_ADMIN` | flag `isVerified = true` + sloučí dosavadní edity do jediné creation revize |
 | `GET /admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` | queue pending proposals + diff tabulky |
 | `POST /admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` | apply snapshot + flag `APPLIED` |
 | `POST /admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` | flag `REJECTED` |
+| `GET /highline/{slug}/historie` | `app_highline_history` | public | audit log (APPLIED + REJECTED) chronologicky |
+| `POST /highline/{slug}/historie/{editId}/smazat` | `app_highline_history_delete` | `ROLE_ADMIN` | smaže jeden záznam historie (kromě prvního, chronologicky); stav lajny se nemění |
 
 `/highline/nova` má `priority: 10` aby se nepřevrstvila s `/highline/{slug}` (slug regex `[a-z0-9-]+` matchne i „nova").
 
 ## Form (`src/Form/HighlineForm.php`)
 
 18 polí. Required: name, type, height, point1Lat/Lng, point2Lat/Lng. Slug se generuje automaticky z `name` přes `AsciiSlugger` (collision = numerický suffix).
+
+**Verified lajny mají `name` zamčený** — `disabled: true` (server-side ignoruje POSTed value) + 🔒 ikonka u labelu s tooltipem ukazujícím URL a důvod. Slug se nikdy nepřegenerovává po vytvoření, takže zámek na názvu chrání URL stabilitu (existující odkazy / bookmarky / tisk nepřestanou fungovat). Nezamčené názvy jsou jen u unverified lajn (autor je ladí před verifikací).
 
 **Length / latitude / longitude NEJSOU v formu** — odvozují se v `HighlineCrudController::deriveGeometry()` z point1/point2 přes haversine (length v metrech, zaokrouhleno) + midpoint (lat/lng pro mapový marker).
 
@@ -99,7 +103,23 @@ Každá `APPLIED` row v `highline_edit` je trvalý záznam změny. Sjednoceno ta
 
 To dává uniform `findForHighline(Highline)` query která vrátí kompletní timeline změn bez ohledu na trasu jakou prošly.
 
-**Future work:** view nad audit logem (`/highline/{slug}/historie`) + revert button — viz `todo.md`.
+### History view (`/highline/{slug}/historie`)
+
+Veřejný read-only audit log + admin stack-pop kurátoring.
+
+Každý `HighlineEdit` row si u sebe nese **vlastní `beforeSnapshot`** (stav lajny PŘED tím, co tahle úprava udělala) i `snapshot` (po). Diff se počítá render-time přímo z těchto dvou polí, **ne** ze sousedního řádku, takže každá řádka přesně reflektuje *co tahle úprava změnila* nezávisle na tom, co s historií dělá admin.
+
+- První APPLIED v pořadí má `beforeSnapshot = NULL` → render „Vytvořeno", bez diffu
+- Ostatní APPLIED rows mají vlastní before+after diff
+- PENDING / REJECTED rows mají `beforeSnapshot` zachycený v okamžiku vytvoření návrhu
+
+**Mazání = stack pop**: admin smaže jen úplně poslední (chronologicky) revizi, ne libovolnou ze středu. Po pop-u se zavolá `applySnapshot(newLatestApplied)` na entitu — lajna se vrátí do stavu, který byl před smazaným editem. Audit log = zdroj pravdy pro stav lajny.
+
+**Sloučení historie při verifikaci**: když admin lajnu verifikuje, audit se vyčistí — všechny dosavadní revize (typicky rename-y z unverified éry) se zahodí a místo nich se zapíše jediná APPLIED creation s aktuálním stavem. Důvod: po verifikaci je name + slug zamknutý, takže by stack-pop přes původní rename revize jinak vrátil lajnu do stavu se starým názvem, ale slugem už nesynchronizovaným. Sloučením začíná verified éra s čistým historickým seedem.
+
+Proč stack-pop a ne free-deletion: smazání prostředního řádku by zanechalo nekonzistenci — sousední rows nemůžou „pohltit" změny smazaného (díky vlastnímu `beforeSnapshot`), ale stav lajny by se nemohl jednoznačně přepočítat. Stack-pop tu nejednoznačnost odstraňuje úplně.
+
+Tlačítko „Smazat poslední revizi" se zobrazí jen u nejnovější rows v listu, a jen když existuje víc než 1 záznam (creation samotný se smazat nedá).
 
 ## ROLE_ADMIN
 

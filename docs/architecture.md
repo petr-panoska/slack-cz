@@ -32,7 +32,7 @@ src/
   Old/              # LEGACY mapping (MySQL, EM old) — namespace App\Old\*
     Entity/         # legacy entity: Uzivatel
     Repository/     # repos pro legacy
-  Command/          # Console commands: app:import:*, app:admin:grant
+  Command/          # Console commands: app:import:*, app:admin:grant, app:edit:sync-from-history
 ```
 
 ### Důležité — proč je `App\Old\Entity\` mimo `src/Entity/`
