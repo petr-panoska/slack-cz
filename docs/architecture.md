@@ -21,17 +21,18 @@ Aktuální dynamické porty: `docker compose port database 5432`, `docker compos
 
 ```
 src/
-  Controller/       # PagesController, HighlineController, UserController, Registration/Reset/Security
-  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, ResetPasswordRequest
-  Enum/             # HighlineType, HighlineCrossingStyle
+  Controller/       # PagesController, HighlineController, HighlineCrudController, CrossingController,
+                    # UserController, MarkdownSectionController, Registration/Reset/Security
+  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, HighlineEdit, ResetPasswordRequest
+  Enum/             # HighlineType, HighlineCrossingStyle, HighlineEditStatus, Gender
   Feed/             # YouTube feed + cache + dispatcher (mock fallback)
-  Form/             # Symfony forms
-  Repository/       # Doctrine repos pro nové entity (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
+  Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, RegistrationForm, ...)
+  Repository/       # Doctrine repos (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
   Old/              # LEGACY mapping (MySQL, EM old) — namespace App\Old\*
     Entity/         # legacy entity: Uzivatel
     Repository/     # repos pro legacy
-  Command/          # Console commands: app:import:highlines, app:import:users, app:import:crossings
+  Command/          # Console commands: app:import:*, app:admin:grant
 ```
 
 ### Důležité — proč je `App\Old\Entity\` mimo `src/Entity/`
@@ -63,6 +64,7 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
   - `hello_controller.js` — placeholder z generátoru
   - `map_controller.js` — hlavní Leaflet mapa: highline markery (`staticLayer`), emoji markery posledních přechodů (`usersLayer`, přepínatelné okem ze sidebaru), time-travel režim (`timelineLayer`). Leaflet zoom je přesunutý na `bottomright`, aby se nemlátil se sidebarem vlevo nahoře.
   - `highline_detail_map_controller.js` — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
+  - `highline_form_map_controller.js` — 2-endpoint GPS picker pro highline form. Alternující klik 1→2→1, oba markery draggable, polyline + live haversine length overlay. Sync se 4 input poli (point1Lat/Lng + point2Lat/Lng) oboustranně.
   - `user_denik_map_controller.js` — mini-mapa na `/denik/{id}` se všemi unikátními highlines, co user prošel
   - `crossing_feed_controller.js` — vertikální „news bar" sidebar na `/mapa`: list posledních N přechodů, dvě tlačítka v hlavičce (oko = visibility emoji markerů, šipka = collapse panelu), reaguje na time-travel režim (změní se v okno -7 dní zpět od virtuálního času)
   - `search_controller.js` — global highline search v hlavičce
@@ -160,6 +162,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - Reset password přes `symfonycasts/reset-password-bundle`
 - Email verify přes `symfonycasts/verify-email-bundle`
 - `UserRepository` implementuje `PasswordUpgraderInterface`
+- **`ROLE_ADMIN`** — kurátorská role (mark verified, schvalovat proposals, mazat verified lajny). Granted přes `bin/console app:admin:grant <email> [--revoke]`. Aktuální admin: `panda09823@gmail.com`. Symfony role hierarchy: ROLE_ADMIN ⇒ ROLE_USER auto.
 
 ## Routes (zkrácený přehled)
 
@@ -171,6 +174,16 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/mapa/feed` | `app_highline_map_feed` | ✓ JSON — N posledních přechodů (default `RECENT_LIMIT`); s `?date=YYYY-MM-DD&days=7` vrací time-travel okno |
 | `/mapa/timeline-data` | `app_highline_map_timeline` | ✓ JSON — vše pro time-travel playback (highlines + crossings chronologicky) |
 | `/highline/{slug}` | `app_highline_detail` | ✓ |
+| `/highline/nova` | `app_highline_new` | `ROLE_USER` — formulář nové lajny (priority 10 kvůli kolizi s `/highline/{slug}`) |
+| `/highline/{slug}/upravit` | `app_highline_edit` | `ROLE_USER` — direct edit (owner of unverified / admin) nebo proposal (verified + non-admin); detail v `docs/highline-edits.md` |
+| `/highline/{slug}/smazat` | `app_highline_delete` | `ROLE_USER` — owner-of-unverified nebo admin |
+| `/highline/{slug}/verify` | `app_highline_verify` | `ROLE_ADMIN` — flag isVerified=true |
+| `/highline/{slug}/prechod/novy` | `app_crossing_new` | `ROLE_USER` — přidat přechod |
+| `/prechod/{id}/upravit` | `app_crossing_edit` | `ROLE_USER` — vlastní přechody |
+| `/prechod/{id}/smazat` | `app_crossing_delete` | `ROLE_USER` — vlastní přechody, CSRF |
+| `/admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` — fronta pending proposals + diff tabulky |
+| `/admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` |
+| `/admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` |
 | `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele |
 | `/o-projektu` | `app_about` | ✓ |
 | `/profile` | `app_profile` | login required |
@@ -183,6 +196,8 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 
 ## Hotové features
 
+- ✅ **Highline CRUD + verifikační flow** — `HighlineCrudController` (new/edit/delete/verify + admin proposal queue). Trust model: kdokoli logged-in přidá lajnu (`unverified` + `createdBy=user`), edituje vlastní unverified lajny direct; verified (254 legacy + admin-schválené) jdou přes `HighlineEdit` proposal queue. Form má 2-endpoint GPS picker (Stimulus), length + center se počítají z point1/point2 přes haversine. ROLE_ADMIN přes `app:admin:grant`. Detail v `docs/highline-edits.md`.
+- ✅ **Crossing CRUD** — `CrossingController` + `HighlineCrossingForm`. „Přidat přechod" na detailu lajny (logged-in), edit/delete vlastních přechodů z deníku (`show_actions` flag v `_recent_crossings.html.twig`).
 - ✅ **Highline import** — 254 / 254 lajn z legacy MySQL do Postgres (re-runnable s `--truncate`, GPS fallback přes `gps` table). Detaily v `docs/migration.md`.
 - ✅ **User import** — 441 unique-email userů (440 nových + 1 obohacený dev účet), 6 dropped legacy řádků mergováno. MD5 hesla 1:1 zachována, `migrate_from: legacy_md5` přehashuje na bcrypt při prvním přihlášení. Crossings remap přes merge mapu.
 - ✅ **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datu). Style enum (`App\Enum\HighlineCrossingStyle`, 9 hodnot, viz `docs/crossing-styles.md`), neznámé legacy hodnoty se reportují jako warning.

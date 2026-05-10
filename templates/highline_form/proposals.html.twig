@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Návrhy úprav – admin – slack.cz{% endblock %}
+
+{% block body %}
+<div class="proposals-page">
+    <header class="proposals-header">
+        <h1>Návrhy úprav lajn</h1>
+        <p class="proposals-meta">{{ pending|length }} čeká na schválení</p>
+    </header>
+
+    {% if pending|length == 0 %}
+        <p class="hl-empty">Žádné návrhy ve frontě.</p>
+    {% else %}
+        <ul class="proposals-list">
+            {% for edit in pending %}
+                {% set diff = diffs[edit.id]|default({}) %}
+                <li class="proposals-item panel">
+                    <header class="panel-header">
+                        <div class="panel-title">
+                            <span class="panel-dot panel-dot-crossings"></span>
+                            <h2>
+                                <a href="{{ path('app_highline_detail', { slug: edit.highline.slug }) }}">{{ edit.highline.name }}</a>
+                            </h2>
+                        </div>
+                        <div class="proposals-meta">
+                            #{{ edit.id }} ·
+                            {% if edit.proposedBy %}
+                                <a href="{{ path('app_user_denik', { id: edit.proposedBy.id }) }}">{{ edit.proposedBy.displayName }}</a>
+                            {% else %}
+                                <em>(smazaný účet)</em>
+                            {% endif %}
+                            · <time datetime="{{ edit.createdAt|date('c') }}">{{ edit.createdAt|date('j. n. Y H:i') }}</time>
+                        </div>
+                    </header>
+
+                    {% if diff is empty %}
+                        <p class="hl-empty">Žádné změny — návrh nemění žádná pole.</p>
+                    {% else %}
+                        <table class="proposals-diff">
+                            <thead>
+                                <tr><th>Pole</th><th>Před</th><th>Po</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for field, change in diff %}
+                                    <tr>
+                                        <td class="proposals-field">{{ field }}</td>
+                                        <td class="proposals-before">{{ change.before is null ? '—' : change.before }}</td>
+                                        <td class="proposals-after">{{ change.after is null ? '—' : change.after }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+
+                    <footer class="proposals-actions">
+                        <form method="post" action="{{ path('app_admin_proposal_approve', { id: edit.id }) }}" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ csrf_token('proposal-approve-' ~ edit.id) }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Schválit</button>
+                        </form>
+                        <form method="post" action="{{ path('app_admin_proposal_reject', { id: edit.id }) }}" onsubmit="return confirm('Opravdu zamítnout?');" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ csrf_token('proposal-reject-' ~ edit.id) }}">
+                            <button type="submit" class="btn btn-ghost btn-sm">Zamítnout</button>
+                        </form>
+                    </footer>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+{% endblock %}

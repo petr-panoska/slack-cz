@@ -19,7 +19,12 @@
         <div class="hl-cover-shade"></div>
         <div class="hl-cover-content">
             <a href="{{ path('app_highline_map') }}" class="hl-back">← Mapa</a>
-            <h1>{{ highline.name }}</h1>
+            <h1>
+                {{ highline.name }}
+                {% if not highline.isVerified %}
+                    <span class="hl-proposal-badge" title="Lajna ještě není ověřená adminem">navrženo</span>
+                {% endif %}
+            </h1>
             <div class="hl-detail-meta">
                 <span class="hl-type-badge hl-type-{{ highline.type.value }}">{{ highline.type.label }}</span>
                 {% set place = [highline.area, highline.region, highline.country]|filter(v => v)|join(' · ') %}
@@ -28,6 +33,28 @@
                     <span class="hl-fa">První napnutí <time datetime="{{ highline.firstAscentDate|date('Y-m-d') }}">{{ highline.firstAscentDate|date('j. n. Y') }}</time></span>
                 {% endif %}
             </div>
+            {% if app.user %}
+                {% set isAdmin = is_granted('ROLE_ADMIN') %}
+                {% set isOwner = highline.isOwnedBy(app.user) %}
+                {% set canDelete = isAdmin or (isOwner and not highline.isVerified) %}
+                <div class="hl-detail-actions">
+                    <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_edit', { slug: highline.slug }) }}">
+                        {{ highline.isVerified and not isAdmin ? 'Navrhnout úpravu' : 'Upravit' }}
+                    </a>
+                    {% if isAdmin and not highline.isVerified %}
+                        <form method="post" action="{{ path('app_highline_verify', { slug: highline.slug }) }}" class="hl-action-form" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ csrf_token('verify-highline-' ~ highline.id) }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Verifikovat</button>
+                        </form>
+                    {% endif %}
+                    {% if canDelete %}
+                        <form method="post" action="{{ path('app_highline_delete', { slug: highline.slug }) }}" class="hl-action-form" onsubmit="return confirm('Opravdu smazat lajnu „{{ highline.name|e('js') }}"?');" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete-highline-' ~ highline.id) }}">
+                            <button type="submit" class="btn btn-ghost btn-sm hl-action-delete">Smazat</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
     </header>
 

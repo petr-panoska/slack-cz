@@ -9,6 +9,7 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 ## Migrace dat (deferred)
 
 - [ ] First ascents (`prvni_prechody_hl`, 124 řádků) — rozhodnout sloučení s běžnými přechody vs vlastní entita; doptat se Koloucha o smyslu / UI prezentaci. 49 orphans (NULL `uzivatel_id` s textovým nickem) potřebují fallback strategii.
+- [ ] **Parking GPS** — legacy `gps` tabulka má `type='PARKING'` (147 záznamů) a `highline.parking_id` ref. Aktuální `app:import:highlines` čte jen `LINE_POINT` body, parking se ztratil. Navrhované řešení: přidat `Highline.parkingLatitude/Longitude` (nullable decimal), v importu LEFT JOIN `gps ON id = highline.parking_id AND type = 'PARKING'`, na detailu zobrazit „Parkování" link na mapy.cz. Pokud se ten údaj zdá málo užitečný, zvážit zda investovat čas (Kolouchovi to ale chybělo na OG webu, takže ano).
 - [ ] Doptat se Koloucha co znamená `record` role (1 uživatel) — máme něco zachovat?
 - [ ] Doptat se proč 6 uživatelů má `enabled=0` — má být login disabled, nebo skryti úplně?
 
@@ -18,9 +19,30 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Vlastní ikony per typ (Highline / Top Highline / Midline / Urban Line — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
 - [ ] Linie mezi `point1` a `point2` na hlavní mapě `/mapa` (na detailu už je)
-- [ ] Foto galerie na detailu (potřeba import `highline_foto` + `highline_media` z legacy)
+- [ ] Foto galerie na detailu (PR2 — viz „Foto galerie + sociální vrstva" níž; potřeba i import `highline_foto` + `highline_media` z legacy)
 - [ ] Pretty-print legacy `kotveni` (často číselný kód) — namapovat na čitelný popis
-- [ ] CRUD pro přidávání nové highline (jen pro přihlášené, click na mapě = nastaví GPS)
+- [ ] „Přidat lajnu" CTA klikem na mapu (currently jen v hlavičce + ručně nastavené GPS) — z `/mapa` klik na prázdné místo by měl rovnou předvyplnit Bod 1
+
+## Foto galerie + sociální vrstva (PR2)
+
+Plán mimo scope PR1 (highline form + verifikace), brain-dumpnuto v session 2026-05-10.
+
+- [ ] `HighlinePhoto` entity (id, highline, uploadedBy, filename, caption, createdAt) + likes (`HighlinePhotoLike` UNIQUE photo+user) + komentáře (`HighlinePhotoComment`)
+- [ ] Storage: `public/uploads/highline/{id}/<uuid>.jpg` (gitignored), Caddy serveruje přímo
+- [ ] `vich/uploader-bundle` na upload, `liip/imagine-bundle` na thumby (320×240, 800×600, full ≤ 2400 px)
+- [ ] EXIF strip + auto-rotate při uploadu, max 4 MB origin
+- [ ] Cover photo: zatím legacy URL fallback, později promote z user-uploaded přes `cover_photo_id` na Highline
+- [ ] Homepage rotující box „nedávné fotky" — z posledních 7 dní náhodně, fallback all-time top liked
+
+## Highline edit / verification (PR1, hotové → archiv níž)
+
+Trust model + proposal queue dokumentace v `docs/highline-edits.md`. Otevřené follow-upy:
+
+- [ ] Audit historie na detailu lajny (`/highline/{slug}/historie`) — view nad `HighlineEdit` rows (APPLIED + REJECTED), revert tlačítko pro admina
+- [ ] Bulk verify — admin UI s checkboxy nad seznamem unverified lajn (teď to musí klikat 1×1)
+- [ ] Notifikace adminovi mailem při `PENDING` proposalu (Symfony Mailer + simple `MAILER_DSN` přes Brevo)
+- [ ] Notifikace authorovi proposalu o schválení/zamítnutí
+- [ ] „Soft-delete" lajny (deleted_at flag) místo hard delete — kdyby admin chtěl revertovat omylem smazanou lajnu
 
 ## Wiki
 
@@ -63,6 +85,8 @@ Detailně v `deploy.md`. Krátce:
 
 ## Dokončené (krátký archiv)
 
+- [x] **Highline CRUD + verifikační/proposal flow** (session 2026-05-10) — `HighlineCrudController` (new/edit/delete/verify + admin proposal queue), `Highline.isVerified` + `Highline.createdBy`, `HighlineEdit` entita coby unified audit log + pending queue (statuses `applied`/`pending`/`rejected`), 254 legacy lajn flagnuté `verified=true` při migraci. `ROLE_ADMIN` + `app:admin:grant` console command. Stimulus `highline_form_map_controller` jako 2-endpoint GPS picker s haversine length + midpoint computation. Detaily v `docs/highline-edits.md`.
+- [x] **Crossing form (CRUD pro přechody)** — `CrossingController` + `HighlineCrossingForm`. Tlačítko „Přidat přechod" na detailu lajny (logged-in), edit/delete vlastních přechodů z deníku (`show_actions` flag v `_recent_crossings.html.twig` partial).
 - [x] **Deník uživatele `/denik/{id}`** — `UserController::denik` + `pages/user_denik.html.twig`. Hlavička (nick, město, ročník, datum prvního přechodu přes `findFirstCrossingDate`), mini-mapa s body všech navštívených highlines (zoom na bbox, popup s odkazem na detail), tabulka přechodů. Linkováno z „Posledních přechodů" stripe a z popupu uživatele na `/mapa`.
 - [x] **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s N posledními přechody (`RECENT_LIMIT`), eye toggle (skryje/zobrazí emoji markery, persistent přes `sessionStorage`), collapse na samotnou hlavičku (taky persistent). Time-travel režim přepne sidebar na okno -7 dní zpět od virtuálního času. Cross-controller komunikace přes CustomEvents `slack:map-mode` a `slack:users-visibility` (viz `architecture.md`).
 - [x] **Single source of truth pro recent crossings** — `HighlineCrossingRepository::RECENT_LIMIT`. Index page stripe, mapové emoji markery i sidebar feed teď čerpají ze stejného setu (žádný dedup by user). Sjednoceno přes `findRecent()` + `findRecentForJson()`.

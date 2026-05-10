@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'edit' ? 'Upravit lajnu' : 'Nová lajna' }} – slack.cz{% endblock %}
+
+{% block body %}
+<div class="auth-page hl-form-page">
+    <div class="auth-card hl-form-card">
+        {% if mode == 'edit' %}
+            <a class="hl-back" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">← {{ highline.name }}</a>
+        {% else %}
+            <a class="hl-back" href="{{ path('app_highline_map') }}">← Mapa</a>
+        {% endif %}
+        <h1>{{ mode == 'edit' ? 'Upravit lajnu' : 'Nová lajna' }}</h1>
+
+        {% if queueProposal %}
+            <div class="hl-form-notice">
+                Lajna je verifikovaná → tvůj návrh úprav uvidí admin a po schválení se projeví na detailu.
+            </div>
+        {% elseif mode == 'new' %}
+            <p class="hl-form-help">Lajnu po vytvoření vidí všichni. Aby se na ní mohly podílet i ostatní userové, požádej admina o verifikaci.</p>
+        {% endif %}
+
+        {{ form_errors(form) }}
+
+        {{ form_start(form, { attr: { class: 'hl-form', novalidate: 'novalidate' } }) }}
+            <div class="hl-form-section">
+                <h2>Základ</h2>
+                <div class="form-group">{{ form_label(form.name) }}{{ form_widget(form.name) }}{{ form_errors(form.name) }}</div>
+                <div class="form-grid-2">
+                    <div class="form-group">{{ form_label(form.type) }}{{ form_widget(form.type) }}{{ form_errors(form.type) }}</div>
+                    <div class="form-group">{{ form_label(form.height) }}{{ form_widget(form.height) }}{{ form_errors(form.height) }}</div>
+                </div>
+            </div>
+
+            <div class="hl-form-section">
+                <h2>Kotvící body</h2>
+                <p class="hl-form-help hl-form-help-tight">První klik na mapu nastaví <strong>bod 1</strong>, druhý <strong>bod 2</strong>. Markery jdou taky táhnout. Délka lajny se počítá automaticky z těch dvou bodů.</p>
+                <div
+                    class="hl-form-map"
+                    data-controller="highline-form-map"
+                    data-highline-form-map-p1-lat-input-value="{{ form.point1Latitude.vars.id }}"
+                    data-highline-form-map-p1-lng-input-value="{{ form.point1Longitude.vars.id }}"
+                    data-highline-form-map-p2-lat-input-value="{{ form.point2Latitude.vars.id }}"
+                    data-highline-form-map-p2-lng-input-value="{{ form.point2Longitude.vars.id }}"
+                    data-highline-form-map-init-lat-value="{{ form.point1Latitude.vars.value ?: '50.0598' }}"
+                    data-highline-form-map-init-lng-value="{{ form.point1Longitude.vars.value ?: '14.4656' }}"
+                    data-highline-form-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                    data-highline-form-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                    data-highline-form-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                >
+                    <div class="hl-form-map-canvas" data-highline-form-map-target="canvas"></div>
+                    <div class="hl-form-distance">
+                        <span class="hl-form-distance-label">Délka</span>
+                        <span class="hl-form-distance-value is-empty" data-highline-form-map-target="distance">Nastav oba body</span>
+                    </div>
+                </div>
+                <div class="hl-form-points">
+                    <div class="hl-form-point">
+                        <h3>Bod 1</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">{{ form_label(form.point1Latitude) }}{{ form_widget(form.point1Latitude) }}{{ form_errors(form.point1Latitude) }}</div>
+                            <div class="form-group">{{ form_label(form.point1Longitude) }}{{ form_widget(form.point1Longitude) }}{{ form_errors(form.point1Longitude) }}</div>
+                        </div>
+                        <div class="form-group">{{ form_label(form.pointOneInfo) }}{{ form_widget(form.pointOneInfo) }}{{ form_errors(form.pointOneInfo) }}</div>
+                    </div>
+                    <div class="hl-form-point">
+                        <h3>Bod 2</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">{{ form_label(form.point2Latitude) }}{{ form_widget(form.point2Latitude) }}{{ form_errors(form.point2Latitude) }}</div>
+                            <div class="form-group">{{ form_label(form.point2Longitude) }}{{ form_widget(form.point2Longitude) }}{{ form_errors(form.point2Longitude) }}</div>
+                        </div>
+                        <div class="form-group">{{ form_label(form.pointTwoInfo) }}{{ form_widget(form.pointTwoInfo) }}{{ form_errors(form.pointTwoInfo) }}</div>
+                    </div>
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">{{ form_label(form.country) }}{{ form_widget(form.country) }}{{ form_errors(form.country) }}</div>
+                    <div class="form-group">{{ form_label(form.region) }}{{ form_widget(form.region) }}{{ form_errors(form.region) }}</div>
+                    <div class="form-group">{{ form_label(form.area) }}{{ form_widget(form.area) }}{{ form_errors(form.area) }}</div>
+                </div>
+            </div>
+
+            <div class="hl-form-section">
+                <h2>Detaily</h2>
+                <div class="form-group">{{ form_label(form.description) }}{{ form_widget(form.description) }}{{ form_errors(form.description) }}</div>
+                <div class="form-grid-3">
+                    <div class="form-group">{{ form_label(form.anchoring) }}{{ form_widget(form.anchoring) }}{{ form_errors(form.anchoring) }}</div>
+                    <div class="form-group">{{ form_label(form.approachMinutes) }}{{ form_widget(form.approachMinutes) }}{{ form_errors(form.approachMinutes) }}</div>
+                    <div class="form-group">{{ form_label(form.tensioningMinutes) }}{{ form_widget(form.tensioningMinutes) }}{{ form_errors(form.tensioningMinutes) }}</div>
+                </div>
+            </div>
+
+            <div class="hl-form-section">
+                <h2>Historie</h2>
+                <div class="form-grid-2">
+                    <div class="form-group">{{ form_label(form.firstAscentBy) }}{{ form_widget(form.firstAscentBy) }}{{ form_errors(form.firstAscentBy) }}</div>
+                    <div class="form-group">{{ form_label(form.firstAscentDate) }}{{ form_widget(form.firstAscentDate) }}{{ form_errors(form.firstAscentDate) }}</div>
+                </div>
+                <div class="form-group">{{ form_label(form.nameHistory) }}{{ form_widget(form.nameHistory) }}{{ form_errors(form.nameHistory) }}</div>
+            </div>
+
+            <div class="hl-form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if queueProposal %}Odeslat návrh
+                    {% elseif mode == 'edit' %}Uložit
+                    {% else %}Přidat lajnu{% endif %}
+                </button>
+                {% if mode == 'edit' %}
+                    <a class="btn btn-ghost" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">Zrušit</a>
+                {% else %}
+                    <a class="btn btn-ghost" href="{{ path('app_highline_map') }}">Zrušit</a>
+                {% endif %}
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

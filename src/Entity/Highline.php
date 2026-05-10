@@ -106,6 +106,15 @@ class Highline
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    /** Legacy entries are seeded `true`; new submissions default to `false` until an admin verifies them. */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isVerified = false;
+
+    /** Author of the highline submission. NULL for legacy imports. */
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -410,5 +419,36 @@ class Highline
             return null;
         }
         return sprintf('https://slack.cz/line/high/%d/foto.jpg', $this->legacyId);
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): static
+    {
+        $this->isVerified = $isVerified;
+        return $this;
+    }
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $createdBy): static
+    {
+        $this->createdBy = $createdBy;
+        return $this;
+    }
+
+    /** Owner check — null `createdBy` (legacy) is never owned by anyone. */
+    public function isOwnedBy(?User $user): bool
+    {
+        if ($user === null || $this->createdBy === null) {
+            return false;
+        }
+        return $this->createdBy->getId() === $user->getId();
     }
 }

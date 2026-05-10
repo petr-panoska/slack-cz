@@ -3146,3 +3146,328 @@ a.crossings-line:hover {
     padding: 5px 10px;
     font-size: 0.78rem;
 }
+
+/* ---------- Highline form (new / edit) ---------- */
+
+.hl-form-page {
+    max-width: 760px;
+}
+
+.hl-form-card {
+    padding: 28px 28px 32px;
+}
+
+.hl-form-card .hl-back {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--color-muted);
+    font-size: 0.9em;
+    text-decoration: none;
+}
+
+.hl-form-card .hl-back:hover {
+    color: var(--color-accent);
+}
+
+.hl-form-help {
+    margin: -16px 0 24px;
+    color: var(--color-muted);
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.hl-form-notice {
+    margin: -8px 0 24px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--color-accent);
+    background: rgba(225, 0, 91, 0.06);
+    color: var(--color-fg);
+    font-size: 0.9em;
+    line-height: 1.5;
+    border-radius: 0 4px 4px 0;
+}
+
+.hl-form-section {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.hl-form-section:last-of-type {
+    border-bottom: none;
+}
+
+.hl-form-section h2 {
+    margin: 0 0 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+}
+
+.form-grid-2,
+.form-grid-3 {
+    display: grid;
+    gap: 12px;
+}
+
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+@media (max-width: 600px) {
+    .form-grid-2,
+    .form-grid-3 { grid-template-columns: 1fr; }
+}
+
+.hl-form-card input[type="text"],
+.hl-form-card input[type="number"],
+.hl-form-card input[type="date"],
+.hl-form-card select,
+.hl-form-card textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--color-fg);
+    background: var(--color-bg);
+    transition: border-color 0.15s;
+}
+
+.hl-form-card textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.hl-form-card input:focus,
+.hl-form-card select:focus,
+.hl-form-card textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.hl-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.hl-form-actions .btn {
+    min-width: 140px;
+    text-align: center;
+}
+
+.hl-form-card button[type="submit"] {
+    width: auto;
+    margin-top: 0;
+}
+
+.hl-form-map {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.hl-form-map-canvas {
+    height: 320px;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.hl-form-help-tight {
+    margin: -6px 0 12px;
+}
+
+.hl-form-distance {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 500;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.hl-form-distance-label {
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hl-form-distance-value {
+    color: var(--color-fg);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.hl-form-distance-value.is-empty {
+    color: var(--color-muted);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.hl-form-points {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 14px;
+}
+
+@media (max-width: 700px) {
+    .hl-form-points { grid-template-columns: 1fr; }
+}
+
+.hl-form-point {
+    padding: 14px;
+    background: #fafafa;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+}
+
+.hl-form-point h3 {
+    margin: 0 0 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+}
+
+/* ---------- Verified / proposal badge on detail ---------- */
+
+.hl-proposal-badge {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 9px;
+    font-size: 0.55em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #c0143c;
+    background: #fff;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+.hl-detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.hl-action-form {
+    display: inline;
+    margin: 0;
+}
+
+.hl-action-delete:hover {
+    border-color: #c0143c;
+    color: #c0143c;
+    background: #fdecea;
+}
+
+/* ---------- Admin proposals queue ---------- */
+
+.proposals-page {
+    max-width: 1100px;
+    margin: 32px auto 64px;
+    padding: 0 24px;
+}
+
+.proposals-header {
+    margin-bottom: 24px;
+}
+
+.proposals-header h1 {
+    margin: 0 0 4px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.proposals-meta {
+    color: var(--color-muted);
+    font-size: 0.9em;
+    margin: 0;
+}
+
+.proposals-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+}
+
+.proposals-item {
+    padding: 0;
+}
+
+.proposals-diff {
+    width: 100%;
+    margin: 14px 0 0;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.proposals-diff th,
+.proposals-diff td {
+    padding: 8px 14px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.proposals-diff th {
+    background: #fafafa;
+    font-weight: 600;
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.proposals-field {
+    font-weight: 600;
+    color: var(--color-muted);
+    width: 160px;
+}
+
+.proposals-before {
+    color: var(--color-muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(192, 20, 60, 0.4);
+}
+
+.proposals-after {
+    color: var(--color-fg);
+    background: rgba(46, 125, 50, 0.06);
+}
+
+.proposals-actions {
+    display: flex;
+    gap: 8px;
+    padding: 14px;
+    border-top: 1px solid var(--color-line);
+    background: #fafafa;
+}
+
+.proposals-actions form {
+    margin: 0;
+}
+
+/* ---------- Site nav admin tint ---------- */
+
+.site-nav-admin {
+    color: var(--color-accent);
+}
