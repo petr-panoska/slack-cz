@@ -49,7 +49,7 @@ ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158
 | DB | PostgreSQL | 16.13 | `127.0.0.1:5432` (jen lokálně) |
 | Composer | apt package | 2.7.1 | — |
 
-PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `readline`, `mysql` (+ `mysqli`/`pdo_mysql` — Doctrine registruje `old` connection na boot, nevyužívá ji).
+PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `readline`, `mysql` (+ `mysqli`/`pdo_mysql` — Doctrine registruje `old` connection na boot, nevyužívá ji), `gd`, `exif` (foto galerie — origin EXIF strip + thumby přes liip_imagine).
 
 > **Žádný MySQL na prod.** Legacy MySQL je jen v dev pro import. Pro produkci se data převedou lokálně do Postgresu a pošlou jako `pg_dump` na server.
 
@@ -63,6 +63,7 @@ PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `read
 | Branch | `main` |
 | `.env.local` | mode `640`, owner `deploy:www-data` (PHP-FPM jako `www-data` musí číst) |
 | `var/cache`, `var/log` | ACL pro `www-data` (`rwX` recursive + default), plus `deploy` (kvůli composer scriptům) |
+| `public/uploads/`, `public/media/cache/` | ACL pro `www-data` (`rwX` recursive + default). Uploads = origin fotky (`vich/uploader`), cache = liip_imagine on-demand thumby. Caddy `file_server` je servíruje staticky. |
 
 `.env.local` obsahuje (na serveru, nikde jinde):
 ```
@@ -354,6 +355,65 @@ Buď:
 ```
 
 nebo nech ji vzniknout přirozeně (po prvním requestu se vytvoří jako `www-data`, což je správně — PHP-FPM tam zapisuje).
+
+### Preflight check (`make checkServerEnv` + CI gate)
+
+Před každým deployem (lokální `make deploy` i GH Actions push-to-main) se pouští `scripts/check-server-env.sh` jako fail-fast gate:
+
+- Lokálně: Makefile `deploy: checkServerEnv` dependence.
+- CI: `.github/workflows/deploy.yml` má samostatný `preflight` job, `deploy` job na něm `needs:`. Stejný skript, stejný SSH klíč (`DEPLOY_SSH_KEY` secret).
+
+Skript běží na serveru přes SSH a verifikuje:
+
+- Git stav (server HEAD vs lokální HEAD, kolik commitů pozadu, jestli přibyly nové migrace / composer.lock změny)
+- PHP verze ≥ 8.3, všechny vyžadované extensions (`pgsql`, `gd`, `exif`, …) + GD má WebP support
+- Systémové binárky (`composer`, `caddy`, `psql`, `setfacl`)
+- Běžící služby (`caddy`, `php8.3-fpm`, `postgresql`)
+- FS perms pro PHP-FPM (`www-data` umí zapsat do `var/cache`, `var/log`, `public/uploads`, `public/media/cache`)
+- `.env.local` čitelná `www-data`em + obsahuje všechny očekávané klíče
+- Postgres `DATABASE_URL` connect funguje
+- Pending Doctrine migrace (info)
+
+Když cokoli failne, deploy se vůbec nezačne (exit 1 → CI job fail → `deploy` job se neaktivuje, lokálně `make deploy` rovněž zhasne). Pustit samostatně před push:
+
+```bash
+make checkServerEnv
+```
+
+To je doporučená cesta pro „pre-push manual check" — žádný git hook se neinstaluje, devloák co chce fast feedback prostě pustí target před `git push`.
+
+**Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč) updatuj `scripts/check-server-env.sh` ve stejném commitu jako kód. Lokální verze skriptu je kanonický expected-state — server se kontroluje proti tomu, co se chystá deploynout, ne proti aktuální server-side verzi.
+
+Skript spoléhá na to, že `deploy` user má `NOPASSWD sudoers` pro `sudo -u www-data ...` (jinak FS-perm checky se přeskočí s warningem). Setup sudoers entry:
+
+```bash
+# /etc/sudoers.d/deploy (visudo -f)
+deploy ALL=(ALL) NOPASSWD: ALL
+```
+
+### Foto galerie — 1× ruční setup před prvním deployem
+
+Galerie přidala závislost na PHP `gd` + `exif` (origin EXIF strip + liip_imagine thumby) a na write-přístup do `public/uploads/` a `public/media/cache/`. Default `php8.3` install na Hetzner image tyhle extensions nemá a adresáře neexistují. Bez fixu po `make deploy` padne první request na detail lajny s nějakou fotkou (případně první upload).
+
+Na serveru jako `deploy` user, **jednou**:
+
+```bash
+# 1) GD + EXIF
+sudo apt update
+sudo apt install -y php8.3-gd
+# (exif je v core, ale ověř `php -m | grep -iE 'gd|exif'`)
+sudo systemctl reload php8.3-fpm
+
+# 2) Upload + cache adresáře
+cd /var/www/slack-cz
+mkdir -p public/uploads public/media/cache
+
+# 3) ACL stejně jako u var/cache, var/log
+sudo setfacl -R  -m u:www-data:rwX public/uploads public/media/cache
+sudo setfacl -dR -m u:www-data:rwX public/uploads public/media/cache
+```
+
+Idempotentní `mkdir -p` je v `scripts/deploy.sh`, takže se to po další checkout/deployi neztratí. Co `deploy.sh` **nedělá**: `setfacl` (vyžaduje sudo bez TTY → komplikace). Pokud někdy adresáře zmizí (`rm -rf` apod.), ACL je nutné aplikovat znovu ručně.
 
 ### Composer post-install scripts spouštějí cache:clear v prod
 

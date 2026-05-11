@@ -1,0 +1,17 @@
+vich_uploader:
+    db_driver: orm
+    metadata:
+        type: attribute
+
+    mappings:
+        highline_photo:
+            uri_prefix: /uploads/highline
+            upload_destination: '%kernel.project_dir%/public/uploads/highline'
+            namer:
+                service: Vich\UploaderBundle\Naming\UniqidNamer
+            directory_namer:
+                service: Vich\UploaderBundle\Naming\PropertyDirectoryNamer
+                options: { property: 'highline.id' }
+            inject_on_load: false
+            delete_on_update: true
+            delete_on_remove: true

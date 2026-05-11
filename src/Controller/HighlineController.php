@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\HighlineCrossingRepository;
 use App\Repository\HighlineEditRepository;
+use App\Repository\HighlinePhotoRepository;
 use App\Repository\HighlineRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,11 +28,13 @@ final class HighlineController extends AbstractController
         Highline $highline,
         HighlineCrossingRepository $crossings,
         HighlineEditRepository $edits,
+        HighlinePhotoRepository $photos,
     ): Response {
         return $this->render('pages/highline_detail.html.twig', [
             'highline' => $highline,
             'crossings' => $crossings->findForHighline($highline),
             'historyCount' => $edits->countHistoryFor($highline),
+            'photos' => $photos->findForHighline($highline),
         ]);
     }
 

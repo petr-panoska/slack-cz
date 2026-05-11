@@ -18,20 +18,19 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Vlastní ikony per typ (Highline / Top Highline / Midline / Urban Line — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
 - [ ] Linie mezi `point1` a `point2` na hlavní mapě `/mapa` (na detailu už je)
-- [ ] Foto galerie na detailu (PR2 — viz „Foto galerie + sociální vrstva" níž; potřeba i import `highline_foto` + `highline_media` z legacy)
+- [ ] Foto galerie — sociální vrstva (likes, komentáře, homepage rotace) + legacy import `highline_foto` + `highline_media`. MVP (upload/zobrazení/smazat) hotov, viz `architecture.md`.
 - [ ] Pretty-print legacy `kotveni` (často číselný kód) — namapovat na čitelný popis
 - [ ] „Přidat lajnu" CTA klikem na mapu (currently jen v hlavičce + ručně nastavené GPS) — z `/mapa` klik na prázdné místo by měl rovnou předvyplnit Bod 1
 
-## Foto galerie + sociální vrstva (PR2)
+## Foto galerie — sociální vrstva (PR2.2)
 
-Plán mimo scope PR1 (highline form + verifikace), brain-dumpnuto v session 2026-05-10.
+MVP (`HighlinePhoto` entita + upload + thumby + grid na detailu + smazat) hotový v session 2026-05-11. Otevřené follow-upy:
 
-- [ ] `HighlinePhoto` entity (id, highline, uploadedBy, filename, caption, createdAt) + likes (`HighlinePhotoLike` UNIQUE photo+user) + komentáře (`HighlinePhotoComment`)
-- [ ] Storage: `public/uploads/highline/{id}/<uuid>.jpg` (gitignored), Caddy serveruje přímo
-- [ ] `vich/uploader-bundle` na upload, `liip/imagine-bundle` na thumby (320×240, 800×600, full ≤ 2400 px)
-- [ ] EXIF strip + auto-rotate při uploadu, max 4 MB origin
-- [ ] Cover photo: zatím legacy URL fallback, později promote z user-uploaded přes `cover_photo_id` na Highline
+- [ ] Likes (`HighlinePhotoLike` UNIQUE photo+user) + komentáře (`HighlinePhotoComment`)
+- [ ] Cover photo promote — zatím legacy URL fallback v `Highline::getCoverUrl()`, později uložit `cover_photo_id` na `Highline` a nechat author/admin nastavit
 - [ ] Homepage rotující box „nedávné fotky" — z posledních 7 dní náhodně, fallback all-time top liked
+- [ ] Legacy import `highline_foto` + `highline_media` — vyžaduje SSH na legacy server pro stažení JPG souborů (`/line/high/{id}/*.jpg`)
+- [ ] Caddy reverse proxy hlavička pro `/uploads/` (cache + immutable; thumby v `/media/cache/` mají hash → safe k cache-forever)
 
 ## Highline edit / verification (PR1, hotové → archiv níž)
 

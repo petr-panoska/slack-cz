@@ -16,6 +16,12 @@ git pull --ff-only origin main
 echo "→ composer install --no-dev --optimize-autoloader"
 composer install --no-dev --optimize-autoloader --no-interaction
 
+# Idempotentní mkdir pro adresáře co musí být writable PHP-FPM. ACL pro www-data
+# se nastavuje 1× ručně (viz deploy.md). var/log si jinak Symfony vytváří lazy
+# až při prvním logu, ale eager mkdir je čistší + nezakope checkServerEnv.
+echo "→ mkdir -p public/uploads public/media/cache var/log"
+mkdir -p public/uploads public/media/cache var/log
+
 echo "→ doctrine:migrations:migrate"
 APP_ENV=prod php bin/console doctrine:migrations:migrate -n
 

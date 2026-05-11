@@ -1,7 +1,8 @@
 name: deploy
 
 # Auto-deploy push do main na beta.slack.cz (Hetzner VPS, native PHP-FPM + Postgres + Caddy).
-# Mirror lokálního `make deploy` — používá stejný `scripts/deploy.sh`.
+# Mirror lokálního `make deploy` — používá stejné `scripts/check-server-env.sh`
+# (preflight gate) + `scripts/deploy.sh` (vlastní deploy) přes SSH bash -s.
 #
 # Required GH repo secrets:
 #   DEPLOY_SSH_KEY   — privátní SSH klíč pro user `deploy` (=ed25519, lokálně ~/.ssh/slack_cz_prod)
@@ -18,45 +19,48 @@ concurrency:
   group: deploy-prod
   cancel-in-progress: false
 
+env:
+  SERVER_HOST: 178.105.81.158
+  SERVER_USER: deploy
+
 jobs:
-  deploy:
+  # Preflight gate — odmítne pustit deploy, pokud server nemá co bude potřebovat
+  # (PHP extensions, writable dirs, .env.local klíče, …). Skript = spec, viz
+  # docs/deploy.md sekce "Preflight check".
+  preflight:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH deploy → beta.slack.cz
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 178.105.81.158
-          username: deploy
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: 22
-          script_stop: true   # první failnutý příkaz zabije celý job
-          command_timeout: 5m
-          script: |
-            set -euo pipefail
-            cd /var/www/slack-cz
+      - uses: actions/checkout@v4
 
-            echo "→ git pull --ff-only origin main"
-            git pull --ff-only origin main
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-            echo "→ composer install --no-dev --optimize-autoloader"
-            composer install --no-dev --optimize-autoloader --no-interaction
+      - name: Check server env
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "$SERVER_USER@$SERVER_HOST" 'bash -s' -- "${{ github.sha }}" \
+            < scripts/check-server-env.sh
 
-            echo "→ doctrine:migrations:migrate"
-            APP_ENV=prod php bin/console doctrine:migrations:migrate -n
+  deploy:
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            echo "→ asset-map:compile"
-            APP_ENV=prod php bin/console asset-map:compile
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-            echo "→ cache:clear (prod)"
-            APP_ENV=prod php bin/console cache:clear
-
-            echo "→ cache:pool:clear cache.app (vyhodí docs/wiki LKG)"
-            APP_ENV=prod php bin/console cache:pool:clear cache.app
-
-            echo "→ systemctl reload php8.3-fpm (refresh opcache)"
-            sudo systemctl reload php8.3-fpm
-
-            echo "✓ Deploy hotový."
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "$SERVER_USER@$SERVER_HOST" 'bash -s' \
+            < scripts/deploy.sh
 
       - name: Post-deploy smoke test
         run: |

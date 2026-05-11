@@ -1,0 +1,32 @@
+liip_imagine:
+    driver: gd
+    resolvers:
+        default:
+            web_path:
+                web_root: '%kernel.project_dir%/public'
+                cache_prefix: media/cache
+
+    filter_sets:
+        # Thumbnail v gridu (320×240, crop fill — uniformní mřížka)
+        highline_thumb:
+            quality: 82
+            filters:
+                auto_rotate: ~
+                strip: ~
+                thumbnail: { size: [320, 240], mode: outbound }
+
+        # Lightbox / preview (max 800×600, zachová poměr)
+        highline_medium:
+            quality: 85
+            filters:
+                auto_rotate: ~
+                strip: ~
+                thumbnail: { size: [800, 600], mode: inset }
+
+        # Fullscreen (max 2400 px na delší stranu)
+        highline_full:
+            quality: 88
+            filters:
+                auto_rotate: ~
+                strip: ~
+                thumbnail: { size: [2400, 2400], mode: inset }

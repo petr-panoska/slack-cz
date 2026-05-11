@@ -1,0 +1,66 @@
+{# Galerie fotek pro highline detail. Vstup: highline, photos (list<HighlinePhoto>) #}
+<section class="panel hl-gallery-panel">
+    <header class="panel-header">
+        <div class="panel-title">
+            <span class="panel-dot panel-dot-gallery"></span>
+            <h2>Fotky <span class="hl-crossings-count">{{ photos|length }}</span></h2>
+        </div>
+        {% if app.user %}
+            <a class="btn btn-primary btn-sm" href="{{ path('app_highline_photo_new', { slug: highline.slug }) }}">+ Přidat fotku</a>
+        {% else %}
+            <a class="btn btn-ghost btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+        {% endif %}
+    </header>
+
+    {% if photos|length > 0 %}
+        {% set isAdmin = is_granted('ROLE_ADMIN') %}
+        <ul class="hl-gallery-grid">
+            {% for photo in photos %}
+                {% set canDelete = isAdmin or photo.isOwnedBy(app.user) %}
+                <li class="hl-gallery-item">
+                    <a
+                        href="{{ vich_uploader_asset(photo, 'file') | imagine_filter('highline_full') }}"
+                        class="hl-gallery-link"
+                        target="_blank"
+                        rel="noopener"
+                        {% if photo.caption %}title="{{ photo.caption }}"{% endif %}
+                    >
+                        <img
+                            src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('highline_thumb') }}"
+                            alt="{{ photo.caption ?? highline.name }}"
+                            loading="lazy"
+                            decoding="async"
+                            width="320"
+                            height="240"
+                        >
+                    </a>
+                    <div class="hl-gallery-meta">
+                        {% if photo.caption %}<span class="hl-gallery-caption">{{ photo.caption }}</span>{% endif %}
+                        <span class="hl-gallery-author">
+                            {% if photo.uploadedBy %}
+                                <a href="{{ path('app_user_denik', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
+                            {% else %}
+                                ?
+                            {% endif %}
+                            · {{ photo.createdAt|date('j. n. Y') }}
+                        </span>
+                    </div>
+                    {% if canDelete %}
+                        <form
+                            method="post"
+                            action="{{ path('app_highline_photo_delete', { id: photo.id }) }}"
+                            class="hl-gallery-delete"
+                            onsubmit="return confirm('Opravdu smazat fotku?');"
+                            data-turbo="false"
+                        >
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete-photo-' ~ photo.id) }}">
+                            <button type="submit" class="hl-gallery-delete-btn" aria-label="Smazat fotku">×</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="hl-empty">Zatím žádné fotky.</p>
+    {% endif %}
+</section>

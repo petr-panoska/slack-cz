@@ -20,3 +20,8 @@
 ###< symfony/asset-mapper ###
 
 *.sql
+
+###> highline gallery uploads ###
+/public/uploads/
+/public/media/cache/
+###< highline gallery uploads ###

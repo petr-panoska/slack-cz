@@ -57,10 +57,21 @@ syncBetaFromLocal:
 	@rm /tmp/slack-cz.sql
 	@echo "✓ Beta data synced from local."
 
+# Preflight check produkčního prostředí — verifikuje PHP extensions, FS perms,
+# .env.local klíče, Postgres connect, atd. proti lokálnímu HEADu. Volá se
+# automaticky z `make deploy` jako fail-fast gate. Lze pustit i samostatně:
+#   make checkServerEnv
+checkServerEnv:
+	@LOCAL_HEAD=$$(git rev-parse HEAD); \
+	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' -- "$$LOCAL_HEAD" \
+		< scripts/check-server-env.sh
+
 # Deploy aktuálního `main` na beta.slack.cz (jen pull+build na serveru, NEpushuje).
 # Předpoklad: commit + push do origin/main už máš hotový.
 #   make deploy
-deploy:
+# Spustí nejdřív preflight check (`checkServerEnv`) — pokud server nemá co potřebuje,
+# deploy se nezačne.
+deploy: checkServerEnv
 	@echo "→ deploying origin/main na beta.slack.cz..."
 	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' < scripts/deploy.sh
 	@echo "→ smoke test:"

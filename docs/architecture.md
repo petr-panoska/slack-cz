@@ -214,6 +214,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů
 - ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro GitHub-backed MD obsah. Detail níže.
+- ✅ **Highline foto galerie (MVP)** — `HighlinePhoto` entita (highline FK, uploadedBy FK SET NULL, filename, caption, createdAt). Upload přes `vich/uploader-bundle` (mapping `highline_photo` → `public/uploads/highline/{id}/<uniqid>.ext`, 4 MB cap, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `highline_thumb` 320×240 outbound, `highline_medium` 800×600 inset, `highline_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace přes `HighlinePhotoSanitizerSubscriber` (post-upload event, GD), takže ani originál v `/uploads/` neuniká GPS. Sociální vrstva (likes, komentáře, homepage rotace, legacy `highline_foto` import) je deferred — viz `todo.md`.
 
 ## Markdown sections (`/docs`, `/wiki`)
 

@@ -25,6 +25,17 @@ docker compose port database 5432              # zjisti aktuální host port pro
 docker compose port mailer 8025                # ... pro Mailpit UI
 ```
 
+## Foto galerie — upload adresáře
+
+PHP-FPM v `php` containeru jede jako `www-data`. Bind-mountnuté adresáře pro upload (`public/uploads/`) a imagine cache (`public/media/cache/`) tvoří host user (`panda`, uid 1000), takže www-data tam defaultně nemá write. Po fresh checkoutu / po `docker compose down -v`:
+
+```sh
+mkdir -p public/uploads public/media/cache
+chmod 777 public/uploads public/media/cache
+```
+
+Oba adresáře jsou v `.gitignore`, takže permisivní mód nikoho neuráží. Symptom při chybějícím write: `Warning: mkdir(): Permission denied` při uploadu fotky.
+
 ## Symfony console
 
 Vždy přes `php` container:
