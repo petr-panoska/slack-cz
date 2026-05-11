@@ -65,7 +65,9 @@ docker compose exec -T php bin/console <cmd>
 |---|---|
 | `make setupServer` | `ssh deploy@HOST 'bash -s' < scripts/setup-server.sh` — idempotentní provisioning. Doinstaluje apt packages, vytvoří chybějící adresáře + ACL. Pro fresh louku spusť skript ručně jako root, viz `deploy.md`. |
 | `make checkServerEnv` | Preflight skript přes SSH — verifikuje že server má vše co lokální HEAD potřebuje (PHP ext, FS perms, .env.local klíče, …). Exit 1 zablokuje `make deploy`. Pusť i ručně před `git push` pro fast feedback. |
-| `make deploy` | Závisí na `checkServerEnv`. Po úspěšném preflightu: `ssh deploy@HOST 'bash -s' < scripts/deploy.sh` + post-deploy smoke test. |
+| `make checkCaddy` | Drift check `infra/Caddyfile` (repo) vs `/etc/caddy/Caddyfile` (server). Exit 1 = drift, `make deploy` zablokovaný. Volá se taky implicitně z `make deploy` jako preflight gate. |
+| `make deployCaddy` | Push `infra/Caddyfile` na server: scp → `caddy validate` → atomic cp → `systemctl restart caddy` + smoke test. Spusť kdykoliv změníš `infra/Caddyfile`. |
+| `make deploy` | Závisí na `checkServerEnv` + `checkCaddy`. Po úspěšných preflightech: `ssh deploy@HOST 'bash -s' < scripts/deploy.sh` + post-deploy smoke test. |
 | `make syncBetaFromLocal` | pg_dump lokál → scp → psql restore + cache:clear na `beta.slack.cz` (destruktivní, viz `deploy.md`) |
 
 Detail flow + script ecosystem v `deploy.md` sekce „Infrastruktura na první pohled".

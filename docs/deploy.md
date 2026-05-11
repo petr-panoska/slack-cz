@@ -14,21 +14,23 @@ Tři prostředí:
 | **CI** | GitHub Actions (`.github/workflows/deploy.yml`) | ephemeral Ubuntu runner. Triggered push do `main` + `workflow_dispatch`. Joby: `preflight` → `deploy`. | YAML inlinuje `ssh ... 'bash -s' < scripts/<X>.sh`, žádný copy-paste z `deploy.sh` |
 | **Prod (beta.slack.cz)** | Hetzner CX22 (`178.105.81.158`), Ubuntu 24.04 | **Native** PHP 8.3 + Postgres 16 + Caddy + ufw + fail2ban. Žádný Docker. App v `/var/www/slack-cz` jako `deploy` user. | Skripty v `scripts/`, viz tabulka níž |
 
-Tři skripty drží celou prod stranu. **Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč), updatuj patřičný skript ve stejném commitu jako kód — další deploy padne fail-fast, dokud server nedoinstaluješ.
+Pět skriptů drží celou prod stranu. **Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč), updatuj patřičný skript ve stejném commitu jako kód — další deploy padne fail-fast, dokud server nedoinstaluješ.
 
 | Skript | Kdy se pouští | Co dělá |
 |---|---|---|
 | **`scripts/setup-server.sh`** | 1× při fresh louce (`ssh root@HOST`), pak občas update-za-chodu (`ssh deploy@HOST`) | Idempotentní provisioning: apt packages (PHP+ext, Postgres, Caddy přes vlastní apt repo), `deploy` user + NOPASSWD sudoers, `git clone`, Postgres role/DB/.env.local atomicky, ACL pro `www-data` na writable dirs, enable+start systemd. **Nikdy** nepřepisuje `.env.local`, nedropuje DB, nezasahuje do Caddyfile. Spustí se přes `make setupServer`. |
 | **`scripts/check-server-env.sh`** | Před každým deployem (lokál i CI), volitelně manuálně před `git push` | Preflight gate. Verifikuje git stav (server HEAD vs lokál), PHP+extensions, GD WebP, sys binárky, služby, FS perms `www-data`, `.env.local` klíče, Postgres connect, pending migrace. Exit 1 = deploy zhasne. Spustí se přes `make checkServerEnv`. |
+| **`scripts/check-caddy.sh`** | Vedle `check-server-env.sh` před každým deployem (lokál i CI) | Drift gate. SSH `sudo cat /etc/caddy/Caddyfile`, diff vs `infra/Caddyfile`. Exit 1 = drift, deploy zhasne. Spustí se přes `make checkCaddy`. |
+| **`scripts/deploy-caddy.sh`** | Manuálně kdykoliv změníš `infra/Caddyfile` | scp do `/tmp` → `sudo caddy validate` → atomic cp do `/etc/caddy/Caddyfile` → `sudo systemctl restart caddy` (NE reload, viz Gotchas) + smoke test. Spustí se přes `make deployCaddy`. **NIKDY** se nevolá z `make deploy` ani z CI — Caddy restart je side-effect, který má vlastní rozhodovací bod. |
 | **`scripts/deploy.sh`** | Při každém deployi (lokál `make deploy` i CI `deploy` job) | `git pull`, `mkdir -p` writable dirs, `composer install --no-dev`, `doctrine:migrations:migrate`, `asset-map:compile`, `cache:clear` (×2 — composer hook + explicit), `cache:pool:clear cache.app`, `systemctl reload php8.3-fpm`. |
 | **`scripts/sync-beta-restore.sh`** | Po `make syncBetaFromLocal` (přes SSH stdin) | Destruktivní psql restore lokálního dumpu na betač + cache:clear. Pouze staging fáze. |
 
 Flow při běžné změně kódu:
 
 ```
-git commit + push → CI:preflight (check-server-env.sh) → CI:deploy (deploy.sh)
+git commit + push → CI:preflight (check-server-env.sh + check-caddy.sh) → CI:deploy (deploy.sh)
                                        │
-                                       ↓ pokud fail
+                                       ↓ pokud kterýkoli fail
                                   deploy se nezačne, server zůstává na předchozí verzi
 ```
 
@@ -135,38 +137,15 @@ sudo -u postgres psql -d slack_cz
 
 ## Caddy
 
-`/etc/caddy/Caddyfile` (zálohovaný default je v `Caddyfile.default.bak`):
+**Source of truth: [`infra/Caddyfile`](../infra/Caddyfile) v repu.** Server kopii v `/etc/caddy/Caddyfile` udržujeme synchronně přes `make deployCaddy`. Drift detekuje `make checkCaddy` (volá se taky automaticky jako preflight v `make deploy` — fail-fast na neshodu).
 
-```caddyfile
-{
-    email panda09823@gmail.com
-}
+| Akce | Příkaz | Co dělá |
+|---|---|---|
+| Drift check | `make checkCaddy` | SSH `sudo cat /etc/caddy/Caddyfile`, diff vs `infra/Caddyfile`. Exit 1 = drift. |
+| Push verze z repa | `make deployCaddy` | scp → `sudo caddy validate` → atomic cp → `sudo systemctl restart caddy` + smoke test. |
+| Stáhnout server verzi | `ssh deploy@beta 'sudo cat /etc/caddy/Caddyfile' > infra/Caddyfile` | Kdyby někdo edit-nul ručně na serveru a chceš to zpětně commitnout (raději ne). |
 
-# Bare IP (HTTP only — LE neumí vystavit cert pro IP)
-http://178.105.81.158, http://[2a01:4f8:1c18:6966::1] {
-    root * /var/www/slack-cz/public
-    encode gzip zstd
-    php_fastcgi unix//run/php/php8.3-fpm.sock
-    file_server
-}
-
-# Doménový přístup s auto-HTTPS přes Let's Encrypt
-beta.slack.cz {
-    root * /var/www/slack-cz/public
-    encode gzip zstd
-
-    # Cache foto galerie staticky (origin uploads + on-demand thumby).
-    # Thumby v /media/cache mají hash v cestě (filter+filename), takže obsah pod
-    # konkrétní URL je immutable. Originály v /uploads/highline/{id}/<uniqid>.ext —
-    # filename obsahuje uniqid, takže taky immutable. Max-age 30 dní + immutable
-    # hint zachrání ~99 % requestů na opakovaný view.
-    @photos path /uploads/* /media/cache/*
-    header @photos Cache-Control "public, max-age=2592000, immutable"
-
-    php_fastcgi unix//run/php/php8.3-fpm.sock
-    file_server
-}
-```
+Workflow: změnu Caddy konfigurace dělej v `infra/Caddyfile`, commitni do repa, pusť `make deployCaddy`. Nikdy needituj `/etc/caddy/Caddyfile` přímo na serveru — drift check ti to při příštím deploy zachytí, ale udržíš tím repo jako jediný kanonický stav.
 
 | | |
 |---|---|
@@ -333,7 +312,7 @@ Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
    - Změnit A z legacy IP na `178.105.81.158`
    - Přidat AAAA na `2a01:4f8:1c18:6966::1`
    - Gray cloud (DNS-only) kvůli Caddy auto-HTTPS
-4. **Caddyfile pro `slack.cz`** — přidat blok analogický k `beta.slack.cz` (vč. `@photos` matcher + `Cache-Control immutable` pro `/uploads/*` a `/media/cache/*`). Pokud chceme `www.slack.cz` redirect na apex, přidat redir block.
+4. **Caddyfile pro `slack.cz`** — v `infra/Caddyfile` přidat blok analogický k `beta.slack.cz` (sdílejí `@photos` matcher). Pokud chceme `www.slack.cz` redirect na apex, přidat redir block. Pak `make deployCaddy`.
 5. **YouTube API key + GitHub PAT** — dostat reálné hodnoty do `.env.local` (`YOUTUBE_API_KEY`, `DOCS_GITHUB_TOKEN`).
 6. **(volitelné) `unattended-upgrades`** pro automatické security patche.
 7. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.
@@ -453,19 +432,19 @@ Jediný idempotentní skript pro dvě role:
    Stejný skript, ale díky idempotenci no-opuje vše už hotové. Reálně se přeinstalují jen nově přidané apt packages a refresh ACL. `.env.local` se v žádném scénáři nepřepisuje.
 
 **Co skript NEDĚLÁ úmyslně:**
-- nezasahuje do `/etc/caddy/Caddyfile` — Caddy bloky pro `beta.slack.cz` / `slack.cz` doplň ručně (viz sekce Caddy výš)
+- nezasahuje do `/etc/caddy/Caddyfile` — řízeno separátně přes `infra/Caddyfile` + `make deployCaddy` (viz sekce Caddy výš)
 - nedropuje žádné Postgres role / DB / data
 - nepřepisuje `.env.local` — pokud existuje, skipuje regeneraci `APP_SECRET`/DB hesla (jejich ztrátu chceme prevent)
 
 **„Weird state" detekce:** pokud existuje `.env.local`, ale Postgres role chybí (nebo opačně), skript exit 1 s instrukcí ručního recovery — odmítne uhodnout heslo a generovat nový (rozbil by connect / cache invalidace).
 
 Po fresh setupu zbývá ručně:
-1. `/etc/caddy/Caddyfile` site blok + `sudo systemctl reload caddy`
+1. Caddy konfig — push z repa: `make deployCaddy` (předtím v `infra/Caddyfile` doplň site blok pro novou doménu, viz sekce Caddy výš)
 2. SSH klíč pro `deploy` (`ssh-copy-id`) — pokud setup běžel jako root, deploy zatím SSH nemá
 3. GH repo secret `DEPLOY_SSH_KEY` (privátní klíč pro deploy usera)
 4. DNS records v Cloudflare na IP tohoto serveru
 
-Pak `make checkServerEnv` z lokálu pro verifikaci.
+Pak `make checkServerEnv` + `make checkCaddy` z lokálu pro verifikaci.
 
 ### Composer post-install scripts spouštějí cache:clear v prod
 

@@ -1,0 +1,24 @@
+{
+	email panda09823@gmail.com
+}
+
+http://178.105.81.158, http://[2a01:4f8:1c18:6966::1] {
+	root * /var/www/slack-cz/public
+	encode gzip zstd
+	php_fastcgi unix//run/php/php8.3-fpm.sock
+	file_server
+}
+
+beta.slack.cz {
+	root * /var/www/slack-cz/public
+	encode gzip zstd
+
+	# Foto galerie — originály v /uploads/highline/{id}/<uniqid>.ext, thumby
+	# v /media/cache/{filter}/... s hash v cestě. Obsah pod konkrétní URL je
+	# immutable, takže max-age 30 dní + immutable hint zachrání round-tripy.
+	@photos path /uploads/* /media/cache/*
+	header @photos Cache-Control "public, max-age=2592000, immutable"
+
+	php_fastcgi unix//run/php/php8.3-fpm.sock
+	file_server
+}

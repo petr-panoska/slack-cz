@@ -1,8 +1,8 @@
 name: deploy
 
 # Auto-deploy push do main na beta.slack.cz (Hetzner VPS, native PHP-FPM + Postgres + Caddy).
-# Mirror lokálního `make deploy` — používá stejné `scripts/check-server-env.sh`
-# (preflight gate) + `scripts/deploy.sh` (vlastní deploy) přes SSH bash -s.
+# Mirror lokálního `make deploy` — používá stejné preflight skripty
+# (`check-server-env.sh` + `check-caddy.sh`) a `deploy.sh` přes SSH bash -s.
 #
 # Required GH repo secrets:
 #   DEPLOY_SSH_KEY   — privátní SSH klíč pro user `deploy` (=ed25519, lokálně ~/.ssh/slack_cz_prod)
@@ -43,6 +43,12 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 "$SERVER_USER@$SERVER_HOST" 'bash -s' -- "${{ github.sha }}" \
             < scripts/check-server-env.sh
+
+      - name: Check Caddy config drift
+        env:
+          SSH_KEY: /home/runner/.ssh/id_ed25519
+          SSH_HOST: ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}
+        run: ./scripts/check-caddy.sh
 
   deploy:
     needs: preflight

@@ -75,12 +75,25 @@ checkServerEnv:
 	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' -- "$$LOCAL_HEAD" \
 		< scripts/check-server-env.sh
 
+# Drift check pro /etc/caddy/Caddyfile na betě vs infra/Caddyfile v repu.
+# Repo je kanonický zdroj — server musí sedět. Volá se taky implicitně
+# z `make deploy` jako preflight gate. Exit 1 = drift, deploy se zastaví.
+#   make checkCaddy
+checkCaddy:
+	@./scripts/check-caddy.sh
+
+# Push infra/Caddyfile na betu (validate → cp → restart caddy + smoke test).
+# Spusť kdykoliv změníš infra/Caddyfile a chceš to mít živé.
+#   make deployCaddy
+deployCaddy:
+	@./scripts/deploy-caddy.sh
+
 # Deploy aktuálního `main` na beta.slack.cz (jen pull+build na serveru, NEpushuje).
 # Předpoklad: commit + push do origin/main už máš hotový.
 #   make deploy
-# Spustí nejdřív preflight check (`checkServerEnv`) — pokud server nemá co potřebuje,
-# deploy se nezačne.
-deploy: checkServerEnv
+# Spustí nejdřív preflighty (`checkServerEnv` + `checkCaddy`) — pokud server
+# nemá co potřebuje, nebo Caddyfile drift-uje, deploy se nezačne.
+deploy: checkServerEnv checkCaddy
 	@echo "→ deploying origin/main na beta.slack.cz..."
 	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' < scripts/deploy.sh
 	@echo "→ smoke test:"
