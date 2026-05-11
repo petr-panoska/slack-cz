@@ -150,6 +150,31 @@ docker compose exec -T php bin/console app:import:crossings --truncate
 
 Nebo `make legacyImportFresh` (vyžaduje, aby MySQL měla dump nahrátý — krok 0 výše dělá jen jednorázově po smazání volumes).
 
+## Účty / správa uživatelů
+
+```bash
+# Seznam všech uživatelů (id, email, nick, verified, active)
+docker compose exec -T php bin/console app:user:list
+
+# Filtr substringem na email/nick
+docker compose exec -T php bin/console app:user:list -s pepa
+
+# Jen neaktivovaní (isVerified=false)
+docker compose exec -T php bin/console app:user:list --unverified
+
+# Vygenerovat password-reset URL pro usera (email nebo id).
+# Použij když mailer nejede (dev = Mailpit místo reálných mailů, prod beta = null://null).
+# Vrátí absolutní URL — domain se bere z framework.router.default_uri (= APP_URL env).
+docker compose exec -T php bin/console app:user:reset-password panda@example.com
+docker compose exec -T php bin/console app:user:reset-password 42
+
+# Grant/revoke ROLE_ADMIN
+docker compose exec -T php bin/console app:admin:grant <email>
+docker compose exec -T php bin/console app:admin:grant <email> --revoke
+```
+
+> `app:user:reset-password` reálně zapíše `ResetPasswordRequest` do DB (token s lifetime z bundlu) — token je jednorázový a vyprší stejně jako kdyby přišel mailem. Workflow přes `SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface`, žádný hack.
+
 ## Smoke testy v terminálu
 
 ```bash

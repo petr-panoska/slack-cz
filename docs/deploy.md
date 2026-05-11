@@ -199,6 +199,26 @@ Pro úkony co potřebují čtení `.env.local` jako `www-data` (test perms):
 sudo -u www-data bash -c "cd /var/www/slack-cz && APP_ENV=prod php bin/console <cmd>"
 ```
 
+### Reset hesla / aktivace účtu, když nechodí maily
+
+Dokud nebude nasazený externí SMTP relay (viz Cutover TODO níž), mailer na betě je `null://null` — registrační maily i password-reset maily se tiše zahazují. Workaround přes konzoli:
+
+```bash
+ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158
+cd /var/www/slack-cz
+
+# 1) Najdi usera (filtr substringem, nebo --unverified pro neaktivované)
+APP_ENV=prod php bin/console app:user:list -s pepa
+APP_ENV=prod php bin/console app:user:list --unverified
+
+# 2) Vygeneruj password-reset URL (email nebo id). URL pošli userovi ručně
+#    (Signal, Messenger, SMS, ...). Token je jednorázový a má lifetime z bundlu.
+APP_ENV=prod php bin/console app:user:reset-password panda@example.com
+APP_ENV=prod php bin/console app:user:reset-password 42
+```
+
+URL se generuje s absolute scheme + host přes `framework.router.default_uri` (= `APP_URL` v `.env.local`). Po cutoveru na `slack.cz` přepiš `APP_URL` v `/var/www/slack-cz/.env.local` na `https://slack.cz` a `sudo systemctl reload php8.3-fpm`.
+
 ### Sync dat z lokálu na betu
 
 Když chceš dostat aktuální stav lokální Postgres DB (highlines, users, crossings, ...) na `beta.slack.cz`:
