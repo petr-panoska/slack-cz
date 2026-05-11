@@ -57,6 +57,15 @@ syncBetaFromLocal:
 	@rm /tmp/slack-cz.sql
 	@echo "✓ Beta data synced from local."
 
+# Provisioning serveru (idempotentní). Update-za-chodu mode — pustí
+# `scripts/setup-server.sh` na betač jako deploy uživatel. Doinstaluje nové
+# apt packages / vytvoří chybějící adresáře + ACL. Pro fresh louku z root
+# usera spusť skript ručně přes `ssh root@HOST 'bash -s' < scripts/setup-server.sh`
+# (viz docs/deploy.md sekce "Server provisioning").
+#   make setupServer
+setupServer:
+	ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158 'bash -s' < scripts/setup-server.sh
+
 # Preflight check produkčního prostředí — verifikuje PHP extensions, FS perms,
 # .env.local klíče, Postgres connect, atd. proti lokálnímu HEADu. Volá se
 # automaticky z `make deploy` jako fail-fast gate. Lze pustit i samostatně:

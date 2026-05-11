@@ -4,6 +4,46 @@ Staging instance nové Symfony aplikace běží na **<https://beta.slack.cz>**. 
 
 Kompletní audit setup procesu je na produkčním serveru v `/root/deploy.log` (`ssh deploy@... && sudo cat /root/deploy.log`). Tenhle dokument je high-level reference; deploy.log je ground truth co se reálně spustilo.
 
+## Infrastruktura na první pohled
+
+Tři prostředí:
+
+| Prostředí | Kde | Co tam je | Spravované jak |
+|---|---|---|---|
+| **Dev** | tvůj laptop, Docker Compose | Apache + PHP-FPM + Postgres 16 + MySQL legacy + Adminer + Mailpit. Bind-mount repa. | `docker compose` + `make dc*` targety, viz `dev.md` |
+| **CI** | GitHub Actions (`.github/workflows/deploy.yml`) | ephemeral Ubuntu runner. Triggered push do `main` + `workflow_dispatch`. Joby: `preflight` → `deploy`. | YAML inlinuje `ssh ... 'bash -s' < scripts/<X>.sh`, žádný copy-paste z `deploy.sh` |
+| **Prod (beta.slack.cz)** | Hetzner CX22 (`178.105.81.158`), Ubuntu 24.04 | **Native** PHP 8.3 + Postgres 16 + Caddy + ufw + fail2ban. Žádný Docker. App v `/var/www/slack-cz` jako `deploy` user. | Skripty v `scripts/`, viz tabulka níž |
+
+Tři skripty drží celou prod stranu. **Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč), updatuj patřičný skript ve stejném commitu jako kód — další deploy padne fail-fast, dokud server nedoinstaluješ.
+
+| Skript | Kdy se pouští | Co dělá |
+|---|---|---|
+| **`scripts/setup-server.sh`** | 1× při fresh louce (`ssh root@HOST`), pak občas update-za-chodu (`ssh deploy@HOST`) | Idempotentní provisioning: apt packages (PHP+ext, Postgres, Caddy přes vlastní apt repo), `deploy` user + NOPASSWD sudoers, `git clone`, Postgres role/DB/.env.local atomicky, ACL pro `www-data` na writable dirs, enable+start systemd. **Nikdy** nepřepisuje `.env.local`, nedropuje DB, nezasahuje do Caddyfile. Spustí se přes `make setupServer`. |
+| **`scripts/check-server-env.sh`** | Před každým deployem (lokál i CI), volitelně manuálně před `git push` | Preflight gate. Verifikuje git stav (server HEAD vs lokál), PHP+extensions, GD WebP, sys binárky, služby, FS perms `www-data`, `.env.local` klíče, Postgres connect, pending migrace. Exit 1 = deploy zhasne. Spustí se přes `make checkServerEnv`. |
+| **`scripts/deploy.sh`** | Při každém deployi (lokál `make deploy` i CI `deploy` job) | `git pull`, `mkdir -p` writable dirs, `composer install --no-dev`, `doctrine:migrations:migrate`, `asset-map:compile`, `cache:clear` (×2 — composer hook + explicit), `cache:pool:clear cache.app`, `systemctl reload php8.3-fpm`. |
+| **`scripts/sync-beta-restore.sh`** | Po `make syncBetaFromLocal` (přes SSH stdin) | Destruktivní psql restore lokálního dumpu na betač + cache:clear. Pouze staging fáze. |
+
+Flow při běžné změně kódu:
+
+```
+git commit + push → CI:preflight (check-server-env.sh) → CI:deploy (deploy.sh)
+                                       │
+                                       ↓ pokud fail
+                                  deploy se nezačne, server zůstává na předchozí verzi
+```
+
+Flow při změně závislostí (nová PHP ext, writable dir, env klíč):
+
+```
+1. update spec v skriptu (setup-server.sh PKGS list / check-server-env.sh REQUIRED_*)
+2. update kód
+3. commit oboje spolu
+4. ssh deploy@HOST → make setupServer (nebo přes Makefile target setupServer)
+5. push → CI preflight projde → deploy projde
+```
+
+Cesta zpět ke konkrétním detailům je v sekcích dál v tomhle dokumentu (Server, Stack, Aplikace, Caddy, Operace, Gotchas).
+
 ## Server
 
 | | |
@@ -230,7 +270,7 @@ sudo systemctl reload php8.3-fpm
 
 > `--ff-only` chrání před tím, abys neúmyslně nemergeoval, kdyby na betě někdo udělal lokální commit (typicky když SSH-režíruješ nějaký quick fix).
 
-> Současný `.github/workflows/deploy.yml` cílí na **staré** `154.43.62.26` (legacy box) a dělá jen `git pull && composer install` — pro nový server nestačí ani vzdáleně. Přepsat při cutoveru.
+> CI workflow `.github/workflows/deploy.yml` zrcadlí přesně tenhle flow — `preflight` job spustí `scripts/check-server-env.sh` přes SSH, na něm `needs:` má `deploy` job, který spustí `scripts/deploy.sh` přes SSH `bash -s`. Žádné inline duplikace.
 
 ### Post-deploy smoke
 
@@ -280,18 +320,14 @@ Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
 
 1. **Doimport legacy dat** — lokálně dotáhnout MySQL → Postgres user/highline/crossing import (částečně hotovo dle `migration.md`), pak `pg_dump` z lokálu, `pg_restore` na produkci.
 2. **MAILER_DSN** — externí SMTP relay (Brevo / Mailgun / Postmark / ...), ne vlastní mailserver. Hetzner blokuje port 25 outbound default.
-3. **`.github/workflows/deploy.yml`** — přepsat na nový VPS s plným flow:
-   - Změnit host na `178.105.81.158`, user na `deploy`
-   - Přidat kroky `composer install --no-dev`, `doctrine:migrations:migrate -n`, `asset-map:compile`, `cache:clear`, `systemctl reload php8.3-fpm`
-   - Secret `deploy_key` v GitHub Actions = obsah `~/.ssh/slack_cz_prod` private key
-4. **DNS swap pro `slack.cz`** v Cloudflare:
+3. **DNS swap pro `slack.cz`** v Cloudflare:
    - Změnit A z legacy IP na `178.105.81.158`
    - Přidat AAAA na `2a01:4f8:1c18:6966::1`
    - Gray cloud (DNS-only) kvůli Caddy auto-HTTPS
-5. **Caddyfile pro `slack.cz`** — přidat blok analogický k `beta.slack.cz`. Pokud chceme `www.slack.cz` redirect na apex, přidat redir block.
-6. **YouTube API key + GitHub PAT** — dostat reálné hodnoty do `.env.local` (`YOUTUBE_API_KEY`, `DOCS_GITHUB_TOKEN`).
-7. **(volitelné) `unattended-upgrades`** pro automatické security patche.
-8. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.
+4. **Caddyfile pro `slack.cz`** — přidat blok analogický k `beta.slack.cz`. Pokud chceme `www.slack.cz` redirect na apex, přidat redir block.
+5. **YouTube API key + GitHub PAT** — dostat reálné hodnoty do `.env.local` (`YOUTUBE_API_KEY`, `DOCS_GITHUB_TOKEN`).
+6. **(volitelné) `unattended-upgrades`** pro automatické security patche.
+7. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.
 
 ## Gotchas (z reálného setupu, nech tu, ať to nezblbneš znovu)
 
@@ -391,29 +427,36 @@ Skript spoléhá na to, že `deploy` user má `NOPASSWD sudoers` pro `sudo -u ww
 deploy ALL=(ALL) NOPASSWD: ALL
 ```
 
-### Foto galerie — 1× ruční setup před prvním deployem
+### Server provisioning — `scripts/setup-server.sh`
 
-Galerie přidala závislost na PHP `gd` + `exif` (origin EXIF strip + liip_imagine thumby) a na write-přístup do `public/uploads/` a `public/media/cache/`. Default `php8.3` install na Hetzner image tyhle extensions nemá a adresáře neexistují. Bez fixu po `make deploy` padne první request na detail lajny s nějakou fotkou (případně první upload).
+Jediný idempotentní skript pro dvě role:
 
-Na serveru jako `deploy` user, **jednou**:
+1. **Fresh louka** — čerstvé Hetzner image (Ubuntu 24.04). Spustit jako root:
+   ```bash
+   ssh root@HOST 'bash -s' < scripts/setup-server.sh
+   ```
+   Nainstaluje apt packages (PHP 8.3 + ext, Postgres 16, Caddy přes vlastní apt repo, git, acl, …), vytvoří `deploy` usera + NOPASSWD sudoers, naklonuje repo do `/var/www/slack-cz`, vytvoří Postgres roli + DB + `.env.local` atomicky (random `APP_SECRET` + DB heslo, mode 640, owner `deploy:www-data`), nastaví ACL pro `www-data` na writable adresáře (`var/cache`, `var/log`, `public/uploads`, `public/media/cache`), enable + start systemd služeb.
 
-```bash
-# 1) GD + EXIF
-sudo apt update
-sudo apt install -y php8.3-gd
-# (exif je v core, ale ověř `php -m | grep -iE 'gd|exif'`)
-sudo systemctl reload php8.3-fpm
+2. **Update za chodu** — když přibyla nová závislost (PHP extension, writable dir). Spustit jako deploy:
+   ```bash
+   ssh deploy@HOST 'bash -s' < scripts/setup-server.sh
+   ```
+   Stejný skript, ale díky idempotenci no-opuje vše už hotové. Reálně se přeinstalují jen nově přidané apt packages a refresh ACL. `.env.local` se v žádném scénáři nepřepisuje.
 
-# 2) Upload + cache adresáře
-cd /var/www/slack-cz
-mkdir -p public/uploads public/media/cache
+**Co skript NEDĚLÁ úmyslně:**
+- nezasahuje do `/etc/caddy/Caddyfile` — Caddy bloky pro `beta.slack.cz` / `slack.cz` doplň ručně (viz sekce Caddy výš)
+- nedropuje žádné Postgres role / DB / data
+- nepřepisuje `.env.local` — pokud existuje, skipuje regeneraci `APP_SECRET`/DB hesla (jejich ztrátu chceme prevent)
 
-# 3) ACL stejně jako u var/cache, var/log
-sudo setfacl -R  -m u:www-data:rwX public/uploads public/media/cache
-sudo setfacl -dR -m u:www-data:rwX public/uploads public/media/cache
-```
+**„Weird state" detekce:** pokud existuje `.env.local`, ale Postgres role chybí (nebo opačně), skript exit 1 s instrukcí ručního recovery — odmítne uhodnout heslo a generovat nový (rozbil by connect / cache invalidace).
 
-Idempotentní `mkdir -p` je v `scripts/deploy.sh`, takže se to po další checkout/deployi neztratí. Co `deploy.sh` **nedělá**: `setfacl` (vyžaduje sudo bez TTY → komplikace). Pokud někdy adresáře zmizí (`rm -rf` apod.), ACL je nutné aplikovat znovu ručně.
+Po fresh setupu zbývá ručně:
+1. `/etc/caddy/Caddyfile` site blok + `sudo systemctl reload caddy`
+2. SSH klíč pro `deploy` (`ssh-copy-id`) — pokud setup běžel jako root, deploy zatím SSH nemá
+3. GH repo secret `DEPLOY_SSH_KEY` (privátní klíč pro deploy usera)
+4. DNS records v Cloudflare na IP tohoto serveru
+
+Pak `make checkServerEnv` z lokálu pro verifikaci.
 
 ### Composer post-install scripts spouštějí cache:clear v prod
 

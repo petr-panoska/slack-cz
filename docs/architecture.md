@@ -4,6 +4,9 @@ Symfony 7.3 / PHP 8.2+ aplikace. Vyvíjí se v Dockeru (Compose); staging na <ht
 
 Dev běží na **native docker-ce** (Linux) — žádný Docker Desktop, žádný `linuxkit`, žádný FUSE wrapper. Bind mount je raw `ext4` přímo z hostu, atomic-rename funguje korektně (důležité, viz historie editací; DD's `fakeowner` FUSE měl invalidation bug).
 
+> **Infrastruktura, prod provoz, deploy flow, CI workflow, skripty** → `deploy.md` (sekce „Infrastruktura na první pohled" je 2-minutový rozcestník).
+> **Operační cookbook** (`make` targety, časté konzole příkazy, smoke testy) → `dev.md`.
+
 ## Stack
 
 | Vrstva | Komponenta | Host port |

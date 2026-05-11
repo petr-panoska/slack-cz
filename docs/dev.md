@@ -46,6 +46,8 @@ docker compose exec -T php bin/console <cmd>
 
 ### Make targety (zkratky)
 
+**Lokální (Docker compose):**
+
 | Target | Co dělá |
 |---|---|
 | `make dcSetup` | `composer install` |
@@ -56,7 +58,17 @@ docker compose exec -T php bin/console <cmd>
 | `make loadLegacyDump` | jednorázový load `slackcz_44953.sql` po fresh `docker compose down -v` |
 | `make legacyImport` | re-run importů uvnitř existujícího schématu (DELETE crossings → highlines/users/crossings truncate) |
 | `make legacyImportFresh` | drop + create + migrate + full import (předpokládá nahraný legacy dump) |
+
+**Produkce (SSH na `beta.slack.cz`):**
+
+| Target | Co dělá |
+|---|---|
+| `make setupServer` | `ssh deploy@HOST 'bash -s' < scripts/setup-server.sh` — idempotentní provisioning. Doinstaluje apt packages, vytvoří chybějící adresáře + ACL. Pro fresh louku spusť skript ručně jako root, viz `deploy.md`. |
+| `make checkServerEnv` | Preflight skript přes SSH — verifikuje že server má vše co lokální HEAD potřebuje (PHP ext, FS perms, .env.local klíče, …). Exit 1 zablokuje `make deploy`. Pusť i ručně před `git push` pro fast feedback. |
+| `make deploy` | Závisí na `checkServerEnv`. Po úspěšném preflightu: `ssh deploy@HOST 'bash -s' < scripts/deploy.sh` + post-deploy smoke test. |
 | `make syncBetaFromLocal` | pg_dump lokál → scp → psql restore + cache:clear na `beta.slack.cz` (destruktivní, viz `deploy.md`) |
+
+Detail flow + script ecosystem v `deploy.md` sekce „Infrastruktura na první pohled".
 
 ### Časté konzole příkazy
 
