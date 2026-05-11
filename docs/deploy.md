@@ -115,7 +115,10 @@ APP_SECRET=<random hex 32>
 DATABASE_URL=postgresql://slack_cz:<random>@127.0.0.1:5432/slack_cz?serverVersion=16&charset=utf8
 OLD_DATABASE_URL=mysql://nobody:nobody@127.0.0.1:3306/none?serverVersion=8.0
 MAILER_DSN=null://null
+APP_URL=https://beta.slack.cz
 ```
+
+> `APP_URL` čte `framework.router.default_uri` (viz `config/packages/routing.yaml`) — bez něj by CLI commandy (např. `app:user:reset-password`) generovaly URL na `http://localhost`. Po cutoveru na apex změnit na `https://slack.cz`.
 
 > ⚠ DB heslo a `APP_SECRET` jsou random vygenerované při setupu, **NIKDE jinde nezálohované**. Když se ztratí `.env.local`, je třeba znovu vytvořit Postgres roli + heslo. Až bude vault / secrets management, přesunout sem.
 

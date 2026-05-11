@@ -1,8 +1,8 @@
 framework:
     router:
-        # Configure how to generate URLs in non-HTTP contexts, such as CLI commands.
+        # Used for URL generation in CLI commands (e.g. app:user:reset-password).
         # See https://symfony.com/doc/current/routing.html#generating-urls-in-commands
-        #default_uri: http://localhost
+        default_uri: '%env(APP_URL)%'
 
 when@prod:
     framework:
