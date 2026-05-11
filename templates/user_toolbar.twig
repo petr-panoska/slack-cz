@@ -62,8 +62,9 @@
             <div class="intro-overlay" data-intro-target="overlay">
                 <div class="intro-content">
                     <img src="{{ asset('images/logo.png') }}" alt="slack.cz" class="intro-logo" />
-                    <button type="button" class="intro-button" data-action="click->intro#enter">Vstoupit</button>
+                    <button type="button" class="intro-button" data-action="click->intro#enterSilent">Vstoupit</button>
                 </div>
+                <button type="button" class="intro-button intro-button--small intro-button-slackvibes" data-action="click->intro#enter">slackvibes 📻</button>
             </div>
 
             <aside class="music-panel panel" data-intro-target="menu" role="group" aria-label="Hudba">

@@ -189,7 +189,27 @@ export default class extends Controller {
         this.element.classList.add('intro-started');
         this.overlayTarget?.classList.add('intro-dismissing');
 
+        // User reached the app via the slackvibes CTA — ensure the player is
+        // visible (clears any leftover hide from a prior Turbo navigation).
+        this.element.classList.remove('music-hidden');
+        localStorage.removeItem(STORAGE_HIDDEN);
+
         this.startAudio();
+    }
+
+    // Dismisses the splash without starting audio. Player stays hidden until
+    // the user reveals it via a full reload (firstConnect clears the hide flag)
+    // or any UI affordance that toggles `music-hidden` off.
+    enterSilent(event) {
+        event?.preventDefault();
+        if (shared.started) return;
+        shared.started = true;
+
+        this.element.classList.add('intro-started');
+        this.overlayTarget?.classList.add('intro-dismissing');
+
+        this.element.classList.add('music-hidden');
+        localStorage.setItem(STORAGE_HIDDEN, 'true');
     }
 
     toggleMute(event) {

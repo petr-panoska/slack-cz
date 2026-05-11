@@ -10,7 +10,7 @@ Tři ortogonální stavy:
 |---|---|---|---|
 | **Compact (docked)** | Default; `−` v expanded | Pill v hlavičce vlevo od loginu | `slack-cz:music:compact = true` |
 | **Expanded (floating)** | `+` v compact | 320px panel, draggable, s title/artist/progress/queue | `slack-cz:music:compact = false` |
-| **Hidden** | `×` (v jakémkoli stavu) | Zmizí (`display: none`) až do dalšího full reloadu | `slack-cz:music:hidden = true` (smaže se na cold load) |
+| **Hidden** | `×` v panelu nebo „Vstoupit" na splash | Zmizí (`display: none`) až do dalšího full reloadu | `slack-cz:music:hidden = true` (smaže se na cold load) |
 
 Mute/Play tlačítko slouží duálně:
 - **Compact**: zobrazí ▶/⏸ + provádí play/pause
@@ -93,14 +93,16 @@ Controller togluje `.is-playing` třídu na `.music-panel` podle `audio.paused`.
 - `.is-playing` — řídí equalizer animaci + ▶/⏸ ikonu v compact mute button
 - `.is-dragging` — vypíná transitions během drag, prohloubí stín
 
-## Splash overlay (Vstoupit)
+## Splash overlay (Vstoupit / slackvibes 📻)
 
-Full-screen overlay zobrazený na cold load. Nutný protože browser blokuje autoplay bez user gesture. Po kliku:
-- `shared.started = true`
-- `.intro-started` class na wrapperu
-- Audio startuje přes `startAudio()` — Vstoupit klik je gesture pro unlock
+Full-screen overlay zobrazený na cold load. Nutný protože browser blokuje autoplay bez user gesture. Dvě CTA pod sebou:
 
-Nepersistuje — každý cold load = splash. Turbo navigace respektuje `shared.started` (module scope), takže splash se znovu neobjeví během procházení.
+| Tlačítko | Action | Po kliku |
+|---|---|---|
+| **Vstoupit** | `intro#enterSilent` | `shared.started = true` + `.intro-started` + `.music-hidden` na wrapperu + `STORAGE_HIDDEN = true`. **Audio se nespouští.** Player zůstane skrytý — toggle-back přes full reload (firstConnect clear). |
+| **slackvibes 📻** | `intro#enter` | `shared.started = true` + `.intro-started` + clear `music-hidden`/`STORAGE_HIDDEN` (kdyby tam zbyl z předchozí Turbo nav) + `startAudio()`. Klik je gesture pro autoplay unlock. |
+
+Default UX: většina návštěvníků klikne „Vstoupit" → tichý vstup. Kdo chce hudbu, klikne na druhý button. Nepersistuje — každý cold load = nový splash s oběma volbami. Turbo navigace respektuje `shared.started` (module scope), takže splash se znovu neobjeví během procházení.
 
 ## Soubory
 

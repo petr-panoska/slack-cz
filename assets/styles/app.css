@@ -672,6 +672,11 @@ a.crossings-line:hover {
         inset 0 0 16px rgba(225, 0, 91, 0.1);
 }
 
+.intro-button--small {
+    padding: 8px 20px;
+    font-size: 0.7rem;
+}
+
 .intro-button:hover,
 .intro-button:focus-visible {
     background: var(--color-accent);
@@ -685,6 +690,13 @@ a.crossings-line:hover {
 
 .intro-button:active {
     transform: scale(0.97);
+}
+
+.intro-button-slackvibes {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% -150%;
 }
 
 @media (prefers-reduced-motion: reduce) {
