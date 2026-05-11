@@ -448,7 +448,11 @@ class Highline
         return $this->createdAt;
     }
 
-    public function getCoverUrl(): ?string
+    /**
+     * Legacy URL fallback used when no HighlinePhoto exists in DB.
+     * Caller composes the fallback chain in twig: first photo thumb → this → null.
+     */
+    public function getLegacyCoverUrl(): ?string
     {
         if ($this->legacyId === null) {
             return null;

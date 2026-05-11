@@ -154,6 +154,15 @@ http://178.105.81.158, http://[2a01:4f8:1c18:6966::1] {
 beta.slack.cz {
     root * /var/www/slack-cz/public
     encode gzip zstd
+
+    # Cache foto galerie staticky (origin uploads + on-demand thumby).
+    # Thumby v /media/cache mají hash v cestě (filter+filename), takže obsah pod
+    # konkrétní URL je immutable. Originály v /uploads/highline/{id}/<uniqid>.ext —
+    # filename obsahuje uniqid, takže taky immutable. Max-age 30 dní + immutable
+    # hint zachrání ~99 % requestů na opakovaný view.
+    @photos path /uploads/* /media/cache/*
+    header @photos Cache-Control "public, max-age=2592000, immutable"
+
     php_fastcgi unix//run/php/php8.3-fpm.sock
     file_server
 }
@@ -324,7 +333,7 @@ Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
    - Změnit A z legacy IP na `178.105.81.158`
    - Přidat AAAA na `2a01:4f8:1c18:6966::1`
    - Gray cloud (DNS-only) kvůli Caddy auto-HTTPS
-4. **Caddyfile pro `slack.cz`** — přidat blok analogický k `beta.slack.cz`. Pokud chceme `www.slack.cz` redirect na apex, přidat redir block.
+4. **Caddyfile pro `slack.cz`** — přidat blok analogický k `beta.slack.cz` (vč. `@photos` matcher + `Cache-Control immutable` pro `/uploads/*` a `/media/cache/*`). Pokud chceme `www.slack.cz` redirect na apex, přidat redir block.
 5. **YouTube API key + GitHub PAT** — dostat reálné hodnoty do `.env.local` (`YOUTUBE_API_KEY`, `DOCS_GITHUB_TOKEN`).
 6. **(volitelné) `unattended-upgrades`** pro automatické security patche.
 7. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.

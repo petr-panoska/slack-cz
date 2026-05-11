@@ -37,6 +37,39 @@
             {{ include('_partials/_recent_crossings.html.twig', { crossings: recent_crossings, layout: 'stripe' }) }}
         </aside>
         {% endif %}
+
+        {% if recent_photos|length > 0 %}
+        <aside class="panel panel-photos">
+            <header class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-dot panel-dot-gallery"></span>
+                    <h2>Z galerie</h2>
+                </div>
+            </header>
+            <ul class="hp-photos-grid">
+                {% for photo in recent_photos %}
+                    <li class="hp-photo">
+                        <a href="{{ path('app_highline_photo_detail', { slug: photo.highline.slug, id: photo.id }) }}" class="hp-photo-link">
+                            <img
+                                src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('highline_thumb') }}"
+                                alt="{{ photo.caption ?? photo.highline.name }}"
+                                loading="lazy"
+                                decoding="async"
+                                width="320"
+                                height="240"
+                            >
+                            <span class="hp-photo-overlay">
+                                <span class="hp-photo-line">{{ photo.highline.name }}</span>
+                                {% if photo.uploadedBy %}
+                                    <span class="hp-photo-author">{{ photo.uploadedBy.displayName }}</span>
+                                {% endif %}
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </aside>
+        {% endif %}
     </div>
 
     {% if feed_items|length > 0 %}

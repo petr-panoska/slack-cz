@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\HighlineCrossingRepository;
 use App\Repository\HighlineEditRepository;
+use App\Repository\HighlinePhotoCommentRepository;
+use App\Repository\HighlinePhotoLikeRepository;
 use App\Repository\HighlinePhotoRepository;
 use App\Repository\HighlineRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -29,12 +32,21 @@ final class HighlineController extends AbstractController
         HighlineCrossingRepository $crossings,
         HighlineEditRepository $edits,
         HighlinePhotoRepository $photos,
+        HighlinePhotoLikeRepository $likes,
+        HighlinePhotoCommentRepository $comments,
     ): Response {
+        $photoList = $photos->findForHighline($highline);
+        $photoIds = array_map(static fn ($p) => $p->getId(), $photoList);
+        $user = $this->getUser();
+
         return $this->render('pages/highline_detail.html.twig', [
             'highline' => $highline,
             'crossings' => $crossings->findForHighline($highline),
             'historyCount' => $edits->countHistoryFor($highline),
-            'photos' => $photos->findForHighline($highline),
+            'photos' => $photoList,
+            'likeCounts' => $likes->countsForPhotos($photoIds),
+            'commentCounts' => $comments->countsForPhotos($photoIds),
+            'likedIds' => $user instanceof User ? $likes->likedPhotoIdsForUser($user, $photoIds) : [],
         ]);
     }
 

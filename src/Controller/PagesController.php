@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Feed\FeedFetcherInterface;
 use App\Old\Entity\Uzivatel;
 use App\Repository\HighlineCrossingRepository;
+use App\Repository\HighlinePhotoRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,11 +14,15 @@ use Symfony\Component\Routing\Attribute\Route;
 final class PagesController extends AbstractController
 {
     #[Route('/', name: 'app_index')]
-    public function index(FeedFetcherInterface $feed, HighlineCrossingRepository $crossings): Response
-    {
+    public function index(
+        FeedFetcherInterface $feed,
+        HighlineCrossingRepository $crossings,
+        HighlinePhotoRepository $photos,
+    ): Response {
         return $this->render('pages/index.html.twig', [
             'feed_items' => $feed->fetch(12),
             'recent_crossings' => $crossings->findRecent(),
+            'recent_photos' => $photos->findRecentForHomepage(6),
         ]);
     }
 

@@ -24,13 +24,10 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 ## Foto galerie — sociální vrstva (PR2.2)
 
-MVP (`HighlinePhoto` entita + upload + thumby + grid na detailu + smazat) hotový v session 2026-05-11. Otevřené follow-upy:
+Sociální vrstva (likes + komentáře + cover-promote + homepage rotace) hotová v session 2026-05-11. Otevřené follow-upy:
 
-- [ ] Likes (`HighlinePhotoLike` UNIQUE photo+user) + komentáře (`HighlinePhotoComment`)
-- [ ] Cover photo promote — zatím legacy URL fallback v `Highline::getCoverUrl()`, později uložit `cover_photo_id` na `Highline` a nechat author/admin nastavit
-- [ ] Homepage rotující box „nedávné fotky" — z posledních 7 dní náhodně, fallback all-time top liked
-- [ ] Legacy import `highline_foto` + `highline_media` — vyžaduje SSH na legacy server pro stažení JPG souborů (`/line/high/{id}/*.jpg`)
-- [ ] Caddy reverse proxy hlavička pro `/uploads/` (cache + immutable; thumby v `/media/cache/` mají hash → safe k cache-forever)
+- [ ] Legacy import `highline_foto` + `highline_media` — samostatný `app:import:legacy-photos` skript, vyžaduje SSH na slack.cz pro stažení JPG souborů (`/line/high/{id}/*.jpg`). Doladíme později.
+- [ ] Nasadit Caddy `@photos` blok (immutable cache pro `/uploads/*` + `/media/cache/*`) ručně na beta i prod při cutoveru — dokumentace v `deploy.md` aktualizovaná, samotný Caddyfile na serveru je manual edit.
 
 ## Highline edit / verification (PR1, hotové → archiv níž)
 
@@ -81,6 +78,7 @@ Detailně v `deploy.md`. Krátce:
 
 ## Dokončené (krátký archiv)
 
+- [x] **Galerie sociální vrstva** (session 2026-05-11) — `HighlinePhotoLike` (UNIQUE photo+user) + `HighlinePhotoComment` (flat, plain-text, owner/admin delete). Per-photo detail page `/highline/{slug}/fotky/{id}` s like-toggle, prev/next nav, plain-text komentáři. Grid v `_highline_gallery.html.twig` přepsán: thumbnaily linkují na detail, overlay badges (❤ count, 💬 count). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked (sjednocený SQL přes Postgres `ORDER BY RANDOM()`). Cover chain v detail twigu je čistě automatický: `photos|first` → `highline.legacyCoverUrl` (přejmenováno z původního `getCoverUrl`) → none. Manuální cover-promote zahozen v rámci stejné session — fallback first-photo stačí. Migrace `Version20260511134125`.
 - [x] **Audit historie + stack-pop curation + verifikační merge** (session 2026-05-10) — `/highline/{slug}/historie` veřejný view nad `HighlineEdit` rows. Každá řádka má **vlastní `beforeSnapshot`** (migrace `Version20260510185639` + backfill), takže diff je nezávislý na sousedech a nikdy se nepropisují změny ze smazaných řádků. Admin tlačítko **„Smazat poslední revizi"** (červené, stack-pop) — fyzicky odstraní jen chronologicky poslední row + zavolá `applySnapshot(newLatestApplied)` na entitu, takže audit log je zdroj pravdy stavu lajny. První záznam smazat nelze. Při `verify` se celá dosavadní historie sloučí do jediné nové APPLIED creation revize (preserves `createdBy`, admin = reviewer) — odstraňuje konflikt mezi unverified rename historií a po-verifikaci zamknutým slugem. Creation row v UI ukazuje plnou tabulku Pole / Hodnota ze snapshot-u, ne prázdný „žádný diff". No-op submit (žádné změny) audit row vůbec nezapisuje. Maintenance command `app:edit:sync-from-history` opravil drift z předchozích deletů. Detaily v `docs/highline-edits.md`.
 - [x] **Slug stability na verified + rename slug regen na unverified** (session 2026-05-10) — `HighlineForm` derivuje `nameLocked = $highline->isVerified()` z form data → `disabled: true` (server-side ignoruje POSTed value) + 🔒 ikonka u labelu s native tooltip „URL: /highline/{slug} — název je pevný". Pro unverified lajnu v edit módu naopak URL panel s live preview: Stimulus `live_slug_controller.js` slugify-uje typed name → `<code>` se okamžitě přepočítává. Server na save regeneruje slug pro unverified rename přes `makeUniqueSlug($name, ..., excludeId: $highline->getId())`. `deriveGeometry` zaokrouhluje midpoint na 7 desetinných míst (`number_format($val, 7, '.', '')`) — bez tohohle PHP cast `(string)(float/2)` plival 8+ míst, DB to truncovala na 7, a každý save vyrobil falešný diff lat/lng.
 - [x] **Parking GPS import** (session 2026-05-10) — `Highline.parkingLatitude/Longitude` (nullable decimal), `ImportHighlinesCommand` LEFT JOIN `gps WHERE type='PARKING'` přes `highline.parking_id` (133 / 254 lajn má parking po backfillu). Detail: tabulka „Parkování" s mapy.cz linkem + modrý P marker na mapě. Form: optional sekce + „Přidat parkování" toggle button na mapě (next click = parking, drag = move, klik na aktivní = smazat). Migrace `Version20260510175252`.

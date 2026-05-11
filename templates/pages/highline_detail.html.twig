@@ -3,7 +3,7 @@
 {% block title %}{{ highline.name }} – slack.cz{% endblock %}
 
 {% block body %}
-{% set cover = highline.coverUrl %}
+{% set cover = highline.legacyCoverUrl %}
 <article class="hl-detail{% if cover %} hl-detail-has-cover{% endif %}">
     <header class="hl-cover">
         {% if cover %}
@@ -122,7 +122,13 @@
                 </table>
             </section>
 
-            {{ include('_partials/_highline_gallery.html.twig', { highline: highline, photos: photos }) }}
+            {{ include('_partials/_highline_gallery.html.twig', {
+                highline: highline,
+                photos: photos,
+                likeCounts: likeCounts,
+                commentCounts: commentCounts,
+                likedIds: likedIds,
+            }) }}
 
             <section class="panel hl-map-panel">
                 <header class="panel-header">

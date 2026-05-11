@@ -181,6 +181,11 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/highline/{slug}/upravit` | `app_highline_edit` | `ROLE_USER` — direct edit (owner of unverified / admin) nebo proposal (verified + non-admin); detail v `docs/highline-edits.md` |
 | `/highline/{slug}/smazat` | `app_highline_delete` | `ROLE_USER` — owner-of-unverified nebo admin |
 | `/highline/{slug}/verify` | `app_highline_verify` | `ROLE_ADMIN` — flag isVerified=true |
+| `/highline/{slug}/fotky/pridat` | `app_highline_photo_new` | `ROLE_USER` — upload fotky |
+| `/highline/{slug}/fotky/{id}` | `app_highline_photo_detail` | ✓ — photo detail (like, komentáře, prev/next) |
+| `/highline/fotka/{id}/like` | `app_highline_photo_like` | `ROLE_USER` POST — toggle like |
+| `/highline/fotka/{id}/smazat` | `app_highline_photo_delete` | `ROLE_USER` POST — owner uploadu / admin |
+| `/highline/komentar/{id}/smazat` | `app_highline_photo_comment_delete` | `ROLE_USER` POST — owner komentu / admin |
 | `/highline/{slug}/prechod/novy` | `app_crossing_new` | `ROLE_USER` — přidat přechod |
 | `/prechod/{id}/upravit` | `app_crossing_edit` | `ROLE_USER` — vlastní přechody |
 | `/prechod/{id}/smazat` | `app_crossing_delete` | `ROLE_USER` — vlastní přechody, CSRF |
@@ -217,7 +222,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů
 - ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro GitHub-backed MD obsah. Detail níže.
-- ✅ **Highline foto galerie (MVP)** — `HighlinePhoto` entita (highline FK, uploadedBy FK SET NULL, filename, caption, createdAt). Upload přes `vich/uploader-bundle` (mapping `highline_photo` → `public/uploads/highline/{id}/<uniqid>.ext`, 4 MB cap, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `highline_thumb` 320×240 outbound, `highline_medium` 800×600 inset, `highline_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace přes `HighlinePhotoSanitizerSubscriber` (post-upload event, GD), takže ani originál v `/uploads/` neuniká GPS. Sociální vrstva (likes, komentáře, homepage rotace, legacy `highline_foto` import) je deferred — viz `todo.md`.
+- ✅ **Highline foto galerie + sociální vrstva** — `HighlinePhoto` (highline FK, uploadedBy FK SET NULL, filename, caption, createdAt) + `HighlinePhotoLike` (UNIQUE photo+user) + `HighlinePhotoComment` (photo FK CASCADE, author FK SET NULL, text, createdAt). Upload přes `vich/uploader-bundle` (mapping `highline_photo` → `public/uploads/highline/{id}/<uniqid>.ext`, 4 MB cap, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `highline_thumb` 320×240 outbound, `highline_medium` 800×600 inset, `highline_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace přes `HighlinePhotoSanitizerSubscriber` (post-upload event, GD), takže ani originál v `/uploads/` neuniká GPS. Per-photo detail `/highline/{slug}/fotky/{id}` s like-toggle, plain-text flat komentáři (owner/admin delete), prev/next navigací. Grid v `_highline_gallery.html.twig` zobrazuje overlay badges (likes ❤, komenty 💬). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked. Cover chain v detail twigu je čistě automatický: `photos|first` → `Highline.legacyCoverUrl` (legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`) → none — žádný manuální pinning. Legacy import `highline_foto` + `highline_media` deferred (vyžaduje SSH).
 
 ## Markdown sections (`/docs`, `/wiki`)
 
