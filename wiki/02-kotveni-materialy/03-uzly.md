@@ -1,12 +1,6 @@
----
-title: Uzly
-lead: "Osmička, devítka, liščí smyčka, sliding X nebo BFK. Nauč se, jaké uzly se kdy hodí a pamatuj, že u každého uzlu můžeš očekávat snížení pevnosti přibližně o 50%."
-quote: Hlavně se do toho nezamotat
-group: "Kotvení & Materiály"
-order: 8
----
-
 # Uzly
+
+> Hlavně se do toho nezamotat
 
 Highlineři používají jen několik málo uzlů ze stovek existujících. Internet je plný návodů a videí, jak uzly uvázat, budeme se tedy soustředit spíše na to, jaké uzly jsou užitečné a kdy je použít. Neboj, v praxi je budeš procvičovat při tahání highline dost často. Měj na paměti, že u jakéhokoliv uzlu, který uvážeš, můžeš očekávat snížení pevnosti přibližně o 50%.
 
@@ -16,7 +10,6 @@ Highlineři používají jen několik málo uzlů ze stovek existujících. Inte
 
 Uzel, který se většina naučí už ve školce. Pokud máš na botách tkaničky, je velká šance, že ho umíš uvázat. Pokud na jednom konci lajny uvážeš vůdcovský uzel, můžeš ho sledovat zpět koncem lajny a spojit tak 2 lajny. Ploché popruhy, narozdíl od lana, mohou být takto spojeny. Pokud bys tak spojil 2 lana, uzel by se pod tahem kroutil a prokluzoval.
 
----
 
 ### **Osmičkový uzel (Figure 8\)**
 
@@ -24,7 +17,6 @@ Pravděpodobně nejpoužívanější uzel v lezeckém světě. Snadno se pozná,
 
 Na sedák se uvážeš tak, že uděláš osmičku asi 1 metr od konce lana, protáhneš oky sedáku a budeš sledovat pramen lana zpět uzlem. Můžeš s ním spojit 2 konce lan, pokud ho uvážeš tak, že přehneš lano na dvojito, vytvoříš tím smyčku, do které můžeš cvaknout materiál.
 
----
 
 ### **Devítkový uzel (Figure 9\)**
 
@@ -36,19 +28,16 @@ Teorie je taková, že jde po zatížení snáze rozvázat, oproti klasické osm
 
 Nedokončený devítkový uzel je poměrně složitý na kontrolu a pokud necvakneš správné prameny lana, stane se z něj prokluzující uzel, který se pod zatížením rozváže.
 
----
 
 ### **Liščí smyčka**
 
 Pokud smyčku nebo spanset protáhneš kolem objektu a pak prostrčíš skrz sebe sama, čím více budeš za volný pramen tahat, tím více bude stahovat daný objekt uvnitř. Spansety kolem stromu jsou klasický příklad. Můžeš tak spojit 2 smyčky dohromady. Pokud uvážeš liščí smyčku na zadní straně objektu, který obvazuješ a vyvedeš konec na objekt, můžeš tak zvednout master point tvého kotvení. V angličtině se pro tento typ uvázání používá slovo "scorpion".
 
----
 
 ### **Basket hitch**
 
 Jedná se v podstatě o přehnutí smyčky nebo spansetu kolem objektu, popřípadě jiné smyčky v půlce a tím snížení délky na půl. Používaný zejména když je potřeba prodloužit kotvení, ale nechceme ho prodloužit o celou délku spansetu.
 
----
 
 ### **Dračí smyčka (Bowline)**
 
@@ -66,7 +55,6 @@ Pokud uděláš smyčku a pak kolem pramenu uvážeš rybářský uzel, bude se 
 
 ![][image3]
 
----
 
 ### **Upravitelná smyčka**
 
@@ -80,7 +68,6 @@ Pokud máš 2 nebo více nýtů, ze kterých se lano potkává v jednom bodě, v
 
 **![][image4]**
 
----
 
 ### **Sliding X**
 

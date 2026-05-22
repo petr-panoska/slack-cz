@@ -1,12 +1,6 @@
----
-title: Materiály
-lead: "Proč hliník nemůžeš dlouhodobě zatížit k jeho pevnostnímu limitu, proč se měkké materiály nesmí třít o jiné měkké materiály, jak se chovat k dyneemě a vydrží ocel všechno?"
-quote: "Co je uvnitř, to se počítá"
-group: "Kotvení & Materiály"
-order: 6
----
-
 # Materiály
+
+> Co je uvnitř, to se počítá
 
 Jé důležité rozumět materiálům, ze kterých je vyrobené tvé vybavení. Třeba proto, abys věděl, jak ho můžeš (a nemůžeš) používat.
 

@@ -5,8 +5,8 @@ namespace App\Markdown\Section;
 /**
  * Plně načtená MD stránka z `App\Markdown\Section\FetcherInterface::get()`.
  *
- * Frontmatter pole (`title`, `lead`, `quote`, `group`, `order`) jsou volitelná —
- * docs sekce je nemá, wiki sekce má všechna. Defaulty drží render bez bránění.
+ * `title` = první H1 v body (fallback prázdný řetězec). Body si svůj H1 nese
+ * sám — render ho ukáže přímo, žádné stripování.
  */
 final class Page
 {
@@ -17,10 +17,6 @@ final class Page
         public readonly string $githubUrl,
         public readonly string $githubEditUrl,
         public readonly string $title = '',
-        public readonly string $lead = '',
-        public readonly string $quote = '',
-        public readonly string $group = '',
-        public readonly int $order = PHP_INT_MAX,
     ) {
     }
 }

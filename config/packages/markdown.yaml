@@ -18,8 +18,6 @@ services:
             $branch: 'main'
             $path: 'docs'
             $internalRoutePrefix: '/docs'
-            # Sidebar item label = filename (`architecture.md`). Docs nemají frontmatter title.
-            $sidebarLabel: 'filename'
             $token: '%env(default::DOCS_GITHUB_TOKEN)%'
 
     app.section.docs.fetcher.inner:
@@ -48,8 +46,6 @@ services:
             $branch: 'main'
             $path: 'wiki'
             $internalRoutePrefix: '/wiki'
-            # Sidebar item label = frontmatter title (`Příprava` ne `priprava.md`).
-            $sidebarLabel: 'title'
             $token: '%env(default::WIKI_GITHUB_TOKEN)%'
 
     app.section.wiki.fetcher.inner:

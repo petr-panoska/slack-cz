@@ -1,12 +1,6 @@
----
-title: Master point
-lead: "Právě jsi ve svém kotvení vyrobil tutové oko a přemýšlíš, co do něj cvaknout? A víš, proč není dobré používat v kotvení karabiny?"
-quote: "Co cvaknout do té obří smyčky, co mám ve svém kotvení?"
-group: "Kotvení & Materiály"
-order: 11
----
-
 # Master point
+
+> Co cvaknout do té obří smyčky, co mám ve svém kotvení?
 
 Vytvoření kotvení pro highline a její následné napínání jsou 2 odlišné věci, pro které máme na webu 2 oddělené části. Master point spadá tak trochu do obou, přesto mi přijde lepší věnovat se mu už zde v části o kotvení.
 

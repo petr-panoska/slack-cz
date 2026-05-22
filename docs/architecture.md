@@ -203,7 +203,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/reset-password`, `/reset-password/reset/{token}` | reset | ✓ |
 | `/verify/email` | email verify | login required |
 | `/old-users` | `app_old_users` | ✓ debug pohled na legacy uzivatele |
-| `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (16 kapitol z `wiki/`, live z GitHubu, frontmatter title/lead/quote/group/order) |
+| `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (17 kapitol z `wiki/`, live z GitHubu, `NN-slug.md` konvence, žádný frontmatter) |
 | `/docs`, `/docs/{slug}` | `app_docs_*` | ✓ technická dokumentace (interní), live z `docs/*.md` na GitHubu |
 
 ## Hotové features
@@ -230,23 +230,23 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 
 ## Markdown sections (`/docs`, `/wiki`)
 
-Jeden generický subsystém v `App\Markdown\Section\*` slouží jak technické dokumentaci (`/docs` = `docs/*.md` v repu), tak highline guidebooku (`/wiki` = `wiki/<group-folder>/<slug>.md` v repu). Žádný per-sekci kód.
+Jeden generický subsystém v `App\Markdown\Section\*` slouží jak technické dokumentaci (`/docs` = `docs/*.md` v repu), tak highline guidebooku (`/wiki` = `wiki/NN-skupina/NN-slug.md` v repu). Žádný per-sekci kód, žádný frontmatter — všechno řídí filename + obsah markdownu.
 
 ### Komponenty
 
 ```
 src/Markdown/Section/
-  Page.php                  # value object: slug, filename, body, frontmatter, GH urls
-  Entry.php                 # lightweight DTO pro sidebar (slug, label, group, order)
-  Config.php                # per-sekci konfigurace (owner/repo/branch/path/prefix/sidebarLabel)
+  Page.php                  # value object: slug, filename, body, GH urls, title (z prvního H1)
+  Entry.php                 # lightweight DTO pro sidebar (slug, filename, label, group)
+  Config.php                # per-sekci konfigurace (owner/repo/branch/path/prefix/token)
   FetcherInterface.php      # list() + get(slug)
-  GithubFetcher.php         # git trees API recursive, raw.githubusercontent.com fetch
+  GithubFetcher.php         # git trees API recursive, raw.githubusercontent.com fetch, slug/folder label parsing
   CachedFetcher.php         # cache.app + 7d last-known-good fallback
 src/Controller/MarkdownSectionController.php   # 4 routes (docs index/show, wiki index/show)
 templates/pages/_section/
-  _sidebar.html.twig        # shared partial
+  _sidebar.html.twig        # shared partial — README link + chapter list, group separators
   index.html.twig           # README.md as index body + sidebar
-  show.html.twig            # detail body + sidebar (+ optional H1/quote z frontmatter)
+  show.html.twig            # detail body + sidebar (vše v `.md-prose`, H1 nese sám body)
 config/packages/markdown.yaml                  # per-sekci service wiring
 ```
 
@@ -256,26 +256,29 @@ Každá sekce = trojice services v `config/packages/markdown.yaml`:
 
 | Service ID | Třída | Účel |
 |---|---|---|
-| `app.section.<name>.config` | `Config` | GH coordinates + route prefix + sidebar label strategy |
+| `app.section.<name>.config` | `Config` | GH coordinates + route prefix + token |
 | `app.section.<name>.fetcher.inner` | `GithubFetcher` | actual HTTP fetch |
 | `app.section.<name>.fetcher` | `CachedFetcher` | cache wrapper, injected do controlleru |
 
 Přidání nové sekce = další trojice services + 2 route metody v controlleru. Controller binduje fetchery + configs přes `#[Autowire('@app.section.<name>.fetcher')]`.
 
-### Per-sekci rozdíly
+### Konvence MD souborů (žádný frontmatter)
 
-- **Sidebar label** — Docs zobrazují `filename` (`architecture.md`), Wiki `frontmatter title` (`Příprava`). Volba je v `Config::sidebarLabel` (`'filename'` / `'title'`).
-- **Frontmatter** — Docs ho nepoužívá (entries třídí abecedně podle filename). Wiki má `title`/`lead`/`quote`/`group`/`order`, řadí podle `order`. Group separators v sidebaru se zobrazí jen pokud aspoň jedna entry má `group != ''`.
-- **Layout v GH repu** — Docs flat (`docs/*.md`), Wiki nested (`wiki/01-pouzivani-highline/priprava.md`). Fetcher používá git trees API `?recursive=1` (jeden call), přijde mu jedno.
-- **Quote pull-quote** — render se v show.html.twig jen pokud `page.quote != ''`. Wiki má, Docs ne.
+Po dropu YAML frontmatteru řídí všechno chování dva vstupy: **filename** a **obsah markdownu**.
 
-### URL slug uniqueness
+- **Filename `NN-slug.md`** — `NN` určuje pořadí v sidebaru (lexikografický sort relativního path, takže `01-foo/02-bar.md` < `01-foo/03-baz.md` < `02-x/...`). Slug = filename bez `^\d+-` prefixu a `.md` přípony — `02-bezpecnost.md` je dostupné na `/wiki/bezpecnost`. URL slug musí být **unikátní napříč subtree**, jinak první vyhrává.
+- **Label v sidebaru = první `#` H1** v souboru (fallback slug). Title v `<title>` tagu taky.
+- **Pull-quote = první `>` blockquote hned po H1**, stylovaný přes CSS `.md-prose h1 + blockquote` (větší písmo, italic, accent background). Žádný speciální HTML tag, čistý markdown blockquote.
+- **Skupinové separátory v sidebaru** se derivují z root `README.md` sekce: `## H2 nadpis` zaštiťuje skupinu, foldery linkované pod ním (přes `[text](NN-folder/...)`) dostanou ten H2 jako group label. Diakritika + `&` se zachovají, žádný extra soubor.
 
-Slug = filename bez `.md`, musí být unikátní napříč subtree dané sekce. Subfolder se v URL neobjevuje (`/wiki/priprava`, ne `/wiki/01-pouzivani-highline/priprava`). Kolize = první vyhrává, fetcher to neřeší.
+### Layout v GH repu
+
+- **Docs** flat (`docs/*.md`), bez subfolderů, bez group separátorů (jejich `README.md` nemá H2 + linky → mapa folderů je prázdná).
+- **Wiki** nested (`wiki/NN-skupina/NN-slug.md`). Root `wiki/README.md` udržuje index + definuje group labely. Fetcher používá git trees API `?recursive=1` (jeden call).
 
 ### README.md
 
-Index `/docs` resp. `/wiki` rendrují `README.md` z root sekce (pulluje se přes `get('README')`, mimo slugMap). `/docs/README` resp. `/wiki/README` redirectují 301 na index — nikdy nezobrazují README jako detail.
+Index `/docs` resp. `/wiki` rendrují `README.md` z root sekce (pulluje se přes `get('README')`, mimo slugMap). `/docs/README` resp. `/wiki/README` redirectují 301 na index. Subfolder `README.md` se ignorují (slug mapě se vyhnou — nemají v současném modelu žádný účel).
 
 ### CommonMark gotcha (relevantní pro inline base64 obrázky ve Wiki)
 
@@ -291,8 +294,8 @@ Text s ![alt][image1] obrázkem.
 
 ### Cache
 
-`CachedFetcher` cachuje per-sekci s prefix klíčem (`docs.list`, `wiki.content.priprava`, ...) v `cache.app`, TTL 600 s. Failure mode: inner throw → fallback na last-known-good (7 dní). Po deployi se vyplatí `bin/console cache:pool:clear cache.app`, ať fetcher hned podruhé jde na GH (jinak čeká na expiraci).
+`CachedFetcher` cachuje per-sekci s prefix klíčem (`docs.list`, `wiki.content.bezpecnost`, ...) v `cache.app`, TTL 600 s. Failure mode: inner throw → fallback na last-known-good (7 dní). Po deployi se vyplatí `bin/console cache:pool:clear cache.app`, ať fetcher hned podruhé jde na GH (jinak čeká na expiraci) — taky po schema-changing refactoru `Page`/`Entry` to vyhodí staré serializované objekty.
 
 ### Internal MD link rewriting
 
-`MarkdownRenderer::render($body, $internalRoutePrefix)` přepisuje relativní `*.md` linky (i v subfolderech: `01-pouzivani-highline/priprava.md`) na `/{prefix}/{basename}` (`/wiki/priprava`). Externí URL (s schemem `http:`, `mailto:` atd.) se ponechávají.
+`MarkdownRenderer::render($body, $internalRoutePrefix)` přepisuje relativní `*.md` linky (i v subfolderech: `01-pouzivani-highline/02-bezpecnost.md`) na `/{prefix}/{slug}` (`/wiki/bezpecnost`). Slug stripuje `^\d+-` přes `GithubFetcher::slugFromFilename()` (sjednocený zdroj transformace). Externí URL (s schemem `http:`, `mailto:` atd.) se ponechávají.

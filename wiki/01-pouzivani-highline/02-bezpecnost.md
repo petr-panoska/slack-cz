@@ -1,12 +1,6 @@
----
-title: Bezpečnost
-lead: Highlining může být velmi bezpečnou cestou do světa extrémních sportů. Nauč se jak udržet sebe a ostatní v bezpečí.
-quote: "Vypadat dobře, cítit se dobře, a do třetice bezpečnost."
-group: Používání highline
-order: 2
----
-
 # Bezpečnost
+
+> Vypadat dobře, cítit se dobře, a do třetice bezpečnost.
 
 Highlining může být velmi bezpečnou cestou do světa extrémních sportů. I tak se ale jedná o “nebezpečný” sport a měli bychom k němu tak přistupovat. Kvůli nesprávné odsedce, špatně uvázané nebo úplně opomenuté osmičce či chybě v kotvení už skončilo několik životů.
 

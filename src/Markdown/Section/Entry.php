@@ -5,9 +5,8 @@ namespace App\Markdown\Section;
 /**
  * Lehký záznam pro list view (sidebar / index). Plný obsah (`body`) tahá až `Page`.
  *
- * `label` = co se zobrazí v sidebaru — buď filename (`architecture.md`) pro
- * docs sekci, nebo frontmatter title (`Příprava`) pro wiki sekci. Volbu
- * řídí `Config::sidebarLabel`.
+ * `label` = první H1 souboru (fallback slug).
+ * `group` = první H1 ze `README.md` v jeho folderu (fallback folder name bez `^\d+-`).
  */
 final class Entry
 {
@@ -17,7 +16,6 @@ final class Entry
         public readonly string $label,
         public readonly string $githubUrl,
         public readonly string $group = '',
-        public readonly int $order = PHP_INT_MAX,
     ) {
     }
 }

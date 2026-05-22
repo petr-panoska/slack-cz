@@ -1,12 +1,6 @@
----
-title: KiloNewtony
-lead: "Kilonewtony, MBS, WLL a jak pevný je vlastně spanset? Zjisti něco víc o silách, které na kotvení působí."
-quote: Je to fakt síla...
-group: "Kotvení & Materiály"
-order: 13
----
-
 # KiloNewtony
+
+> Je to fakt síla...
 
 Prosím, neusínej, dáme si oficiální definici newtonu:
 

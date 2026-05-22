@@ -1,12 +1,6 @@
----
-title: A Frames
-lead: "Co je to A Frame, k čemu a kdy ho použít, jaké typy konstrukcí existují a jak si vyrobit vlastní? Nahlédni do krátké sekce o A Framech"
-quote: Občes je třeba trochu zvednout úroveň
-group: "Kotvení & Materiály"
-order: 12
----
-
 # A Frames
+
+> Občes je třeba trochu zvednout úroveň
 
 A Frame, "Áčko", kozy... všechny tyto názvy označují jednu a tu samou konstrukci, která se používá ke zvednutí master pointu do výšky. Ironicky většina z nich nemá tvar A, ale spíš X, T nebo pyramidy. 2KM highline v lomu v Kanadě byla zvednuta do výšky jen jednou tyčí - byť obří - které se říká monopod. Ty, které tvarem vypadají jako A, ale místo umístění kotvení na vrchol konstrukce, visí toto kotvení za lana uprostřed konstrukce, se nazývají závěsné.
 

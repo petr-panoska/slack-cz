@@ -1,12 +1,6 @@
----
-title: Co (ne)dělat na highline?
-lead: "Jak kladečkovat po lajně, jak se navázat, kde mít odsedku a jak padat. To vše a mnohem víc se dozvíš v této kapitole."
-quote: Tep se zvyšuje a ty přicházíš na řadu
-group: Používání highline
-order: 5
----
-
 # Co (ne)dělat na highline?
+
+> Tep se zvyšuje a ty přicházíš na řadu
 
 Pojďme se podívát na to, co tě asi zajímá nejvíc. Jak se proboha dostanu zpátky nahoru, když spadnu, jak si stoupnu uprostřed highliny, a kde mít odsedku při chůzi? Na [tomto videu](https://www.youtube.com/watch?v=memTvocWHJM) (EN) se semůžeš podívat i na to, jak chytat lajnu při pádu a proč to může být nebezpečné!
 

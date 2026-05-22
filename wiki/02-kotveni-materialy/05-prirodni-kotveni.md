@@ -1,12 +1,6 @@
----
-title: Přírodní kotvení
-lead: "Natáhnout, pochodit, sbalit, odejít... a nenechat po sobě ve skalách stopy ve formě děr a nýtů. Zjisti užitečné tipy o přírodním kotvení."
-quote: Když ti dojdou baterky ve vrtačce
-group: "Kotvení & Materiály"
-order: 10
----
-
 # Přírodní kotvení
+
+> Když ti dojdou baterky ve vrtačce
 
 Přírodní kotvení je u nás v České Republice poměrně rozšířené. Je to dáno jak materiálem (Na měkkých pískovcových skalách je, až na pár výjimek, zakázáno kotvit za nýty / borháky / kruhy), tak i prostředím (spousta highlinových spotů má dobré přírodní kotvení). Jedná se rozhodně o šetrnější způsob tahání highline, než vrtání do skály, zároveň je ale mnohem náročnější jak časově, tak logisticky. Možná právě tato výzva, spolu s pocitem, že po sobě člověk nezanechává žádné stopy, dělá tento způsob tahání poměrně populární.
 

@@ -1,11 +1,3 @@
----
-title: Budování kotvení
-lead: "Spansety, lano, mailony, karabiny, kotvítka... všechno to vysyp z batohu a jdeme dělat kotvení."
-quote: ""
-group: Napínání highline
-order: 15
----
-
 # Budování kotvení
 
 #### **Spansety**

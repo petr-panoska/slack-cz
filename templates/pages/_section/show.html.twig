@@ -20,14 +20,6 @@
         {% include 'pages/_section/_sidebar.html.twig' %}
 
         <div class="md-main">
-            {# Pokud frontmatter má title, render ho z metadata + ev. pull-quote nad body.
-               Bez frontmatteru (typicky docs) tady nic není a body si svůj H1 nese sám. #}
-            {% if page.title %}
-                <h1 class="md-title">{{ page.title }}</h1>
-                {% if page.quote %}
-                    <blockquote class="md-quote">{{ page.quote }}</blockquote>
-                {% endif %}
-            {% endif %}
             <div class="md-prose">
                 {{ body_html|raw }}
             </div>

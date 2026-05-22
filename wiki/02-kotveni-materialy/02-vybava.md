@@ -1,12 +1,6 @@
----
-title: Výbava
-lead: "Nejlepší volbou je pořídit si takové vybavení, které použiješ teď i v pozdějších fázích své highlinové cesty. Kotvítka, lana, šekly... zjisti co vše se ti může hodit a jak to použít."
-quote: "Snaž se nekupovat věci, co nepotřebuješ"
-group: "Kotvení & Materiály"
-order: 7
----
-
 # Výbava
+
+> Snaž se nekupovat věci, co nepotřebuješ
 
 Nejlepší volbou je pořídit si takové vybavení, které použiješ teď i v pozdějších fázích své highlinové cesty. Například koupit si 5cm lajnu s ráčnou není nejlepší volba, pokud se někdy chystáš na highlinu. Nejen že highline nemá s 5cm lajnou nic moc společného, navíc nebudeš moci použít ani jednu část z takového setu k napínání highline. Stejně tak pořídit si lajnu bez šitých ok na koncích lajny tě může v budoucnu limitovat.
 

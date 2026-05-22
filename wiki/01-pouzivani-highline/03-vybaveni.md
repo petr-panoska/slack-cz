@@ -1,12 +1,6 @@
----
-title: Vybavení
-lead: "Odsedka, sedák, karabiny, kladečky a mnoho dalšího... Znáš své vybavení opravdu dobře? Nahoře se ti to bude hodit."
-quote: Tvoje vybavení je dostatečně bezpečné... dokud něco neposereš
-group: Používání highline
-order: 3
----
-
 # Vybavení
+
+> Tvoje vybavení je dostatečně bezpečné... dokud něco neposereš
 
 Víš, jak dlouhou bys měl mít odsedku, co to vůbec odsedka je a jak funguje? Jak používat kladečku a kam si ji dát, když ji zrovna nepotřebuješ? Je důležité, abys věcem, které na highlině použiváš, a se kterými tam přijdeš do kontaktu, rozuměl.
 

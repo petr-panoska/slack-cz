@@ -1,12 +1,6 @@
----
-title: Příprava
-lead: "Podíváme se na backup, tejpování a spojování segmentů. Prostě to, co jsi mohl udělat doma!"
-quote: "Kdo je připraven, není překvapen"
-group: Napínání highline
-order: 14
----
-
 # Příprava
+
+> Kdo je připraven, není překvapen
 
 ### **Výběr popruhu**
 

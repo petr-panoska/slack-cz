@@ -1,12 +1,6 @@
----
-title: Kotvení
-lead: "Redundance, ostrý úhel, tření, vyvážení a prodloužení... Základní pravidla pro budování bezpečného kotvení."
-quote: "5 bodů, co si zapamatovat"
-group: "Kotvení & Materiály"
-order: 9
----
-
 # Kotvení
+
+> 5 bodů, co si zapamatovat
 
 Je důležité u kotvení přemýšlet a správně vyhodnotit situaci. Spíše než umět poučky z paměti, je nutné kriticky posoudit prostředí a tomu přizpůsobit typ kotvení. V této kapitole se pokusíme podívat na to, jak se kotví highline z trochu širší perspektivy.
 

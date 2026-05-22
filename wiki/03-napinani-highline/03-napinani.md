@@ -1,11 +1,3 @@
----
-title: Napínaní
-lead: "Podívej se na pár tipů a triků, které ti mohou pomoc při přetahování a sundavání lajny."
-quote: ""
-group: Napínání highline
-order: 16
----
-
 # Napínaní
 
 Lajnu chceme dostat z jedné strany kotvení na druhé bez toho, aby se třela o terén pod ní. K tomu používáme repku. To, jakým způsobem přetáhneš repku závisí na terénu a dalších vnějších faktorech. Jedním ze způsobů je shodit repku z obou stran kotvení a spojit je dohromady. Pokud je však terén pod lajnou těžce přístupný, přichází na řadu dron a tvoje kreativita.

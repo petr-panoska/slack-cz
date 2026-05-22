@@ -7,6 +7,7 @@ use League\CommonMark\Event\DocumentParsedEvent;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Link;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
+use App\Markdown\Section\GithubFetcher;
 use League\CommonMark\MarkdownConverter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -65,10 +66,12 @@ final class MarkdownRenderer
                     continue;
                 }
                 // Match `(<folder>/...)?<basename>.md(#anchor)?` — i v subfolderu.
-                // Wiki README linkuje na `01-pouzivani-highline/priprava.md`, chceme
-                // ho přepsat na `/wiki/priprava` (slugy jsou flat napříč subfoldery).
+                // Wiki README linkuje na `01-pouzivani-highline/02-bezpecnost.md`,
+                // chceme ho přepsat na `/wiki/bezpecnost` (slug = basename bez
+                // `^\d+-` prefixu, flat napříč subfoldery).
                 if (preg_match('/^(?:.*\/)?([A-Za-z0-9._-]+)\.md(#.+)?$/', $url, $m) === 1) {
-                    $node->setUrl($prefix . '/' . $m[1] . ($m[2] ?? ''));
+                    $slug = GithubFetcher::slugFromFilename($m[1] . '.md');
+                    $node->setUrl($prefix . '/' . $slug . ($m[2] ?? ''));
                 }
             }
         });

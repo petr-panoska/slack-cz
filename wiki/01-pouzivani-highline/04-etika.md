@@ -1,12 +1,6 @@
----
-title: Etika
-lead: "Ne každá chyba tě bude stát život, ale některé tě mohou stát kamarády! Zjisti, jak se chovat k vybavení, přírodě a lidem kolem sebe."
-quote: "Nebuď ten, na koho se ukazuje"
-group: Používání highline
-order: 4
----
-
 # Etika
+
+> Nebuď ten, na koho se ukazuje
 
 Ne každá chyba tě bude stát život, ale některé tě mohou stát kamarády. Nauč se, jak zacházet s materiálem ostatních, jak uvázat odsedku, pokud ji už nebudeš používat a zjisti, co od tebe ostatní highlineři očekávají, když se účastníš highlinové akce v krátkém shrnutí etiky.
 

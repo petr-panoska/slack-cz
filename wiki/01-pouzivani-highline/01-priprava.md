@@ -1,12 +1,6 @@
----
-title: Příprava
-lead: "Sedáky, uzly, vylézání z odsedky, nasedání na lajnu, kladečkování, padání, batoh a mnoho dalšího! Zjisti, jak se připravit na highline."
-quote: "Vše, co jde, si nacvič doma."
-group: Používání highline
-order: 1
----
-
 # Příprava
+
+> Vše, co jde, si nacvič doma.
 
 Chystáš se na highline festival, nebo jsi pozvaný na projekt? Pak určitě nechceš strávit tu vzácnou příležitost zkoušením a vymýšlením věcí, které sis mohl nacvičit doma / v parku. Ověř si, zda máš potřebné vybavení, zda víš jak toto vybavení používat a že na lajnu zvládneš vylézt z odsedky.
 

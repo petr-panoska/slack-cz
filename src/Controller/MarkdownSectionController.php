@@ -98,13 +98,7 @@ final class MarkdownSectionController extends AbstractController
             throw $this->createNotFoundException(sprintf('%s "%s" nenalezeno.', $sectionLabel, $slug));
         }
 
-        $body = $page->body;
-        // Pokud frontmatter má `title`, render ho jako H1 v template a stripneme úvodní H1
-        // z body (jinak by se zobrazila dvakrát). `\s*` jí blank line po frontmatter stripu.
-        if ($page->title !== '') {
-            $body = preg_replace('/^\s*#\s+.+?\R+/u', '', $body, 1) ?? $body;
-        }
-        $bodyHtml = $this->renderer->render($body, $config->internalRoutePrefix);
+        $bodyHtml = $this->renderer->render($page->body, $config->internalRoutePrefix);
 
         return $this->render('pages/_section/show.html.twig', [
             'page' => $page,
