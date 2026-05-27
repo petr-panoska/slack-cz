@@ -4,15 +4,25 @@ Rychlý reference pro běžné operace. Když si nepamatuješ, koukni sem.
 
 > **Setup:** native docker-ce na Linuxu (Ubuntu 25.10, Docker Engine 29.x). Žádný Docker Desktop. Předpokládá se, že tvoje shell session je členem `docker` group (jinak každý `docker` command volá permission denied — fix: `sudo usermod -aG docker $USER` + logout/login, jednorázově).
 
+## Fresh-clone bootstrap
+
+Kanonická cesta z čistého `git clone` na běžící localhost je jeden Make target:
+
+```bash
+make first-run
+```
+
+Vytvoří `.env.local` z `.env.local.example` (pokud chybí), nastartuje stack s `--wait` (čeká na healthchecks), nainstaluje composer deps, vytvoří DB a spustí migrace. Idempotentní. Staré targety (`dcSetup`, `dcInitDb`) zůstávají funkční pro piecemeal použití.
+
 ## Containery (Docker compose)
 
 | Service | Host port | Účel |
 |---|---|---|
 | `apache` | **8000** (pevný) | hlavní web |
 | `database` | dynamický | Postgres 16 (new app DB), interně 5432 |
-| `mysql` | – | legacy MySQL (jen interní 3306) |
+| `mysql` | – | legacy MySQL (jen interní 3306), **opt-in přes `--profile legacy`** |
 | `adminer` | **8080** (pevný) | DB UI |
-| `mailer` | dynamický | Mailpit (interní UI 8025, SMTP 1025) |
+| `mailer` | **8025** UI / **1025** SMTP (oba pevné) | Mailpit |
 | `php` | – | PHP-FPM (jen interní 9000) |
 
 ```bash
@@ -21,20 +31,24 @@ docker compose up -d                           # start (detached)
 docker compose down                            # stop (volumes zachovány)
 docker compose down -v                         # stop + smaž volumes (ztratíš DB!)
 docker compose logs -f apache                  # tail logs konkrétní service
-docker compose port database 5432              # zjisti aktuální host port pro Postgres
-docker compose port mailer 8025                # ... pro Mailpit UI
+docker compose port database 5432              # zjisti aktuální host port pro Postgres (dynamický)
 ```
 
-## Foto galerie — upload adresáře
-
-PHP-FPM v `php` containeru jede jako `www-data`. Bind-mountnuté adresáře pro upload (`public/uploads/`) a imagine cache (`public/media/cache/`) tvoří host user (`panda`, uid 1000), takže www-data tam defaultně nemá write. Po fresh checkoutu / po `docker compose down -v`:
-
-```sh
-mkdir -p public/uploads public/media/cache
-chmod 777 public/uploads public/media/cache
-```
-
-Oba adresáře jsou v `.gitignore`, takže permisivní mód nikoho neuráží. Symptom při chybějícím write: `Warning: mkdir(): Permission denied` při uploadu fotky.
+> **Parita `make` vs holý `docker compose`.** `make` targety načítají `.env` i
+> `.env.local` (přes `COMPOSE_ENV_FILES`) a nastaví host UID/GID. Když voláš
+> `docker compose` přímo a chceš stejnou konfiguraci (porty, override z `.env.local`),
+> exportuj si nejdřív:
+>
+> ```bash
+> export COMPOSE_ENV_FILES=.env,.env.local
+> ```
+>
+> Docker Compose sám o sobě načítá jen `.env`, ne `.env.local`. Bez exportu poběží
+> holý `docker compose` jen s defaulty z `.env`.
+>
+> **Výjimka (uid ≠ 1000):** holý `docker compose up` bez `make` použije default
+> `UID=1000/GID=1000` z `.env`. Na hostu, kde `id -u` ≠ 1000, buď použij `make`
+> (dosadí živé `id -u`/`id -g`), nebo si nastav `UID=`/`GID=` v `.env.local`.
 
 ## Symfony console
 
@@ -231,4 +245,4 @@ Quota math: každá search query = 100 units / fetch. Default cache TTL = 1800 s
 | O projektu | <http://localhost:8000/o-projektu> |
 | Adminer (PG) | <http://localhost:8080/?pgsql=database&username=app&db=app> |
 | Adminer (MySQL legacy) | <http://localhost:8080/?server=mysql&username=root&db=old> |
-| Mailpit UI | `docker compose port mailer 8025` → otevři ten port (host port je dynamický) |
+| Mailpit UI | <http://localhost:8025/> |
