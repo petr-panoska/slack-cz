@@ -229,7 +229,7 @@ make syncBetaFromLocal
 
 Co target dělá:
 
-1. `pg_dump` z kontejneru `slack-cz-database-1` (plain SQL, `--clean --if-exists --no-owner --no-privileges`) do `/tmp/slack-cz.sql`.
+1. `docker compose exec database pg_dump` (plain SQL, `--clean --if-exists --no-owner --no-privileges`) do `/tmp/slack-cz.sql`.
 2. `scp` přes `~/.ssh/slack_cz_prod` na `deploy@178.105.81.158:/tmp/slack-cz.sql`.
 3. Na serveru spustí `scripts/sync-beta-restore.sh` (přes SSH stdin), který:
    - vytáhne `DATABASE_URL` z `/var/www/slack-cz/.env.local`,

@@ -1,50 +1,88 @@
+name: slack-cz
 
 services:
   php:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
+    environment:
+      # DATABASE_URL is the single source of truth for the app's Postgres connection
+      # when running via compose. It is composed from POSTGRES_USER / POSTGRES_PASSWORD /
+      # POSTGRES_DB so a single override in .env.local propagates everywhere.
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-password}@database:5432/${POSTGRES_DB:-app}?serverVersion=16&charset=utf8"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+    depends_on:
+      database:
+        condition: service_healthy
 
   apache:
-    image: httpd:2.4
+    image: httpd:2.4.62-alpine
     volumes:
       - .:/var/www/html
       - ./docker/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
     ports:
-      - '8000:80'
+      - '${APP_PORT:-8000}:80'
     environment:
       APACHE_DOCUMENT_ROOT: /var/www/html/public
+    # Healthcheck only verifies httpd is accepting TCP connections — NOT that the
+    # app responds 200. An app 500 (e.g. missing APP_SECRET, DB auth issue) does
+    # not mark apache unhealthy, so `up -d --wait` won't time out on app errors.
+    # The php service has its own FPM-listening healthcheck.
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 80 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     depends_on:
-      - php
+      php:
+        condition: service_healthy
+      database:
+        condition: service_healthy
 
 ###> doctrine/doctrine-bundle ###
   database:
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    image: postgres:16.4-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     healthcheck:
       test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 20s
     volumes:
       - database_data:/var/lib/postgresql/data:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
+  # Legacy MySQL is opt-in via the `legacy` profile. Default `docker compose up` does NOT start it.
+  # Bring it up with: `docker compose --profile legacy up -d --wait mysql`
+  # The Makefile legacy targets handle the --profile flag transparently.
   mysql:
-    image: mysql
-    restart: always
+    image: mysql:8.4.3
+    profiles: [legacy]
     environment:
       MYSQL_DATABASE: old
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
     volumes:
       - mysql_data:/var/lib/mysql
 
