@@ -45,7 +45,7 @@ Trust model + proposal queue dokumentace v `docs/highline-edits.md`. Otevřené 
 ## Slack.cz TV
 
 - [ ] Až bude existovat YT kanál CAS, přidat jeho channel ID do `feed.youtube.channels`
-- [ ] Pokud chceme zobrazovat víc než 2 search queries, prodloužit `feed.cache.ttl_seconds` na 3600s (1h) — viz quota matematika v `architecture.md`
+- [ ] Přidat další search query / kanál — při aktuálním TTL 21600s (6h) je quota rezerva ~25×, takže pár dalších zdrojů se vejde bez úprav TTL (vzorec viz `architecture.md` § *Quota economics*). TTL prodlužovat až kdyby queries narostly o řád.
 - [ ] Promyslet, jestli má smysl přidat i FB Page CAS jako další zdroj (pak nutný jiný fetcher; Meta API)
 
 ## Deník uživatele

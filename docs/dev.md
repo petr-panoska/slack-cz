@@ -218,7 +218,7 @@ docker compose exec -T php bin/console cache:pool:clear cache.app
 # přidat / vyměnit YOUTUBE_API_KEY: edituj .env.local + cache:pool:clear cache.app
 ```
 
-Quota math: každá search query = 100 units / fetch. Default cache TTL = 1800 s (30 min). 1 query × 30 min cache = 4 800 units / den / query. Free limit 10 000/den ⇒ pohodlně 2 search queries + libovolný počet channels (channel = 2 units).
+Quota math: každá search query = 100 units / fetch. Default cache TTL = **21600 s (6 h)** (`feed.cache.ttl_seconds` ve `feed.yaml`) ⇒ 4 misses/den ⇒ **400 units/den/query**. Free limit 10 000/den, takže aktuální config (1 query, 0 kanálů) jede s ~25× rezervou — prostor pro víc queries i kanálů (channel = 2 units). Detailní vzorec + historie přepalu kvóty v `architecture.md` § *Quota economics*.
 
 ## Známé containery / služby co máš pod prsty
 

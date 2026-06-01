@@ -66,6 +66,7 @@ Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je 
 - Turbo je aktivně zapnuté — link kliky a form submity jsou frame swapy, ne full reloady. Předpokládá to, že stránky extendují `base.html.twig` a vrací 30x redirecty po POST.
 - Stimulus controllery v `assets/controllers/`:
   - `hello_controller.js` — placeholder z generátoru
+  - `csrf_protection_controller.js` — vendored z Symfony Flex recepty (přišel s 7.4): stateless CSRF, dopočítává `framework.csrf_protection.check_header` token na form submitech. Neměň ručně.
   - `map_controller.js` — hlavní Leaflet mapa: highline markery (`staticLayer`), emoji markery posledních přechodů (`usersLayer`, přepínatelné okem ze sidebaru), time-travel režim (`timelineLayer`). Leaflet zoom je přesunutý na `bottomright`, aby se nemlátil se sidebarem vlevo nahoře.
   - `highline_detail_map_controller.js` — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
   - `highline_form_map_controller.js` — 2-endpoint GPS picker pro highline form. Alternující klik 1→2→1, oba markery draggable, polyline + live haversine length overlay. Sync se 4 input poli (point1Lat/Lng + point2Lat/Lng) oboustranně.

@@ -8,9 +8,11 @@ Je míněn primárně pro vývojáře projektu (CAS).
 - [`architecture.md`](architecture.md) — co je postavené, struktura kódu, klíčová architekturní rozhodnutí
 - [`migration.md`](migration.md) — strategie importu legacy dat ze staré MySQL DB do nové Postgres
 - [`crossing-styles.md`](crossing-styles.md) — taxonomie stylů přechodů highline, mapování legacy → nový enum
+- [`highline-edits.md`](highline-edits.md) — trust model + proposal queue pro highline edity (verifikace, audit log, ROLE_ADMIN)
 - [`audio-player.md`](audio-player.md) — slackvibes 📻 přehrávač (states, storage, controller internals)
 - [`dev.md`](dev.md) — operační cheat sheet (Docker, console, DB, cache, smoke testy)
 - [`deploy.md`](deploy.md) — produkce (Hetzner VPS, Caddy, `make deploy`, `.github/workflows/deploy.yml`)
+- [`roadmap.md`](roadmap.md) — strategická rozhodnutí do budoucna (Symfony 8.x upgrade assessment)
 - [`todo.md`](todo.md) — otevřené úkoly napříč projektem
 
 ## Kde hledat co
@@ -22,6 +24,8 @@ Je míněn primárně pro vývojáře projektu (CAS).
 | Pustit legacy import (fresh / re-run) | `dev.md` § *Migrace + import* nebo `migration.md` § *Summary commands* |
 | Rozumět merge strategii pro duplicitní emaily | `migration.md` § *Users — DONE* |
 | Mapovat legacy `styl` string na enum | `crossing-styles.md` |
+| Pochopit verifikační / proposal flow highline editů (trust model, audit log) | `highline-edits.md` |
+| Rozhodnout se o upgradu na Symfony 8.x (cesta, cena, deprecations) | `roadmap.md` |
 | Ladit YouTube feed / quota / cache | `architecture.md` § *Feed* |
 | Cokoli kolem `slackvibes` audio playeru | `audio-player.md` |
 | Pochopit `App\Markdown\Section\*` (jak `/docs` a `/wiki` jedou ze stejného kódu) | `architecture.md` § *Markdown sections* |
