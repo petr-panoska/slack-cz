@@ -115,10 +115,12 @@ APP_SECRET=<random hex 32>
 DATABASE_URL=postgresql://slack_cz:<random>@127.0.0.1:5432/slack_cz?serverVersion=16&charset=utf8
 OLD_DATABASE_URL=mysql://nobody:nobody@127.0.0.1:3306/none?serverVersion=8.0
 MAILER_DSN=null://null
-APP_URL=https://beta.slack.cz
+DEFAULT_URI=https://beta.slack.cz
 ```
 
-> `APP_URL` čte `framework.router.default_uri` (viz `config/packages/routing.yaml`) — bez něj by CLI commandy (např. `app:user:reset-password`) generovaly URL na `http://localhost`. Po cutoveru na apex změnit na `https://slack.cz`.
+> `DEFAULT_URI` čte `framework.router.default_uri` (viz `config/packages/routing.yaml`) — bez něj by CLI commandy (např. `app:user:reset-password`) generovaly URL na `http://localhost`. Po cutoveru na apex změnit na `https://slack.cz`.
+>
+> ⚠ **Migrace ze staré proměnné:** dřív se tahle proměnná jmenovala `APP_URL` (vlastní název). Při upgradu na Symfony 7.4 jsme přešli na konvenci Flex recipe `DEFAULT_URI`. **Stávající beta `.env.local` má pořád `APP_URL`** — při nejbližším deployi přejmenuj řádek na `DEFAULT_URI=https://beta.slack.cz` a `sudo systemctl reload php8.3-fpm`, jinak router spadne na `http://localhost`.
 
 > ⚠ DB heslo a `APP_SECRET` jsou random vygenerované při setupu, **NIKDE jinde nezálohované**. Když se ztratí `.env.local`, je třeba znovu vytvořit Postgres roli + heslo. Až bude vault / secrets management, přesunout sem.
 
@@ -217,7 +219,7 @@ APP_ENV=prod php bin/console app:user:reset-password panda@example.com
 APP_ENV=prod php bin/console app:user:reset-password 42
 ```
 
-URL se generuje s absolute scheme + host přes `framework.router.default_uri` (= `APP_URL` v `.env.local`). Po cutoveru na `slack.cz` přepiš `APP_URL` v `/var/www/slack-cz/.env.local` na `https://slack.cz` a `sudo systemctl reload php8.3-fpm`.
+URL se generuje s absolute scheme + host přes `framework.router.default_uri` (= `DEFAULT_URI` v `.env.local`). Po cutoveru na `slack.cz` přepiš `DEFAULT_URI` v `/var/www/slack-cz/.env.local` na `https://slack.cz` a `sudo systemctl reload php8.3-fpm`.
 
 ### Sync dat z lokálu na betu
 

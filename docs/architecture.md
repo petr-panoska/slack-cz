@@ -169,7 +169,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - Email verify přes `symfonycasts/verify-email-bundle`
 - `UserRepository` implementuje `PasswordUpgraderInterface`
 - **`ROLE_ADMIN`** — kurátorská role (mark verified, schvalovat proposals, mazat verified lajny). Granted přes `bin/console app:admin:grant <email> [--revoke]`. Aktuální admin: `panda09823@gmail.com`. Symfony role hierarchy: ROLE_ADMIN ⇒ ROLE_USER auto.
-- **Konzolové utility pro správu uživatelů**: `app:user:list` (id/email/nick/verified/active, volitelné `-s` substring filter, `--unverified`) a `app:user:reset-password <email|id>` (vygeneruje absolutní password-reset URL přes `ResetPasswordHelperInterface::generateResetToken()`). Workaround dokud nejede mailer na betě — host pro URL bere router z `framework.router.default_uri` (= `APP_URL` env). Návod v `dev.md` § *Účty / správa uživatelů* a `deploy.md` § *Reset hesla / aktivace účtu, když nechodí maily*.
+- **Konzolové utility pro správu uživatelů**: `app:user:list` (id/email/nick/verified/active, volitelné `-s` substring filter, `--unverified`) a `app:user:reset-password <email|id>` (vygeneruje absolutní password-reset URL přes `ResetPasswordHelperInterface::generateResetToken()`). Workaround dokud nejede mailer na betě — host pro URL bere router z `framework.router.default_uri` (= `DEFAULT_URI` env). Návod v `dev.md` § *Účty / správa uživatelů* a `deploy.md` § *Reset hesla / aktivace účtu, když nechodí maily*.
 
 ## Routes (zkrácený přehled)
 

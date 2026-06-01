@@ -64,7 +64,7 @@ Detailně v `deploy.md`. Krátce:
 - [ ] `MAILER_DSN` přes externí SMTP relay (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound. Dokud nejede, fallback: `bin/console app:user:reset-password <email>` (viz `deploy.md` § *Reset hesla / aktivace účtu, když nechodí maily*).
 - [ ] DNS swap: A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only)
 - [ ] Přidat `slack.cz` blok do `infra/Caddyfile` (analogický k `beta.slack.cz`) a `make deployCaddy`
-- [ ] Po DNS swapu přepsat `APP_URL` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů)
+- [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů)
 - [ ] Nastavit reálné `YOUTUBE_API_KEY` + `DOCS_GITHUB_TOKEN` v `.env.local` na serveru
 - [ ] (volitelné) `unattended-upgrades` na auto-security patches
 - [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery
