@@ -164,7 +164,7 @@ docker compose exec -T php bin/console app:user:list --unverified
 
 # Vygenerovat password-reset URL pro usera (email nebo id).
 # Použij když mailer nejede (dev = Mailpit místo reálných mailů, prod beta = null://null).
-# Vrátí absolutní URL — domain se bere z framework.router.default_uri (= APP_URL env).
+# Vrátí absolutní URL — domain se bere z framework.router.default_uri (= DEFAULT_URI env).
 docker compose exec -T php bin/console app:user:reset-password panda@example.com
 docker compose exec -T php bin/console app:user:reset-password 42
 

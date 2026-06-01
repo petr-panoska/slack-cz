@@ -31,7 +31,7 @@ REQUIRED_EXTS=(pgsql pdo_pgsql mbstring xml curl zip intl opcache readline mysql
 WRITABLE_DIRS=(var/cache var/log public/uploads public/media/cache)
 
 # Spec: klíče očekávané v .env.local.
-REQUIRED_ENV_KEYS=(APP_ENV APP_SECRET DATABASE_URL OLD_DATABASE_URL MAILER_DSN APP_URL)
+REQUIRED_ENV_KEYS=(APP_ENV APP_SECRET DATABASE_URL OLD_DATABASE_URL MAILER_DSN DEFAULT_URI)
 
 # Spec: systemd služby co musí běžet.
 REQUIRED_SERVICES=(caddy php8.3-fpm postgresql)

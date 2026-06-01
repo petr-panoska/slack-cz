@@ -176,7 +176,7 @@ APP_SECRET=$APP_SECRET
 DATABASE_URL=postgresql://$DB_ROLE:$DB_PASS@127.0.0.1:5432/$DB_NAME?serverVersion=16&charset=utf8
 OLD_DATABASE_URL=mysql://nobody:nobody@127.0.0.1:3306/none?serverVersion=8.0
 MAILER_DSN=null://null
-APP_URL=https://beta.slack.cz
+DEFAULT_URI=https://beta.slack.cz
 EOF
     $SUDO chown "$APP_USER:$PHP_FPM_USER" "$ENV_LOCAL"
     $SUDO chmod 640 "$ENV_LOCAL"

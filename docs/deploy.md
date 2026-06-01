@@ -115,10 +115,12 @@ APP_SECRET=<random hex 32>
 DATABASE_URL=postgresql://slack_cz:<random>@127.0.0.1:5432/slack_cz?serverVersion=16&charset=utf8
 OLD_DATABASE_URL=mysql://nobody:nobody@127.0.0.1:3306/none?serverVersion=8.0
 MAILER_DSN=null://null
-APP_URL=https://beta.slack.cz
+DEFAULT_URI=https://beta.slack.cz
 ```
 
-> `APP_URL` čte `framework.router.default_uri` (viz `config/packages/routing.yaml`) — bez něj by CLI commandy (např. `app:user:reset-password`) generovaly URL na `http://localhost`. Po cutoveru na apex změnit na `https://slack.cz`.
+> `DEFAULT_URI` čte `framework.router.default_uri` (viz `config/packages/routing.yaml`) — bez něj by CLI commandy (např. `app:user:reset-password`) generovaly URL na `http://localhost`. Po cutoveru na apex změnit na `https://slack.cz`.
+>
+> **Pozn. k názvu:** do Symfony 7.3 se proměnná jmenovala `APP_URL` (vlastní název), od 7.4 jedeme konvenci Flex recipe `DEFAULT_URI`. Beta `.env.local` na to byla přejmenovaná 2026-06-01. Při ruční editaci hodnoty pozor na perms — viz *`.env.local` musí číst www-data*.
 
 > ⚠ DB heslo a `APP_SECRET` jsou random vygenerované při setupu, **NIKDE jinde nezálohované**. Když se ztratí `.env.local`, je třeba znovu vytvořit Postgres roli + heslo. Až bude vault / secrets management, přesunout sem.
 
@@ -217,7 +219,7 @@ APP_ENV=prod php bin/console app:user:reset-password panda@example.com
 APP_ENV=prod php bin/console app:user:reset-password 42
 ```
 
-URL se generuje s absolute scheme + host přes `framework.router.default_uri` (= `APP_URL` v `.env.local`). Po cutoveru na `slack.cz` přepiš `APP_URL` v `/var/www/slack-cz/.env.local` na `https://slack.cz` a `sudo systemctl reload php8.3-fpm`.
+URL se generuje s absolute scheme + host přes `framework.router.default_uri` (= `DEFAULT_URI` v `.env.local`). Po cutoveru na `slack.cz` přepiš `DEFAULT_URI` v `/var/www/slack-cz/.env.local` na `https://slack.cz` a `sudo systemctl reload php8.3-fpm`. Po editaci ověř perms (`640 deploy:www-data` — viz *`.env.local` musí číst www-data*).
 
 ### Sync dat z lokálu na betu
 
@@ -361,6 +363,8 @@ Default mode 600 / owner `deploy:deploy` způsobí 500 — PHP-FPM jako `www-dat
 sudo chown deploy:www-data /var/www/slack-cz/.env.local
 sudo chmod 640 /var/www/slack-cz/.env.local
 ```
+
+Pozor na **in-place editaci**: `sed -i` (i `> .env.local` redirect) soubor přepíše nově, čímž zahodí `640 deploy:www-data` a vrátí default owner/mode. Po každé takové úpravě perms znovu nastav (viz výš). Preflight (`check-server-env.sh`) to jinak odchytí jako `.env.local NOT readable by www-data` a deploy zablokuje.
 
 ### DNS records dřív než Caddy site block
 

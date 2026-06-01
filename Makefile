@@ -17,6 +17,12 @@ dcAssetMapCompile:
 dcClearCacheProd:
 	docker compose run -e APP_ENV=prod php bin/console cache:clear
 
+# Ověří, že běhové prostředí (PHP verze + extensions) splňuje požadavky
+# Symfony 7.4. Spouští se přes symfony-cli v php containeru.
+#   make dcCheckRequirements
+dcCheckRequirements:
+	docker compose run --rm php symfony check:requirements
+
 # Loads legacy MySQL dump into the `mysql` container. Needed only after a fresh
 # `docker compose down -v` or first-time setup — the dump doesn't auto-load.
 loadLegacyDump:

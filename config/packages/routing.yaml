@@ -2,7 +2,7 @@ framework:
     router:
         # Used for URL generation in CLI commands (e.g. app:user:reset-password).
         # See https://symfony.com/doc/current/routing.html#generating-urls-in-commands
-        default_uri: '%env(APP_URL)%'
+        default_uri: '%env(DEFAULT_URI)%'
 
 when@prod:
     framework:
