@@ -19,7 +19,7 @@ dcClearCacheProd:
 
 # Ověří, že běhové prostředí (PHP verze + extensions) splňuje požadavky
 # Symfony 7.4. Spouští se přes symfony-cli v php containeru.
-#   make checkRequirements
+#   make dcCheckRequirements
 dcCheckRequirements:
 	docker compose run --rm php symfony check:requirements
 
