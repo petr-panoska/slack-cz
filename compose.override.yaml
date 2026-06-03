@@ -1,5 +1,12 @@
 
 services:
+  php:
+    # Match the host user's uid/gid so files written under bind-mounted dirs
+    # (public/uploads/, public/media/cache/, var/, …) are owned by you on the host.
+    # Eliminates the chmod-777 workaround the old setup needed.
+    # `make first-run`/`make up` export UID and GID explicitly via $(id -u)/$(id -g).
+    user: "${UID:-1000}:${GID:-1000}"
+
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
@@ -8,17 +15,28 @@ services:
 
 ###> symfony/mailer ###
   mailer:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.20.7
     ports:
-      - "1025"
-      - "8025"
+      - "${SMTP_MAIL_PORT:-1025}:1025"
+      - "${SMTP_UI_PORT:-8025}:8025"
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --spider http://localhost:8025/livez || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 ###< symfony/mailer ###
 
   adminer:
-    image: adminer
-    restart: always
+    image: adminer:4.8.1-standalone
     ports:
-      - 8080:8080
+      - ${ADMINER_PORT:-8080}:8080
+    # The adminer image ships only PHP (no wget/nc/curl), so probe the listening
+    # socket with PHP itself.
+    healthcheck:
+      test: ["CMD-SHELL", "php -r '$$f=@fsockopen(\"127.0.0.1\",8080); exit($$f?0:1);'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

@@ -3,21 +3,51 @@
 ## Docker development
 
 ### Install
-```
-docker compose up -d
-make dcSetup
-make dcInitDb
+
+Requires Docker Engine 24+ with Compose v2, on Linux (incl. WSL2) or macOS.
+
+```bash
+git clone <repo-url> slack-cz
+cd slack-cz
+make first-run
 ```
 
-app is running at [localhost:8000](http://localhost:8000)
+That's it. `make first-run` copies `.env.local.example` to `.env.local`, brings up the stack with `--wait`, installs composer dependencies, and runs all migrations. Idempotent — safe to re-run.
 
-you can access database via adminer at [localhost:8080](http://localhost:8080/?pgsql=database&username=app&db=app) (get credentials from `.env`)
+### URLs
+
+| What | URL |
+|---|---|
+| App | http://localhost:8000 |
+| Mailpit (mail UI) | http://localhost:8025 |
+| Adminer (DB UI) | http://localhost:8080/?pgsql=database&username=app&db=app |
+
+### Common operations
+
+```bash
+make help        # list all Make targets
+make up          # start the stack (default profile)
+make down        # stop, preserve data volumes
+make nuke        # stop AND wipe data volumes — destructive
+```
+
+### Optional: legacy MySQL import
+
+The legacy MySQL service is opt-in via a compose profile. Targets that need it (`make loadLegacyDump`, `make legacyImport*`) bring it up automatically. To start it manually:
+
+```bash
+docker compose --profile legacy up -d --wait mysql
+```
 
 ### Troubleshooting
-check symfony environment status:
+
+Check Symfony environment requirements:
+
+```bash
+docker compose run --rm php php bin/console about
 ```
-docker compose run php symfony check:requirements
-```
+
+See [`docs/dev.md`](docs/dev.md) for the full operational reference (console commands, debugging, smoke tests).
 
 ## Old database
 

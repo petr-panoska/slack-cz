@@ -26,3 +26,6 @@
 /public/uploads/
 /public/media/cache/
 ###< highline gallery uploads ###
+
+# Speckit spec artifacts — local planning notes, not part of the codebase
+/specs/
