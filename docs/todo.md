@@ -22,6 +22,51 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Pretty-print legacy `kotveni` (často číselný kód) — namapovat na čitelný popis
 - [ ] „Přidat lajnu" CTA klikem na mapu (currently jen v hlavičce + ručně nastavené GPS) — z `/mapa` klik na prázdné místo by měl rovnou předvyplnit Bod 1
 
+## Offline PWA — highline mapa v terénu (PLÁN, NEIMPLEMENTOVAT)
+
+> Stav: **návrh k doladění.** Sepsáno session 2026-06-02. Záměr: highliner v horách bez signálu si appku nainstaluje jako PWA a má offline **celou ČR** (podkladová mapa + body highlinů + popupy + časová osa). Nic se zatím nestaví — nejdřív dorozhodnout otevřené body níž.
+
+### Rozhodnutí, která už padla
+- **Zůstává Leaflet, nemění se za MapLibre.** Použít `protomaps-leaflet` (renderuje vektorové PMTiles přímo v Leafletu, canvas). Vymění se jen podkladová vrstva — `L.tileLayer(OSM)` → vektor nad pmtiles. Všechny 4 mapové controllery (`map`, `highline_detail_map`, `user_denik_map`, `highline_form_map`) i veškerý marker/popup/timeline kód zůstávají beze změny. MapLibre by znamenal přepsat všechno.
+- **Instalace PWA = souhlas se stažením celé ČR.** Po instalaci se automaticky na pozadí stáhne `cz.pmtiles` (žádné druhé klikání). Install je vědomý úkon → bereme ho jako „chci to celé offline".
+- **Vlastní hostovaný pmtiles**, ne OSM tile server (OSM policy zakazuje hromadný předstah; navíc chceme nezávislost na cizím zdroji).
+
+### Architektura (4 etapy, ~2,5 dne, největší riziko etapa 3)
+
+**Etapa 1 — PWA základ** (~půlden)
+- `symfonycasts/pwa-bundle` (integruje AssetMapper). Manifest + service worker.
+- Precache: app shell, Leaflet/protomaps-leaflet assety, marker ikony.
+- JSON endpointy (`app_highline_map_data` / `_feed` / `_timeline`) → runtime cache *stale-while-revalidate*.
+- Výsledek: appka instalovatelná, body + popupy + časová osa offline. Podklad zatím chybí.
+
+**Etapa 2 — vektorový podklad ČR** (~půlden)
+- CZ extract z `protomaps.com/downloads` (bbox ~12.0,48.5,18.9,51.1) → `public/maps/cz.pmtiles`.
+- V `map_controller.js` vyměnit OSM tileLayer za `protomaps-leaflet` vrstvu (flavor sladit s light theme + magenta).
+- Online jede přes HTTP range requesty z vlastního souboru.
+
+**Etapa 3 — auto-offline po instalaci** (~1 den, tady je vlastní inženýrská práce)
+- Detekce instalace: `appinstalled` (Chromium/Android) **+** standalone-detekce při startu (`display-mode: standalone`) pro iOS, kde `appinstalled`/`beforeinstallprompt` neexistují.
+- Po instalaci stáhnout `cz.pmtiles` → **OPFS** (Origin Private File System, iOS 16.4+ OK), progress bar (kolik z X MB).
+- Custom pmtiles source čte rozsahy z OPFS přes `File.slice()` → range requesty lokálně.
+- Resume při přerušení (foreground download — browser nedá spolehlivý background download); fallback na online range requests dokud není staženo.
+
+**Etapa 4 — prod parity** (~půlden)
+- Caddy: servírovat `.pmtiles` s `Range` + MIME `application/octet-stream` (`infra/Caddyfile` + `make deployCaddy`).
+- `.pmtiles` **mimo git** (desítky MB) → stáhnout/vygenerovat při deployi. Update `deploy.md`, `deploy.sh`, paměť.
+
+### Odhad velikosti (ballpark, změřit po reálném extractu)
+- maxzoom 14 ≈ ~80–150 MB — dobrý lokální detail (vidíš ke skalám)
+- maxzoom 13 ≈ ~40–60 MB — terénní kontext, hrubší zoom
+
+### OTEVŘENÉ ROZHODOVACÍ BODY (k doptání)
+1. **Styl podkladu / vrstevnice.** `protomaps-leaflet` basemap je „city" styl **bez vrstevnic / hillshade / terénu** — pro highliny v horách možná chceme topo. Varianty: (a) smířit se s plochým podkladem, (b) přidat druhou pmtiles vrstvu s vrstevnicemi/hillshade (víc dat + práce), (c) jiný zdroj tilesetu. **Tohle je největší otevřená otázka.**
+2. **maxzoom** — z13 (lehčí) vs z14 (detailnější). Ovlivní velikost stažení i ostrost u skal.
+3. **Co všechno je offline.** Jen `/mapa`, nebo i detail stránky `/highline/{slug}` (server-rendered Twig, 254 stránek)? Buď runtime-cache jen navštívené, nebo přestavět detail na data-driven z cachovaného JSON. Fotky/audio offline spíš ne (velikost).
+4. **iOS UX** — když nejde chytit install event, kdy přesně spustit download (hned při prvním standalone startu? za potvrzením kvůli mobilním datům?).
+5. **Aktualizace pmtiles** — jak často přegenerovat CZ extract a jak řešit cache-busting / verzování souboru, aby si uživatelé stáhli novou verzi.
+6. **Stažení jen na wifi?** Desítky MB — nabídnout potvrzení / detekci typu připojení před stažením?
+7. **PWA scope** — instalovatelná celá appka, nebo prezentovat jako „nainstaluj si mapu"?
+
 ## Foto galerie — sociální vrstva (PR2.2)
 
 Sociální vrstva (likes + komentáře + cover-promote + homepage rotace) hotová v session 2026-05-11. Otevřené follow-upy:
