@@ -42,8 +42,9 @@ Trust model + proposal queue dokumentace v `docs/highline-edits.md`. Otevřené 
 
 - [ ] Doplnit chybějící obrázky — úvodní Google Docs seed přenesl jen 8 z ~N obrázků, co jsou v rendrovaném dokumentu. Které kapitoly to postihuje a jak je dorovnat: editovat `wiki/NN-skupina/NN-slug.md` přímo na GitHubu, přidat `![][imageN]` ref-defs s base64 (případně inline `![](data:image/png;base64,...)`). Zatím low-priority kosmetika.
 
-## Slack.cz TV
+## slackTV
 
+- [x] Feature přejmenována „Slack.cz TV" → **slackTV** + dedikovaná stránka `/tv` (grid karet, click-to-play inline embed přes `tv_controller.js`). Homepage panel zůstává jako teaser s odkazem „Otevřít →", nav má položku slackTV.
 - [ ] Až bude existovat YT kanál CAS, přidat jeho channel ID do `feed.youtube.channels`
 - [ ] Přidat další search query / kanál — při aktuálním TTL 21600s (6h) je quota rezerva ~25×, takže pár dalších zdrojů se vejde bez úprav TTL (vzorec viz `architecture.md` § *Quota economics*). TTL prodlužovat až kdyby queries narostly o řád.
 - [ ] Promyslet, jestli má smysl přidat i FB Page CAS jako další zdroj (pak nutný jiný fetcher; Meta API)

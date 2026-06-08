@@ -208,7 +208,9 @@ curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'asset
 - **Asset URL hashe** se mění při edit → curl test musí parsovat URL z HTML, ne hardcodovat.
 - **Limit posledních přechodů** je centralizovaný v `App\Repository\HighlineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i sidebar feed. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
 
-## Feed (Slack.cz TV)
+## Feed (slackTV)
+
+Prezentace: teaser panel na `/` + dedikovaná stránka `/tv` (`app_tv`). `/tv` má click-to-play (`tv_controller.js`, youtube-nocookie embed na klik).
 
 ```bash
 # vyčistit jen feed cache (nedělej cache:clear jen kvůli feedu — to drahá operace)

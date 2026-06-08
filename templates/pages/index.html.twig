@@ -73,16 +73,17 @@
     </div>
 
     {% if feed_items|length > 0 %}
-    <aside class="panel panel-tv">
+    <aside class="panel panel-tv panel-tv-strip">
         <header class="panel-header">
             <div class="panel-title">
                 <span class="panel-dot panel-dot-tv"></span>
-                <h2>Slack.cz TV</h2>
+                <h2>slackTV</h2>
             </div>
+            <a href="{{ path('app_tv') }}" class="panel-link">Otevřít →</a>
         </header>
-        <ul class="tv-list">
+        <ul class="tv-strip">
             {% for item in feed_items %}
-            <li class="tv-item">
+            <li class="tv-strip-item">
                 <a href="{{ item.link }}" target="_blank" rel="noopener" class="tv-thumb">
                     <img src="{{ item.thumbnailUrl }}" alt="" loading="lazy" />
                     <span class="tv-play" aria-hidden="true">▶</span>

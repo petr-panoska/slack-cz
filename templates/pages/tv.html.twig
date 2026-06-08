@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}slackTV — slack.cz{% endblock %}
+
+{% block body %}
+<div class="tv-page">
+    <header class="tv-page-header">
+        <div class="panel-title">
+            <span class="panel-dot panel-dot-tv"></span>
+            <h1>slackTV</h1>
+        </div>
+        <p class="tv-page-sub">Slacklinová videa z české scény. Klikni na náhled a pusť si je rovnou tady.</p>
+    </header>
+
+    {% if feed_items|length > 0 %}
+    <div class="tv-grid">
+        {% for item in feed_items %}
+        <article
+            class="tv-card"
+            data-controller="tv"
+            data-tv-video-value="{{ item.source == 'youtube' ? item.id|slice(3) : '' }}"
+            data-tv-title-value="{{ item.title }}"
+        >
+            <button
+                type="button"
+                class="tv-card-media"
+                data-tv-target="media"
+                data-action="tv#play"
+                aria-label="Přehrát: {{ item.title }}"
+            >
+                <img src="{{ item.thumbnailUrl }}" alt="" loading="lazy" />
+                <span class="tv-play" aria-hidden="true">▶</span>
+            </button>
+            <div class="tv-card-meta">
+                <h2 class="tv-title">
+                    <a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a>
+                </h2>
+                <div class="tv-sub">
+                    {% if item.authorUrl %}
+                        <a href="{{ item.authorUrl }}" target="_blank" rel="noopener">{{ item.authorName }}</a>
+                    {% else %}
+                        <span>{{ item.authorName }}</span>
+                    {% endif %}
+                    <span class="tv-sep">·</span>
+                    <time datetime="{{ item.publishedAt|date('c') }}">{{ item.publishedAt|date('j. n. Y') }}</time>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="tv-empty">Zatím tu nic neběží. Brzy přibydou videa.</p>
+    {% endif %}
+</div>
+{% endblock %}
