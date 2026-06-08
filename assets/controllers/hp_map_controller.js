@@ -42,9 +42,24 @@ export default class extends Controller {
             shadowUrl: this.shadowUrlValue,
         });
 
+        // Start already near the first crossing — if we began at country level and then
+        // flew/zoomed to the line, the big z7→z17 zoom would briefly balloon the layers
+        // and blur the tiles (an ugly fly-through). So seed the view at the first item.
+        let center = CZECH_CENTER;
+        let zoom = 7;
+        const first = this.itemTargets[0];
+        if (first) {
+            const lat = parseFloat(first.dataset.lat);
+            const lng = parseFloat(first.dataset.lng);
+            if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                center = [lat, lng];
+                zoom = 14;
+            }
+        }
+
         // scrollWheelZoom off so scrolling the homepage doesn't get hijacked by the map.
         this.map = L.map(this.canvasTarget, { zoomControl: false, scrollWheelZoom: false })
-            .setView(CZECH_CENTER, 7);
+            .setView(center, zoom);
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -64,7 +79,8 @@ export default class extends Controller {
         // Map is created inside a flex panel that may not have its final size yet.
         requestAnimationFrame(() => {
             this.map?.invalidateSize();
-            if (this.itemTargets.length > 0) this.activate(0);
+            // First activation is instant (no fly) — we're already framed on it.
+            if (this.itemTargets.length > 0) this.activate(0, { animate: false });
         });
     }
 
@@ -84,7 +100,7 @@ export default class extends Controller {
         if (idx >= 0) this.activate(idx);
     }
 
-    activate(index) {
+    activate(index, { animate = true } = {}) {
         const item = this.itemTargets[index];
         if (!item) return;
 
@@ -120,20 +136,27 @@ export default class extends Controller {
             L.polyline([p1, p2], { color: '#e1005b', weight: 4, opacity: 0.9 }).addTo(this.activeLayer);
             this.endpoint(p1);
             this.endpoint(p2);
-            if (sameView) {
-                // Already framed on this line — just replay the walk, no map movement.
-                this.walk(p1, p2, emoji, comment, gen);
-            } else {
+            const startWalk = () => this.walk(p1, p2, emoji, comment, gen);
+            if (animate && !sameView) {
                 // flyToBounds glides (pan + zoom) instead of snapping; walk starts once it settles.
                 this.map.flyToBounds([p1, p2], { padding: [60, 60], maxZoom: 17, duration: FLY_DURATION });
-                this.afterFly(gen, () => this.walk(p1, p2, emoji, comment, gen));
+                this.afterFly(gen, startWalk);
+            } else {
+                // Instant (initial load) or same line — frame without a fly, walk right away.
+                if (!sameView) this.map.fitBounds([p1, p2], { padding: [60, 60], maxZoom: 17, animate: false });
+                startWalk();
             }
         } else if (mid) {
             // No line geometry → no walk; show the comment on the static marker.
             const marker = L.marker(mid, { icon: emojiIcon(emoji) }).addTo(this.activeLayer);
             this.showThought(marker, comment);
-            if (!sameView) this.map.flyTo(mid, 15, { duration: FLY_DURATION });
-            this.afterFly(gen, () => this.scheduleAdvance(gen));
+            if (animate && !sameView) {
+                this.map.flyTo(mid, 15, { duration: FLY_DURATION });
+                this.afterFly(gen, () => this.scheduleAdvance(gen));
+            } else {
+                if (!sameView) this.map.setView(mid, 15, { animate: false });
+                this.scheduleAdvance(gen);
+            }
         }
     }
 
