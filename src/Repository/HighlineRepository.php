@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Highline;
+use App\Entity\HighlineCrossing;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -14,6 +16,31 @@ class HighlineRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Highline::class);
+    }
+
+    /**
+     * Highlines with a first anchor but no second one (point2 null) — these can't draw
+     * the line on the map. Triage list for back-filling the missing endpoint, sorted by
+     * crossing count DESC (most-crossed = most worth fixing first).
+     *
+     * @return list<array{highline:Highline, crossingCount:int}>
+     */
+    public function findMissingSecondPoint(): array
+    {
+        $rows = $this->createQueryBuilder('h')
+            ->select('h AS highline', 'COUNT(c.id) AS crossingCount')
+            ->leftJoin(HighlineCrossing::class, 'c', Join::WITH, 'c.highline = h')
+            ->where('h.point2Latitude IS NULL OR h.point2Longitude IS NULL')
+            ->groupBy('h.id')
+            ->orderBy('crossingCount', 'DESC')
+            ->addOrderBy('h.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (array $r): array => [
+            'highline' => $r['highline'],
+            'crossingCount' => (int) $r['crossingCount'],
+        ], $rows);
     }
 
     /**

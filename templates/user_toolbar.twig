@@ -17,6 +17,7 @@
         {% endif %}
         {% if is_granted('ROLE_ADMIN') %}
             <a href="{{ path('app_admin_proposals') }}" class="site-nav-admin {{ route == 'app_admin_proposals' ? 'is-active' : '' }}">Návrhy</a>
+            <a href="{{ path('app_data_report') }}" class="site-nav-admin {{ route == 'app_data_report' ? 'is-active' : '' }}">Data report</a>
         {% endif %}
     </nav>
 

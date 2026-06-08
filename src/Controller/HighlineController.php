@@ -19,10 +19,23 @@ use App\Entity\Highline;
 
 final class HighlineController extends AbstractController
 {
+    // Current production host. Used to build click-through links to the live site.
+    private const PRODUCTION_URL = 'https://www.slack.cz';
+
+
     #[Route('/mapa', name: 'app_highline_map')]
     public function map(): Response
     {
         return $this->render('pages/mapa.html.twig');
+    }
+
+    #[Route('/data-report', name: 'app_data_report', methods: ['GET'])]
+    public function dataReport(HighlineRepository $highlines): Response
+    {
+        return $this->render('pages/data_report.html.twig', [
+            'lines_missing_point' => $highlines->findMissingSecondPoint(),
+            'production_url' => self::PRODUCTION_URL,
+        ]);
     }
 
     #[Route('/highline/{slug}', name: 'app_highline_detail', requirements: ['slug' => '[a-z0-9-]+'])]

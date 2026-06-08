@@ -111,6 +111,7 @@ Detailně v `deploy.md`. Krátce:
 - [ ] DNS swap: A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only)
 - [ ] Přidat `slack.cz` blok do `infra/Caddyfile` (analogický k `beta.slack.cz`) a `make deployCaddy`
 - [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů)
+- [ ] Zkontrolovat konstantu `HighlineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji veřejná stránka „Data report" (`/data-report`, odkaz v menu jen adminovi) pro proklik na legacy detail (`/highlines/detail/{legacyId}`); upravit, pokud se prod host změní
 - [ ] Nastavit reálné `YOUTUBE_API_KEY` + `DOCS_GITHUB_TOKEN` v `.env.local` na serveru
 - [ ] (volitelné) `unattended-upgrades` na auto-security patches
 - [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery
