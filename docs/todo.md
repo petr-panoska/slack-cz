@@ -121,7 +121,7 @@ Detailně v `deploy.md`. Krátce:
 - [ ] Přidat `slack.cz` blok do `infra/Caddyfile` (analogický k `beta.slack.cz`) a `make deployCaddy`
 - [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů)
 - [ ] Zkontrolovat konstantu `HighlineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji veřejná stránka „Data report" (`/data-report`, odkaz v menu jen adminovi) pro proklik na legacy detail (`/highlines/detail/{legacyId}`); upravit, pokud se prod host změní
-- [ ] Nastavit reálné `YOUTUBE_API_KEY` + `DOCS_GITHUB_TOKEN` v `.env.local` na serveru
+- [ ] Nastavit reálné `YOUTUBE_API_KEY` + `DOCS_GITHUB_TOKEN` + `WIKI_GITHUB_TOKEN` v `.env.local` na serveru (oba GH tokeny zvedají rate-limit pro `/docs` resp. `/wiki` fetch; bez nich 60 req/h/IP)
 - [ ] (volitelné) `unattended-upgrades` na auto-security patches
 - [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery
 
@@ -131,6 +131,10 @@ Detailně v `deploy.md`. Krátce:
 - [ ] Po nasazení produkce: rotovat `YOUTUBE_API_KEY`
 - [x] Uklidit `App\Old\Entity\Uzivatel` — smazáno celé: entita + repo + debug view `/old-users` (route i template) + ORM `old` entity_manager v `doctrine.yaml` + adresář `src/Old/`. DBAL `old` connection zůstává (importy přes ni čtou raw SQL).
 - [ ] Default Symfony `hello_controller.js` v `assets/controllers/` smazat až bude místo něj něco užitečného
+- [x] Skeletonový workflow `.github/workflows/symfony.yml` oživen — `tests/Controller/PublicPagesSmokeTest.php` (DB-free routy: `/o-projektu`, `/login` → 200, `/profile` → 302). Běží na SQLite bez schématu.
+- [ ] Rozšířit smoke testy o DB-backed routy (`/`, `/mapa`, `/denik/{id}`, …) — vyžaduje test DB se schématem (přidat `doctrine:schema:create --env=test` step do `symfony.yml`; migrace jsou Postgres-specific, na SQLite je nepustíš).
+- [ ] Přidat `/register` (a další form-rendering routy) do smoke testů až po deprecation cleanupu — render `RegistrationForm` teď spouští **přímé** array-option constraint deprecations, takže s `failOnDeprecation=true` by shodil CI. Viz `roadmap.md` deprecation checklist.
+- [x] Mrtvá env proměnná `APP_SHARE_DIR=var/share` smazána z `.env` (0 použití v kódu/configu).
 ## Homepage rework (probíhá)
 
 - [x] slackTV: ze sidebaru → horizontální strip úplně dole; grid sjednocen na single-column.

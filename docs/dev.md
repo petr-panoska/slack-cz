@@ -51,7 +51,9 @@ docker compose exec -T php bin/console <cmd>
 | Target | Co dělá |
 |---|---|
 | `make dcSetup` | `composer install` |
+| `make dcCheckRequirements` | `symfony check:requirements` v `php` containeru (preflight prostředí) |
 | `make dcInitDb` | `doctrine:database:create --if-not-exists` + migrate |
+| `make dcDropdb` | `doctrine:database:drop --force --if-exists` (reset před fresh importem — viz `migration.md`) |
 | `make dcClearCache` | cache:clear --no-warmup (dle aktuálního `APP_ENV` v containeru / `.env.local`) |
 | `make dcAssetMapCompile` | `bin/console asset-map:compile` — generuje `public/assets/manifest.json`. **NUTNÉ v prod** — bez něj 500 |
 | `make dcClearCacheProd` | cache:clear s vynuceným `APP_ENV=prod` (i kdyby `.env.local` měl `APP_ENV=dev`) |
@@ -170,6 +172,21 @@ docker compose exec -T php bin/console app:admin:grant <email> --revoke
 ```
 
 > `app:user:reset-password` reálně zapíše `ResetPasswordRequest` do DB (token s lifetime z bundlu) — token je jednorázový a vyprší stejně jako kdyby přišel mailem. Workflow přes `SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface`, žádný hack.
+
+## Testy (PHPUnit)
+
+`tests/Controller/PublicPagesSmokeTest.php` — smoke testy DB-free veřejných rout (kernel nabootuje, routing + security + Twig fungují). Běží na SQLite bez schématu, stejně jako CI workflow `.github/workflows/symfony.yml` — nepotřebují Postgres ani síť.
+
+```bash
+# Lokálně 1:1 jako CI (SQLite, test env):
+docker compose exec -T php sh -c '
+  mkdir -p data && touch data/database.sqlite
+  DATABASE_URL="sqlite:///%kernel.project_dir%/data/database.sqlite" APP_ENV=test \
+  vendor/bin/phpunit
+'
+```
+
+> `phpunit.dist.xml` má `failOnDeprecation/Notice/Warning=true` → test, který spustí **přímou** (naši) deprecation, shodí build. Proto se do smoke testů zatím nedávají form-rendering routy (`/register` apod. — `RegistrationForm` má array-option constraints; viz `roadmap.md`). Vendor (indirect) deprecations se ignorují (`ignoreIndirectDeprecations="true"`).
 
 ## Smoke testy v terminálu
 

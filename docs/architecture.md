@@ -1,6 +1,6 @@
 # Architektura
 
-Symfony 7.4 LTS / PHP 8.2+ aplikace. Vyvíjí se v Dockeru (Compose); staging na <https://beta.slack.cz> (Hetzner CX22, native PHP 8.3 + Postgres 16 + Caddy — viz `deploy.md`), cutover legacy `slack.cz` ještě neproběhl.
+Symfony 7.4 LTS aplikace (composer min **PHP 8.2**; reálně dev+CI image jede na **8.4**, prod **8.3** — viz `roadmap.md`). Vyvíjí se v Dockeru (Compose); staging na <https://beta.slack.cz> (Hetzner CX22, native PHP 8.3 + Postgres 16 + Caddy — viz `deploy.md`), cutover legacy `slack.cz` ještě neproběhl.
 
 Dev běží na **native docker-ce** (Linux) — žádný Docker Desktop, žádný `linuxkit`, žádný FUSE wrapper. Bind mount je raw `ext4` přímo z hostu, atomic-rename funguje korektně (důležité, viz historie editací; DD's `fakeowner` FUSE měl invalidation bug).
 
@@ -24,12 +24,16 @@ Aktuální dynamické porty: `docker compose port database 5432`, `docker compos
 
 ```
 src/
-  Controller/       # PagesController, HighlineController, HighlineCrudController, CrossingController,
-                    # UserController, MarkdownSectionController, Registration/Reset/Security
-  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, HighlineEdit, ResetPasswordRequest
+  Controller/       # PagesController, HighlineController, HighlineCrudController, HighlinePhotoController,
+                    # CrossingController, UserController, MarkdownSectionController, Registration/Reset/Security
+  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, HighlineEdit,
+                    # HighlinePhoto, HighlinePhotoComment, HighlinePhotoLike, ResetPasswordRequest
   Enum/             # HighlineType, HighlineCrossingStyle, HighlineEditStatus, Gender
+  EventSubscriber/  # HighlinePhotoSanitizerSubscriber (post-upload EXIF strip + orientace přes GD)
   Feed/             # YouTube feed + cache + dispatcher (mock fallback)
   Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, RegistrationForm, ...)
+  Legacy/           # UserMergeMap (singleton — duplicit-email merge mapa; plní app:import:users, čte app:import:crossings)
+  Markdown/Section/ # GitHub-backed MD subsystém pro /docs + /wiki (detail v § Markdown sections níž)
   Repository/       # Doctrine repos (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
   Command/          # Console commands: app:import:*, app:admin:grant, app:edit:sync-from-history,
@@ -59,6 +63,7 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
   - `hello_controller.js` — placeholder z generátoru
   - `csrf_protection_controller.js` — vendored z Symfony Flex recepty (přišel s 7.4): stateless CSRF, dopočítává `framework.csrf_protection.check_header` token na form submitech. Neměň ručně.
   - `map_controller.js` — hlavní Leaflet mapa: highline markery (`staticLayer`), emoji markery posledních přechodů (`usersLayer`, přepínatelné okem ze sidebaru), time-travel režim (`timelineLayer`). Leaflet zoom je přesunutý na `bottomright`, aby se nemlátil se sidebarem vlevo nahoře.
+  - `hp_map_controller.js` (identifier `hp-map`) — homepage mapa v panelu Mapa: ukazuje jen aktivní přechod, vykreslí reálnou linku + emoji walker animaci po lajně a auto-showcase cyklus přes posledních N přechodů. Sdílí emoji paletu (`assets/user_emoji.js`) s `map_controller`. Detailní chování v § *Hotové features → Index page*.
   - `highline_detail_map_controller.js` — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
   - `highline_form_map_controller.js` — 2-endpoint GPS picker pro highline form. Alternující klik 1→2→1, oba markery draggable, polyline + live haversine length overlay. Sync se 4 input poli (point1Lat/Lng + point2Lat/Lng) oboustranně.
   - `user_denik_map_controller.js` — mini-mapa na `/denik/{id}` se všemi unikátními highlines, co user prošel
@@ -67,6 +72,7 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
   - `intro_controller.js` — slackvibes 📻 audio player; persistent přes Turbo přes `data-turbo-permanent`. Detaily v `docs/audio-player.md`.
   - `live_slug_controller.js` — live URL preview pro unverified highline edit form: slugify-uje typed name a updatuje `<code>` preview. Server na save přegeneruje slug přes `makeUniqueSlug`.
   - `photo_like_controller.js` — like button na `/highline/{slug}/fotky/{id}`; intercept-uje form submit, POST přes fetch s `Accept: application/json`, endpoint vrátí `{liked, count}` JSON, controller updatuje classy + `aria-pressed` + icon + count. Při fetch failu padá zpět na nativní form submit (graceful degradation).
+  - `tv_controller.js` — click-to-play facade na `/tv`: náhled karty nahradí `youtube-nocookie` embedem až po kliknutí (neload 24 iframů + privacy). Viz § *Feed (slackTV)*.
 
 #### Cross-controller event bus
 
@@ -180,6 +186,8 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/highline/{slug}/upravit` | `app_highline_edit` | `ROLE_USER` — direct edit (owner of unverified / admin) nebo proposal (verified + non-admin); detail v `docs/highline-edits.md` |
 | `/highline/{slug}/smazat` | `app_highline_delete` | `ROLE_USER` — owner-of-unverified nebo admin |
 | `/highline/{slug}/verify` | `app_highline_verify` | `ROLE_ADMIN` — flag isVerified=true |
+| `/highline/{slug}/historie` | `app_highline_history` | ✓ — veřejný audit log editů (APPLIED + REJECTED) |
+| `/highline/{slug}/historie/{editId}/smazat` | `app_highline_history_delete` | `ROLE_ADMIN` POST — stack-pop poslední revize |
 | `/highline/{slug}/fotky/pridat` | `app_highline_photo_new` | `ROLE_USER` — upload fotky |
 | `/highline/{slug}/fotky/{id}` | `app_highline_photo_detail` | ✓ — photo detail (like, komentáře, prev/next) |
 | `/highline/fotka/{id}/like` | `app_highline_photo_like` | `ROLE_USER` POST — toggle like |
@@ -191,6 +199,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` — fronta pending proposals + diff tabulky |
 | `/admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` |
 | `/admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` |
+| `/data-report` | `app_data_report` | ✓ veřejná, ale odkaz v menu jen adminovi — proklik na legacy detail (`HighlineController::PRODUCTION_URL`) |
 | `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele |
 | `/o-projektu` | `app_about` | ✓ |
 | `/profile` | `app_profile` | login required |
@@ -255,6 +264,8 @@ Každá sekce = trojice services v `config/packages/markdown.yaml`:
 | `app.section.<name>.fetcher` | `CachedFetcher` | cache wrapper, injected do controlleru |
 
 Přidání nové sekce = další trojice services + 2 route metody v controlleru. Controller binduje fetchery + configs přes `#[Autowire('@app.section.<name>.fetcher')]`.
+
+Token každé sekce čte vlastní env var přes `%env(default::…)%` (default = prázdný, takže bez tokenu sekce funguje na public repu, jen s nižším GitHub rate-limitem): `/docs` → **`DOCS_GITHUB_TOKEN`**, `/wiki` → **`WIKI_GITHUB_TOKEN`**.
 
 ### Konvence MD souborů (žádný frontmatter)
 

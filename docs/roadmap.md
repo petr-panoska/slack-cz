@@ -66,10 +66,19 @@ Tyhle reálně potkáme; část jde uklidit hned na 7.4 jako bezriziková příp
       `'account_status'`) — ověřit `config/packages/security.yaml`.
 - [x] **Stateless CSRF** (`framework.csrf_protection.check_header: true`) — **už máme**
       (přišlo s 7.4 recepty, `config/packages/ux_turbo.yaml`), to je rovnou 8.x směr.
+- [ ] **Validator constraints: array options → named arguments** (`symfony/validator` 7.3
+      deprecation) — **POTVRZENO** smoke testem: render `RegistrationForm` spouští 3 přímé
+      deprecations (`IsTrue`, `NotBlank`, `Length`). Skoro jistě i v dalších formech
+      (`HighlineForm`, `HighlineCrossingForm`, …). Projít všechny `#[Assert\*([...])]`
+      s array syntaxí → přepsat na named args. Blokuje rozšíření smoke testů o form-routy.
 
-Detekce: `php bin/phpunit --display-deprecations` (testy nemáme → spíš ručně přes
-`bin/console debug:container --deprecations` + projít web/profiler). Direct = náš kód,
-Indirect = bundly (report maintainerům / čekat na jejich `^8` release).
+Detekce: `php bin/phpunit --display-deprecations`. Máme zatím jen **3 smoke testy**
+DB-free rout (`tests/Controller/PublicPagesSmokeTest.php`) — ty už ale jednu vrstvu
+deprecations odhalily (viz checklist výš), takže každý další smoke test na form-rendering
+routu funguje jako detektor. Plus ručně přes `bin/console debug:container --deprecations`
++ projít web/profiler. Direct = náš kód, Indirect = bundly (report maintainerům / čekat
+na jejich `^8` release; `phpunit.dist.xml` má `ignoreIndirectDeprecations="true"`, takže
+CI failuje jen na našich přímých).
 
 ### BC breaky 8.1 navíc (nad 8.0)
 `HttpFoundation::getInt()/getBoolean()` vyhodí výjimku místo `0/false`; `DomCrawler`

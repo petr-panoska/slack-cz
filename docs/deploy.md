@@ -12,6 +12,8 @@ Tři prostředí:
 |---|---|---|---|
 | **Dev** | tvůj laptop, Docker Compose | Apache + PHP-FPM + Postgres 16 + MySQL legacy + Adminer + Mailpit. Bind-mount repa. | `docker compose` + `make dc*` targety, viz `dev.md` |
 | **CI** | GitHub Actions (`.github/workflows/deploy.yml`) | ephemeral Ubuntu runner. Triggered push do `main` + `workflow_dispatch`. Joby: `preflight` → `deploy`. | YAML inlinuje `ssh ... 'bash -s' < scripts/<X>.sh`, žádný copy-paste z `deploy.sh` |
+
+> Repo má **druhý** workflow `.github/workflows/symfony.yml` (původně skeletonový default „Symfony" — `composer install` + `vendor/bin/phpunit` na push/PR, **SQLite**, bez migrací). Teď v něm běží `tests/Controller/PublicPagesSmokeTest.php` — smoke testy DB-free veřejných rout (`/o-projektu`, `/login` → 200; `/profile` → redirect na login). DB-backed a síťové routy (`/`, `/mapa`, `/wiki`, `/docs`) jsou schválně mimo, protože CI nemá ani DB schema, ani síť. Rozšíření čeká na test DB se schématem + deprecation cleanup formulářů — viz `todo.md` a `roadmap.md`.
 | **Prod (beta.slack.cz)** | Hetzner CX22 (`178.105.81.158`), Ubuntu 24.04 | **Native** PHP 8.3 + Postgres 16 + Caddy + ufw + fail2ban. Žádný Docker. App v `/var/www/slack-cz` jako `deploy` user. | Skripty v `scripts/`, viz tabulka níž |
 
 Pět skriptů drží celou prod stranu. **Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč), updatuj patřičný skript ve stejném commitu jako kód — další deploy padne fail-fast, dokud server nedoinstaluješ.
@@ -338,7 +340,7 @@ Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
    - Přidat AAAA na `2a01:4f8:1c18:6966::1`
    - Gray cloud (DNS-only) kvůli Caddy auto-HTTPS
 4. **Caddyfile pro `slack.cz`** — v `infra/Caddyfile` přidat blok analogický k `beta.slack.cz` (sdílejí `@photos` matcher). Pokud chceme `www.slack.cz` redirect na apex, přidat redir block. Pak `make deployCaddy`.
-5. **YouTube API key + GitHub PAT** — dostat reálné hodnoty do `.env.local` (`YOUTUBE_API_KEY`, `DOCS_GITHUB_TOKEN`).
+5. **YouTube API key + GitHub PAT** — dostat reálné hodnoty do `.env.local` (`YOUTUBE_API_KEY`, **`DOCS_GITHUB_TOKEN`** pro `/docs` fetcher, **`WIKI_GITHUB_TOKEN`** pro `/wiki` fetcher — viz `config/packages/markdown.yaml`). Tokeny jsou volitelné (public repo jede i bez nich), ale bez nich platí přísnější GitHub rate-limit (60 req/h/IP) na fetch markdownu.
 6. **(volitelné) `unattended-upgrades`** pro automatické security patche.
 7. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.
 

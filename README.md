@@ -41,9 +41,13 @@ docker compose run php symfony check:requirements
 
 ## Documentation
 
-Internal docs live in [`docs/`](docs/):
-- [`architecture.md`](docs/architecture.md) — what is built and key decisions
+Internal docs live in [`docs/`](docs/) (index: [`docs/README.md`](docs/README.md)):
+- [`architecture.md`](docs/architecture.md) — what is built, code structure, key decisions
 - [`migration.md`](docs/migration.md) — legacy data import strategy
 - [`crossing-styles.md`](docs/crossing-styles.md) — highline crossing styles taxonomy
+- [`highline-edits.md`](docs/highline-edits.md) — trust model + proposal queue for highline edits
+- [`audio-player.md`](docs/audio-player.md) — slackvibes 📻 player internals
 - [`dev.md`](docs/dev.md) — operational cheat sheet (Docker, console, DB, cache, smoke tests)
+- [`deploy.md`](docs/deploy.md) — production (Hetzner VPS, Caddy, `make deploy`, CI)
+- [`roadmap.md`](docs/roadmap.md) — strategic decisions (Symfony 8.x upgrade assessment)
 - [`todo.md`](docs/todo.md) — open work items
