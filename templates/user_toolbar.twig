@@ -53,6 +53,10 @@
             </div>
         </div>
 
+        {# slackvibes intro splash + hudební přehrávač — DOČASNĚ VYPNUTO (použijeme později).
+           Přepni intro_enabled na true a celá feature (vstupní overlay + audio player) je zpět. #}
+        {% set intro_enabled = false %}
+        {% if intro_enabled %}
         {# Persistent across Turbo navigations — id+turbo-permanent keeps the audio playing through page swaps. #}
         <div
             id="music-player"
@@ -157,6 +161,7 @@
                 </ol>
             </aside>
         </div>
+        {% endif %}
 
         {% if app.user %}
             <a href="{{ path('app_profile') }}" class="user-email">{{ app.user.email }}</a>
