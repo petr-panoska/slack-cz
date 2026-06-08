@@ -121,7 +121,13 @@ Detailně v `deploy.md`. Krátce:
 - [ ] Po nasazení produkce: rotovat `YOUTUBE_API_KEY`
 - [ ] Uklidit `App\Old\Entity\Uzivatel` — zatím se používá pro debug view `/old-users`. Po user importu zvážit smazání route + entity (po user importu už máme data v nové DB).
 - [ ] Default Symfony `hello_controller.js` v `assets/controllers/` smazat až bude místo něj něco užitečného
-- [ ] Index page má prázdný main sloupec vlevo nad mapou (kdyby měl menší výšku) — můžeme tam dát další box (nedávno přidané, top rated, něco z deníčku po user importu)
+## Homepage rework (probíhá)
+
+- [x] slackTV: ze sidebaru → horizontální strip úplně dole; grid sjednocen na single-column.
+- [x] Sloučení panelů „Highline mapa" + „Poslední přechody" → jeden panel **Mapa** se sidebarem přechodů; mapa ukazuje jen aktivní přechod, reálnou linku, zoom + emoji walker animace po lajně (`hp_map_controller.js`).
+- [ ] Chování walkera dle typu/stylu přechodu (běh/lezení/…); zatím jednotná emoji animace posledního úseku.
+- [ ] Doladit horní část homepage dál dle záměru (rozložení mapa/galerie/další boxy).
+- [ ] Responzivita celé homepage (necháno na konec).
 
 ## Dokončené (krátký archiv)
 

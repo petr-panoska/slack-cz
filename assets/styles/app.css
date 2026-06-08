@@ -243,24 +243,6 @@ a {
     border-bottom: none;
 }
 
-/* Horizontal stripe variant (used under the featured map on index) */
-.crossings-list-stripe {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-}
-
-.crossings-list-stripe .crossings-item {
-    flex: 0 0 260px;
-    border-bottom: none;
-    border-right: 1px solid var(--color-line);
-    scroll-snap-align: start;
-}
-
-.crossings-list-stripe .crossings-item:last-child {
-    border-right: none;
-}
-
 .crossings-date {
     grid-area: date;
     color: var(--color-muted);
@@ -347,12 +329,6 @@ a.crossings-line:hover {
     -webkit-box-orient: vertical;
 }
 
-.crossings-list-stripe .crossings-comment {
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    font-size: 0.74rem;
-}
-
 @keyframes tv-pulse {
     0%   { box-shadow: 0 0 0 0 rgba(225, 0, 91, 0.6); }
     70%  { box-shadow: 0 0 0 8px rgba(225, 0, 91, 0); }
@@ -370,17 +346,67 @@ a.crossings-line:hover {
     color: var(--color-accent);
 }
 
-/* ---------- Map panel (index) ---------- */
+/* ---------- Homepage map panel (merged map + crossings) ---------- */
 
-.panel-map-wrapper {
-    position: relative;
-    height: 560px;
-    width: 100%;
+.hp-map-body {
+    display: flex;
+    height: 520px;
 }
 
-.panel-map-canvas {
-    height: 100%;
-    width: 100%;
+.hp-crossings {
+    flex: 0 0 290px;
+    overflow-y: auto;
+    border-right: 1px solid var(--color-line);
+}
+
+.hp-crossings-empty {
+    margin: 0;
+    padding: 16px;
+    color: var(--color-muted);
+    font-size: 0.85rem;
+}
+
+.crossings-item.hp-crossing {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.crossings-item.hp-crossing:hover {
+    background: #fafafa;
+}
+
+.crossings-item.hp-crossing.is-active {
+    background: rgba(225, 0, 91, 0.06);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.hp-map-canvas-wrap {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+.hp-map-canvas {
+    position: absolute;
+    inset: 0;
+}
+
+@media (max-width: 760px) {
+    .hp-map-body {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .hp-crossings {
+        flex-basis: auto;
+        max-height: 220px;
+        border-right: none;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .hp-map-canvas-wrap {
+        height: 320px;
+    }
 }
 
 /* User emoji circle marker — one per recent active user. */
@@ -408,6 +434,108 @@ a.crossings-line:hover {
     transform: scale(1.15);
     box-shadow: 0 3px 12px rgba(225, 0, 91, 0.4);
     z-index: 1000;
+}
+
+/* Crossing-complete celebration — homepage walker (hp_map_controller). One picked
+   at random when the athlete reaches the far anchor. Animates the emoji's own
+   transform; the marker position lives on the parent .leaflet-marker-icon, so the
+   two never fight. */
+.user-emoji.hp-cel-bounce { animation: hp-cel-bounce 0.8s ease; }
+.user-emoji.hp-cel-flip   { animation: hp-cel-flip 0.8s ease; }
+.user-emoji.hp-cel-spin   { animation: hp-cel-spin 0.8s ease-in-out; }
+.user-emoji.hp-cel-pop    { animation: hp-cel-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.user-emoji.hp-cel-wobble { animation: hp-cel-wobble 0.8s ease-in-out; }
+
+@keyframes hp-cel-bounce {
+    0%, 100% { transform: translateY(0); }
+    25%      { transform: translateY(-12px); }
+    45%      { transform: translateY(0); }
+    65%      { transform: translateY(-6px); }
+    85%      { transform: translateY(0); }
+}
+
+@keyframes hp-cel-flip {
+    0%   { transform: rotateY(0) scale(1); }
+    50%  { transform: rotateY(180deg) scale(1.1); }
+    100% { transform: rotateY(360deg) scale(1); }
+}
+
+@keyframes hp-cel-spin {
+    0%   { transform: rotate(0) scale(1); }
+    60%  { transform: rotate(360deg) scale(1.15); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes hp-cel-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.5); }
+    100% { transform: scale(1); }
+}
+
+@keyframes hp-cel-wobble {
+    0%, 100% { transform: rotate(0); }
+    20%      { transform: rotate(-15deg); }
+    40%      { transform: rotate(12deg); }
+    60%      { transform: rotate(-8deg); }
+    80%      { transform: rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .user-emoji[class*="hp-cel-"] { animation: none; }
+}
+
+/* Thought bubble above the walker when the crossing has a comment. Decent: small,
+   light, fades in. Sibling of .user-emoji so the celebration transform skips it. */
+.hp-thought {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 9px;
+    width: max-content;
+    max-width: 168px;
+    padding: 5px 9px;
+    background: #fff;
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    border-radius: 11px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+    font-size: 11px;
+    line-height: 1.35;
+    font-style: italic;
+    text-align: center;
+    pointer-events: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    opacity: 0;
+    animation: hp-thought-in 0.45s ease 0.3s forwards;
+}
+
+/* Trailing thought dot connecting bubble → head. */
+.hp-thought::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid var(--color-line);
+}
+
+@keyframes hp-thought-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hp-thought { animation: none; opacity: 1; }
 }
 
 .user-popup strong {

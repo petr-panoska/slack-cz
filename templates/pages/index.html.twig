@@ -5,38 +5,66 @@
 {% block body %}
 <div class="page-grid">
     <div class="page-main">
-        <section class="panel panel-map">
+        <section
+            class="panel panel-hpmap"
+            data-controller="hp-map"
+            data-hp-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+            data-hp-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+            data-hp-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+        >
             <header class="panel-header">
                 <div class="panel-title">
                     <span class="panel-dot panel-dot-map"></span>
-                    <h2>Highline mapa</h2>
+                    <h2>Mapa</h2>
                 </div>
                 <a href="{{ path('app_highline_map') }}" class="panel-link">Otevřít →</a>
             </header>
-            <div
-                class="panel-map-wrapper"
-                data-controller="map"
-                data-map-data-url-value="{{ path('app_highline_map_data') }}"
-                data-map-users-url-value="{{ path('app_highline_map_feed') }}"
-                data-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-                data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-                data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
-            >
-                <div class="panel-map-canvas" data-map-target="canvas"></div>
+            <div class="hp-map-body">
+                <aside class="hp-crossings" aria-label="Poslední přechody">
+                    {% if recent_crossings|length > 0 %}
+                    <ul class="crossings-list crossings-list-panel">
+                        {% for c in recent_crossings %}
+                        <li
+                            class="crossings-item hp-crossing{{ loop.first ? ' is-active' : '' }}"
+                            data-hp-map-target="item"
+                            data-action="click->hp-map#select"
+                            data-name="{{ c.highline.name }}"
+                            data-lat="{{ c.highline.latitude }}"
+                            data-lng="{{ c.highline.longitude }}"
+                            data-p1-lat="{{ c.highline.point1Latitude }}"
+                            data-p1-lng="{{ c.highline.point1Longitude }}"
+                            data-p2-lat="{{ c.highline.point2Latitude }}"
+                            data-p2-lng="{{ c.highline.point2Longitude }}"
+                            data-user-id="{{ c.user.id }}"
+                            data-comment="{{ c.comment }}"
+                        >
+                            <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
+                            {% if c.style %}
+                                <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
+                            {% endif %}
+                            <span class="crossings-user">{{ c.user.displayName }}</span>
+                            <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
+                                {% if c.rating %}
+                                    {% for s in 1..5 %}
+                                        <span class="crossings-star{% if s <= c.rating %} on{% endif %}">★</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="crossings-rating-none">–</span>
+                                {% endif %}
+                            </span>
+                            <a class="crossings-line" href="{{ path('app_highline_detail', { slug: c.highline.slug }) }}">{{ c.highline.name }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="hp-crossings-empty">Zatím žádný přechod.</p>
+                    {% endif %}
+                </aside>
+                <div class="hp-map-canvas-wrap">
+                    <div class="hp-map-canvas" data-hp-map-target="canvas"></div>
+                </div>
             </div>
         </section>
-
-        {% if recent_crossings|length > 0 %}
-        <aside class="panel panel-crossings panel-crossings-stripe">
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-crossings"></span>
-                    <h2>Poslední přechody</h2>
-                </div>
-            </header>
-            {{ include('_partials/_recent_crossings.html.twig', { crossings: recent_crossings, layout: 'stripe' }) }}
-        </aside>
-        {% endif %}
 
         {% if recent_photos|length > 0 %}
         <aside class="panel panel-photos">

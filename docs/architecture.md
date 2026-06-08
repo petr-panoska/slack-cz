@@ -105,11 +105,13 @@ Konstanta `App\Repository\HighlineCrossingRepository::RECENT_LIMIT` (default 10)
 
 | Místo | Metoda repa | Tvar |
 |---|---|---|
-| Index page „Posledních přechodů" stripe | `findRecent()` | entity (Twig partial `_recent_crossings.html.twig`) |
+| Index page — sidebar přechodů v panelu Mapa | `findRecent()` | entity (server-render `<li>` s `data-*` geometrií pro `hp-map`) |
 | `/mapa` emoji markery | `findRecentForJson()` | array (lat/lng + popup data) |
 | `/mapa` sidebar feed | `findRecentForJson()` | array (sdílený endpoint `/mapa/feed`) |
 
 Bez dedup by user — homepage list, emoji markery i sidebar zobrazují **stejné** přechody. Když má jeden user 3 ze 10 nejnovějších, mapa ukáže 3× jeho emoji na 3 různých lajnách (fan-offset stackuje pouze identické GPS).
+
+Emoji paleta lajnerů je **jen živí tvorové** (žádné stromy/objekty — lajner je pohyblivá bytost) a je sdílená v `assets/user_emoji.js` (`USER_EMOJIS` + `emojiForUser`), importovaná do `map_controller.js` i `hp_map_controller.js`, aby stejný user mapoval na stejného tvora v obou mapách. Indexy 0–29 zůstaly shodné s původní paletou (stávající uživatelé si tvora drží).
 
 Pro time-travel režim je separátní `findForFeedInRange(from, to)` (sidebar volá `/mapa/feed?date=YYYY-MM-DD&days=7`).
 
@@ -217,7 +219,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datu). Style enum (`App\Enum\HighlineCrossingStyle`, 9 hodnot, viz `docs/crossing-styles.md`), neznámé legacy hodnoty se reportují jako warning.
 - ✅ **Highline mapa** s 254 lajnami (Leaflet + OSM, popup linkuje na detail)
 - ✅ **Highline detail** `/highline/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
-- ✅ **Index page** se 2 panely: mini mapa + slackTV (YouTube feed) + stripe „Posledních přechodů"
+- ✅ **Index page** (single-column rework): sloučený panel **Mapa** (`hp_map_controller.js`, identifier `hp-map`) = levý scrollovatelný sidebar posledních 10 přechodů + mapa, která ukazuje **jen aktivní přechod** (na load první). Aktivní přechod vykreslí reálnou linku (polyline point1↔point2), zazoomuje na ni a animuje ikonku (emoji walker) po posledním úseku lajny (`WALK_FRACTION`/`WALK_DURATION`, do budoucna chování dle typu přechodu). Po dojití se na ikonce spustí náhodná oslavná animace (`CELEBRATIONS` → CSS `hp-cel-*`: bounce/flip/spin/pop/wobble, respektuje `prefers-reduced-motion`). Má-li přechod komentář (`data-comment`), po dokončení chůze se nad ikonou objeví decentní „thought" bublina (`showThought()` injektuje `.hp-thought` do DOM markeru až na konci, ne během walku; clamp 3 řádky, fade-in, `textContent` = auto-escape). Stejná geometrie po sobě (víc přechodů na téže lajně) let přeskočí (`lastGeoKey`), aby mapa necukala; jiná lajna `flyToBounds` glide. Homepage běží jako **auto-showcase**: po dokončení přechodu se počká `DWELL` (7 s) a `scheduleAdvance()` přepne na další přechod dokola (cyklus ≈ fly 1,6 s + walk 5 s + dwell 7 s ≈ 14 s). Timer je vázaný na generaci (`gen`) a maže se v `activate`, takže manuální klik cyklus jen převezme z nového místa. Geometrie se čte ze `data-*` na `<li>` (server-render, žádný extra endpoint). Pod tím panel „Z galerie" a na konci horizontální slackTV strip.
 - ✅ **slackTV** — YouTube feed, hashtag/search/channel zdroje, in-memory cache, dedikovaná stránka `/tv` s inline přehráváním
 - ✅ **About / O projektu** s historií slacklive 2007 → slack.cz 2010 → ČAS 2011 → dnes, vč. archivního Kolouchova úvodního slova
 - ✅ Hlavní vizuál — světlý theme, magenta accent (`#e91e63` z původního slack.cz loga)

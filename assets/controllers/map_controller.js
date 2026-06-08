@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { emojiForUser } from '../user_emoji.js';
 
 const TYPE_LABELS = {
     unsorted: 'Nezařazeno',
@@ -57,14 +58,6 @@ function writeSavedView(map) {
         /* sessionStorage may be unavailable (private mode quirks); ignore. */
     }
 }
-
-const USER_EMOJIS = [
-    '🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵',
-    '🐔','🐧','🦅','🦉','🐺','🦄','🐝','🦋','🐢','🐠',
-    '🐬','🦈','🦒','🦓','🦌','🐕','🐈','🐇','🦔','🦝',
-    '🌲','🌵','🌴','🌸','🌻','🍄','🌈','🍀','⭐','⚡',
-    '🔥','💎','🎯','🚀','🏔','🪨','🌟','🎈','🎨','🎭',
-];
 
 const DATE_FORMATTER = new Intl.DateTimeFormat('cs-CZ', {
     day: 'numeric',
@@ -537,10 +530,6 @@ function fanOffset(i, total) {
     const radius = 22;
     const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
-}
-
-function emojiForUser(userId) {
-    return USER_EMOJIS[userId % USER_EMOJIS.length];
 }
 
 export function escapeHtml(value) {
