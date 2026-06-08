@@ -3047,21 +3047,52 @@ a.crossings-line:hover {
     width: 100%;
 }
 
-.hl-parking-marker {
+/* Compound `.leaflet-marker-icon.<x>` selectors are deliberate: Leaflet's own
+   `.leaflet-marker-icon { display: block }` loads after app.css and would otherwise
+   beat a bare `.hl-parking-marker { display: flex }` on equal specificity, killing the
+   centering. The extra class wins the tie. */
+.leaflet-marker-icon.hl-parking-marker {
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
     background: #1b6cf3;
     color: #fff;
     border: 2px solid #fff;
     border-radius: 50%;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 700;
     font-size: 13px;
     line-height: 1;
+    text-align: center;
 }
 
-.hl-parking-marker-glyph {
-    transform: translateY(-1px);
+/* Numbered anchor-point pin (bod 1 / bod 2) — single marker with the number inside. */
+.leaflet-marker-icon.hl-point-marker {
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    background: #e1005b;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* Nudge the glyph down ~1px: flex centers the line-box, but digits/caps have no
+   descender so they read as slightly high. */
+.hl-parking-marker-glyph,
+.hl-point-marker > span {
+    display: block;
+    transform: translateY(1px);
 }
 
 .hl-crossings-count {
@@ -3920,7 +3951,7 @@ a.crossings-line:hover {
 /* ---------- Highline form (new / edit) ---------- */
 
 .hl-form-page {
-    max-width: 760px;
+    max-width: 1320px;
 }
 
 .hl-form-card {
@@ -4140,17 +4171,72 @@ a.crossings-line:hover {
     top: 12px;
     right: 12px;
     z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
 }
 
-.hl-form-parking-toggle {
+.hl-form-map-toggle {
     background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
 }
 
-.hl-form-parking-toggle.is-active {
-    background: #1b6cf3;
+.hl-form-map-toggle.is-active {
+    background: #e1005b;
     color: #fff;
+    border-color: #e1005b;
+}
+
+.hl-form-map-toggle.hl-form-parking-toggle.is-active {
+    background: #1b6cf3;
     border-color: #1b6cf3;
+}
+
+.hl-form-map-controls-bl {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.hl-form-map-btn {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+}
+
+.hl-form-basemap-toggle.is-active {
+    background: #1b1b1b;
+    color: #fff;
+    border-color: #1b1b1b;
+}
+
+.hl-form-fullscreen-toggle.is-active {
+    background: #1b1b1b;
+    color: #fff;
+    border-color: #1b1b1b;
+}
+
+/* Fullscreen: let the map container and its canvas fill the screen. */
+.hl-form-map:fullscreen,
+.hl-form-map:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    background: var(--color-bg);
+}
+
+.hl-form-map:fullscreen .hl-form-map-canvas,
+.hl-form-map:-webkit-full-screen .hl-form-map-canvas {
+    height: 100%;
+    border: none;
+    border-radius: 0;
 }
 
 .hl-form-point-parking {

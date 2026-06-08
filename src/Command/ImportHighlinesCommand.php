@@ -50,8 +50,8 @@ final class ImportHighlinesCommand extends Command
         }
 
         $rows = $this->oldConnection->fetchAllAssociative('
-            SELECT h.id, h.typ, h.jmeno, h.delka, h.vyska, h.stat, h.oblast, h.kraj,
-                   h.hodnoceni, h.kotveni, h.info, h.pointOneInfo, h.pointTwoInfo,
+            SELECT h.id, h.typ, h.jmeno, h.delka, h.vyska,
+                   h.hodnoceni, h.info, h.pointOneInfo, h.pointTwoInfo,
                    h.autor, h.datum,
                    COALESCE(NULLIF(h.lat, ""), CAST(g1.lat AS CHAR)) AS lat,
                    COALESCE(NULLIF(h.lng, ""), CAST(g1.lng AS CHAR)) AS lng,
@@ -105,11 +105,7 @@ final class ImportHighlinesCommand extends Command
             $h->setPoint2Longitude($this->normalizeNullableCoord($row['point2_lng']));
             $h->setParkingLatitude($this->normalizeNullableCoord($row['parking_lat']));
             $h->setParkingLongitude($this->normalizeNullableCoord($row['parking_lng']));
-            $h->setCountry($row['stat'] ?: null);
-            $h->setArea($row['oblast'] ?: null);
-            $h->setRegion($row['kraj'] ?: null);
             $h->setRating($row['hodnoceni'] !== null ? (int) $row['hodnoceni'] : null);
-            $h->setAnchoring($row['kotveni'] ?: null);
             $h->setDescription($this->normalizeText($row['info']));
             $h->setPointOneInfo($this->normalizeText($row['pointOneInfo']));
             $h->setPointTwoInfo($this->normalizeText($row['pointTwoInfo']));
@@ -181,11 +177,24 @@ final class ImportHighlinesCommand extends Command
         return $slug;
     }
 
+    /**
+     * Legacy CKEditor stored entity-encoded HTML (e.g. `<p>m&iacute;sto</p>`). Flatten it to
+     * plain text: block tags become newlines, the rest is stripped, and HTML entities are
+     * decoded back to real characters. Rendered with `|nl2br` on the detail page.
+     */
     private function normalizeText(?string $text): ?string
     {
         if ($text === null) {
             return null;
         }
+
+        $text = preg_replace('#</p\s*>#i', "\n\n", $text);
+        $text = preg_replace('#<br\s*/?>#i', "\n", $text);
+        $text = strip_tags($text);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace("/[ \t]+\n/", "\n", $text);
+        $text = preg_replace("/\n{3,}/", "\n\n", $text);
+
         $trimmed = trim($text);
         return $trimmed === '' ? null : $trimmed;
     }

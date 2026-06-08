@@ -35,7 +35,7 @@
                 </div>
             {% endif %}
             <div class="hl-form-section">
-                <h2>Základ</h2>
+                <h2>Základní info</h2>
                 <div class="form-group">
                     <label for="{{ form.name.vars.id }}">
                         Název{% if highline.isVerified %} <span class="hl-form-lock" tabindex="0" aria-label="Název je pevný" title="URL: /highline/{{ highline.slug }}&#10;Název je pevný, aby existující odkazy nepřestaly fungovat.">🔒</span>{% endif %}
@@ -47,11 +47,23 @@
                     <div class="form-group">{{ form_label(form.type) }}{{ form_widget(form.type) }}{{ form_errors(form.type) }}</div>
                     <div class="form-group">{{ form_label(form.height) }}{{ form_widget(form.height) }}{{ form_errors(form.height) }}</div>
                 </div>
+                <div class="form-group">{{ form_label(form.description) }}{{ form_widget(form.description) }}{{ form_errors(form.description) }}</div>
+                <div class="form-grid-2">
+                    <div class="form-group">{{ form_label(form.approachMinutes) }}{{ form_widget(form.approachMinutes) }}{{ form_errors(form.approachMinutes) }}</div>
+                    <div class="form-group">{{ form_label(form.tensioningMinutes) }}{{ form_widget(form.tensioningMinutes) }}{{ form_errors(form.tensioningMinutes) }}</div>
+                </div>
+            </div>
+
+            <div class="hl-form-section">
+                <h2>Historie</h2>
+                <div class="form-group">{{ form_label(form.firstAscentBy) }}{{ form_widget(form.firstAscentBy) }}{{ form_errors(form.firstAscentBy) }}</div>
+                <div class="form-group">{{ form_label(form.firstAscentDate) }}{{ form_widget(form.firstAscentDate) }}{{ form_errors(form.firstAscentDate) }}</div>
+                <div class="form-group">{{ form_label(form.nameHistory) }}{{ form_widget(form.nameHistory) }}{{ form_errors(form.nameHistory) }}</div>
             </div>
 
             <div class="hl-form-section">
                 <h2>Kotvící body</h2>
-                <p class="hl-form-help hl-form-help-tight">První klik na mapu nastaví <strong>bod 1</strong>, druhý <strong>bod 2</strong>. Markery jdou taky táhnout. Délka lajny se počítá automaticky z těch dvou bodů.</p>
+                <p class="hl-form-help hl-form-help-tight">Klikni na <strong>Přidat bod 1/2</strong> a pak do mapy, nebo markery táhni. Délka lajny se počítá automaticky z těch dvou bodů.</p>
                 <div
                     class="hl-form-map"
                     data-controller="highline-form-map"
@@ -63,18 +75,44 @@
                     data-highline-form-map-parking-lng-input-value="{{ form.parkingLongitude.vars.id }}"
                     data-highline-form-map-init-lat-value="{{ form.point1Latitude.vars.value ?: '50.0598' }}"
                     data-highline-form-map-init-lng-value="{{ form.point1Longitude.vars.value ?: '14.4656' }}"
-                    data-highline-form-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-                    data-highline-form-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-                    data-highline-form-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
                 >
                     <div class="hl-form-map-canvas" data-highline-form-map-target="canvas"></div>
                     <div class="hl-form-map-overlay">
                         <button
                             type="button"
-                            class="btn btn-ghost btn-sm hl-form-parking-toggle"
+                            class="btn btn-ghost btn-sm hl-form-map-toggle"
+                            data-highline-form-map-target="p1Toggle"
+                            data-action="click->highline-form-map#toggle"
+                            data-highline-form-map-mode-param="p1"
+                        >Přidat bod 1</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm hl-form-map-toggle"
+                            data-highline-form-map-target="p2Toggle"
+                            data-action="click->highline-form-map#toggle"
+                            data-highline-form-map-mode-param="p2"
+                        >Přidat bod 2</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm hl-form-map-toggle hl-form-parking-toggle"
                             data-highline-form-map-target="parkingToggle"
-                            data-action="click->highline-form-map#toggleParkingMode"
+                            data-action="click->highline-form-map#toggle"
+                            data-highline-form-map-mode-param="parking"
                         >Přidat parkování</button>
+                    </div>
+                    <div class="hl-form-map-controls-bl">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm hl-form-map-btn hl-form-basemap-toggle"
+                            data-highline-form-map-target="basemapToggle"
+                            data-action="click->highline-form-map#toggleBasemap"
+                        >Ortofoto</button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm hl-form-map-btn hl-form-fullscreen-toggle"
+                            data-highline-form-map-target="fullscreenToggle"
+                            data-action="click->highline-form-map#toggleFullscreen"
+                        >⛶ Celá obrazovka</button>
                     </div>
                     <div class="hl-form-distance">
                         <span class="hl-form-distance-label">Délka</span>
@@ -106,30 +144,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-grid-3">
-                    <div class="form-group">{{ form_label(form.country) }}{{ form_widget(form.country) }}{{ form_errors(form.country) }}</div>
-                    <div class="form-group">{{ form_label(form.region) }}{{ form_widget(form.region) }}{{ form_errors(form.region) }}</div>
-                    <div class="form-group">{{ form_label(form.area) }}{{ form_widget(form.area) }}{{ form_errors(form.area) }}</div>
-                </div>
-            </div>
-
-            <div class="hl-form-section">
-                <h2>Detaily</h2>
-                <div class="form-group">{{ form_label(form.description) }}{{ form_widget(form.description) }}{{ form_errors(form.description) }}</div>
-                <div class="form-grid-3">
-                    <div class="form-group">{{ form_label(form.anchoring) }}{{ form_widget(form.anchoring) }}{{ form_errors(form.anchoring) }}</div>
-                    <div class="form-group">{{ form_label(form.approachMinutes) }}{{ form_widget(form.approachMinutes) }}{{ form_errors(form.approachMinutes) }}</div>
-                    <div class="form-group">{{ form_label(form.tensioningMinutes) }}{{ form_widget(form.tensioningMinutes) }}{{ form_errors(form.tensioningMinutes) }}</div>
-                </div>
-            </div>
-
-            <div class="hl-form-section">
-                <h2>Historie</h2>
-                <div class="form-grid-2">
-                    <div class="form-group">{{ form_label(form.firstAscentBy) }}{{ form_widget(form.firstAscentBy) }}{{ form_errors(form.firstAscentBy) }}</div>
-                    <div class="form-group">{{ form_label(form.firstAscentDate) }}{{ form_widget(form.firstAscentDate) }}{{ form_errors(form.firstAscentDate) }}</div>
-                </div>
-                <div class="form-group">{{ form_label(form.nameHistory) }}{{ form_widget(form.nameHistory) }}{{ form_errors(form.nameHistory) }}</div>
             </div>
 
             <div class="hl-form-actions">

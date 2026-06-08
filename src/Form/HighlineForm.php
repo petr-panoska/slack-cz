@@ -90,40 +90,20 @@ class HighlineForm extends AbstractType
                 'html5' => true,
                 'attr' => ['step' => 'any', 'min' => -180, 'max' => 180, 'inputmode' => 'decimal'],
             ])
-            ->add('country', TextType::class, [
-                'label' => 'Země',
-                'required' => false,
-                'attr' => ['maxlength' => 100, 'placeholder' => 'Česko'],
-            ])
-            ->add('region', TextType::class, [
-                'label' => 'Kraj / region',
-                'required' => false,
-                'attr' => ['maxlength' => 100],
-            ])
-            ->add('area', TextType::class, [
-                'label' => 'Oblast',
-                'required' => false,
-                'attr' => ['maxlength' => 150, 'placeholder' => 'např. Tisá'],
-            ])
             ->add('description', TextareaType::class, [
                 'label' => 'Popis',
                 'required' => false,
                 'attr' => ['rows' => 5, 'maxlength' => 5000],
             ])
-            ->add('pointOneInfo', TextType::class, [
+            ->add('pointOneInfo', TextareaType::class, [
                 'label' => 'Kotvení — bod 1',
                 'required' => false,
-                'attr' => ['maxlength' => 512],
+                'attr' => ['maxlength' => 512, 'rows' => 3],
             ])
-            ->add('pointTwoInfo', TextType::class, [
+            ->add('pointTwoInfo', TextareaType::class, [
                 'label' => 'Kotvení — bod 2',
                 'required' => false,
-                'attr' => ['maxlength' => 512],
-            ])
-            ->add('anchoring', TextType::class, [
-                'label' => 'Typ kotvení',
-                'required' => false,
-                'attr' => ['maxlength' => 50],
+                'attr' => ['maxlength' => 512, 'rows' => 3],
             ])
             ->add('approachMinutes', IntegerType::class, [
                 'label' => 'Přístup [min]',
@@ -135,10 +115,10 @@ class HighlineForm extends AbstractType
                 'required' => false,
                 'attr' => ['min' => 0],
             ])
-            ->add('firstAscentBy', TextType::class, [
+            ->add('firstAscentBy', TextareaType::class, [
                 'label' => 'Autor 1. napnutí',
                 'required' => false,
-                'attr' => ['maxlength' => 150],
+                'attr' => ['maxlength' => 150, 'rows' => 2],
             ])
             ->add('firstAscentDate', DateType::class, [
                 'label' => 'Datum 1. napnutí',

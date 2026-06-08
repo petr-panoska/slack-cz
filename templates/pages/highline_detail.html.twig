@@ -27,8 +27,6 @@
             </h1>
             <div class="hl-detail-meta">
                 <span class="hl-type-badge hl-type-{{ highline.type.value }}">{{ highline.type.label }}</span>
-                {% set place = [highline.area, highline.region, highline.country]|filter(v => v)|join(' · ') %}
-                {% if place %}<span class="hl-loc">{{ place }}</span>{% endif %}
                 {% if highline.firstAscentDate %}
                     <span class="hl-fa">První napnutí <time datetime="{{ highline.firstAscentDate|date('Y-m-d') }}">{{ highline.firstAscentDate|date('j. n. Y') }}</time></span>
                 {% endif %}
@@ -87,20 +85,18 @@
                 {% if highline.description %}
                     <div class="hl-info-block hl-richtext">
                         <h2>Popis</h2>
-                        {# legacy CKEditor HTML (entity-encoded) — render as-is #}
-                        {{ highline.description|raw }}
+                        {{ highline.description|nl2br }}
                     </div>
                 {% endif %}
 
                 <table class="hl-table">
-                    {% if highline.pointOneInfo %}<tr><th>Kotvení bodu&nbsp;1</th><td class="hl-richtext">{{ highline.pointOneInfo|raw }}</td></tr>{% endif %}
-                    {% if highline.pointTwoInfo %}<tr><th>Kotvení bodu&nbsp;2</th><td class="hl-richtext">{{ highline.pointTwoInfo|raw }}</td></tr>{% endif %}
-                    {% if highline.anchoring %}<tr><th>Typ kotvení</th><td>{{ highline.anchoring }}</td></tr>{% endif %}
+                    {% if highline.pointOneInfo %}<tr><th>Kotvení bodu&nbsp;1</th><td class="hl-richtext">{{ highline.pointOneInfo|nl2br }}</td></tr>{% endif %}
+                    {% if highline.pointTwoInfo %}<tr><th>Kotvení bodu&nbsp;2</th><td class="hl-richtext">{{ highline.pointTwoInfo|nl2br }}</td></tr>{% endif %}
                     {% if highline.tensioningMinutes %}<tr><th>Napínání</th><td>{{ highline.tensioningMinutes }} min</td></tr>{% endif %}
                     {% if highline.approachMinutes %}<tr><th>Přístup</th><td>{{ highline.approachMinutes }} min</td></tr>{% endif %}
                     {% if highline.firstAscentBy %}<tr><th>Autor 1. napnutí</th><td>{{ highline.firstAscentBy }}</td></tr>{% endif %}
                     {% if highline.firstAscentDate %}<tr><th>Datum 1. napnutí</th><td>{{ highline.firstAscentDate|date('j. n. Y') }}</td></tr>{% endif %}
-                    {% if highline.nameHistory %}<tr><th>Historie názvu</th><td class="hl-richtext">{{ highline.nameHistory|raw }}</td></tr>{% endif %}
+                    {% if highline.nameHistory %}<tr><th>Historie názvu</th><td class="hl-richtext">{{ highline.nameHistory|nl2br }}</td></tr>{% endif %}
                     <tr>
                         <th>GPS</th>
                         <td>

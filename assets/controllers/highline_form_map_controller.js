@@ -2,16 +2,18 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+const OSM_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const ORTHO_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const ORTHO_ATTR = 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community';
+
 /**
- * Two-endpoint GPS picker for the highline form.
+ * Two-endpoint + parking GPS picker for the highline form.
  *
- * Behaviour:
- * - Click on map cycles between bod 1 / bod 2 (alternating). First click sets bod 1,
- *   second sets bod 2, third resets bod 1, …
- * - Both markers are draggable.
- * - Polyline is drawn between the two endpoints whenever both are set.
- * - Live haversine length is rendered into the data-target="distance" element.
- * - Edits to any of the four input fields reposition the corresponding marker.
+ * Editing is button-driven (same pattern as parking): "Přidat bod 1/2" arms a mode,
+ * the next map click drops that marker, and the button flips to "Smazat …". Markers
+ * stay draggable and the four lat/lng inputs stay two-way bound. A basemap toggle
+ * switches between OSM and Esri ortho imagery.
  *
  * Wires by ID, not by Stimulus targets — the inputs are rendered by Symfony Form and
  * live outside the controller's element scope.
@@ -26,20 +28,11 @@ export default class extends Controller {
         parkingLngInput: String,
         initLat: Number,
         initLng: Number,
-        iconUrl: String,
-        iconRetinaUrl: String,
-        shadowUrl: String,
     };
 
-    static targets = ['canvas', 'distance', 'parkingToggle'];
+    static targets = ['canvas', 'distance', 'p1Toggle', 'p2Toggle', 'parkingToggle', 'basemapToggle', 'fullscreenToggle'];
 
     connect() {
-        L.Icon.Default.mergeOptions({
-            iconUrl: this.iconUrlValue,
-            iconRetinaUrl: this.iconRetinaUrlValue,
-            shadowUrl: this.shadowUrlValue,
-        });
-
         this.inputs = {
             p1Lat: document.getElementById(this.p1LatInputValue),
             p1Lng: document.getElementById(this.p1LngInputValue),
@@ -56,80 +49,159 @@ export default class extends Controller {
         const zoom = (this.points[0] || this.points[1]) ? 15 : 7;
 
         this.map = L.map(this.canvasTarget).setView(center, zoom);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(this.map);
+        this.osmLayer = L.tileLayer(OSM_URL, { maxZoom: 19, attribution: OSM_ATTR }).addTo(this.map);
+        this.orthoLayer = L.tileLayer(ORTHO_URL, { maxZoom: 19, attribution: ORTHO_ATTR });
+        this.basemap = 'osm';
 
         this.markers = [null, null];
         this.parkingMarkerRef = null;
         this.polyline = null;
-        this.nextSlot = this.points[0] && !this.points[1] ? 1 : 0;
-        this.parkingMode = false;
+        this.activeMode = null;
 
         if (this.points[0]) this.placeMarker(0, this.points[0], false);
         if (this.points[1]) this.placeMarker(1, this.points[1], false);
         if (this.parking) this.placeParkingMarker(this.parking, false);
         this.refreshLine();
-        this.refreshParkingToggle();
+        this.refreshToggles();
+        this.refreshBasemapToggle();
 
         this.map.on('click', (event) => {
+            if (!this.activeMode) return;
             const { lat, lng } = event.latlng;
-            if (this.parkingMode) {
+            if (this.activeMode === 'parking') {
                 this.placeParkingMarker([lat, lng], true);
-                this.parkingMode = false;
-                this.refreshParkingToggle();
-                return;
+            } else {
+                this.placeMarker(this.activeMode === 'p1' ? 0 : 1, [lat, lng], true);
             }
-            const slot = this.nextSlot;
-            this.placeMarker(slot, [lat, lng], true);
-            this.nextSlot = slot === 0 ? 1 : 0;
+            this.activeMode = null;
+            this.refreshToggles();
         });
 
         this.inputListeners = [];
-        Object.entries(this.inputs).forEach(([key, el]) => {
+        Object.entries(this.inputs).forEach(([, el]) => {
             if (!el) return;
             const handler = () => this.syncFromInputs();
             el.addEventListener('input', handler);
             this.inputListeners.push([el, handler]);
         });
+
+        // Leaflet must recompute its size after the container resizes (in/out of fullscreen).
+        this.fullscreenHandler = () => {
+            if (this.map) {
+                this.map.invalidateSize();
+                setTimeout(() => this.map && this.map.invalidateSize(), 200);
+            }
+            this.refreshFullscreenToggle();
+        };
+        document.addEventListener('fullscreenchange', this.fullscreenHandler);
+        this.refreshFullscreenToggle();
     }
 
-    toggleParkingMode(event) {
+    disconnect() {
+        if (this.inputListeners) {
+            this.inputListeners.forEach(([el, handler]) => el.removeEventListener('input', handler));
+        }
+        if (this.fullscreenHandler) {
+            document.removeEventListener('fullscreenchange', this.fullscreenHandler);
+        }
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
+    }
+
+    toggleFullscreen(event) {
         event.preventDefault();
-        if (this.parking) {
-            this.removeParking();
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else if (this.element.requestFullscreen) {
+            this.element.requestFullscreen();
+        }
+    }
+
+    refreshFullscreenToggle() {
+        if (!this.hasFullscreenToggleTarget) return;
+        const active = document.fullscreenElement === this.element;
+        this.fullscreenToggleTarget.textContent = active ? '✕ Zavřít' : '⛶ Celá obrazovka';
+        this.fullscreenToggleTarget.classList.toggle('is-active', active);
+    }
+
+    /** Arm / disarm an editing mode, or delete an already-placed marker. */
+    toggle(event) {
+        event.preventDefault();
+        const mode = event.params.mode;
+        const isSet = mode === 'parking' ? !!this.parking : !!this.points[mode === 'p1' ? 0 : 1];
+        if (isSet) {
+            this.removeMarker(mode);
+            this.activeMode = null;
+        } else {
+            this.activeMode = this.activeMode === mode ? null : mode;
+        }
+        this.refreshToggles();
+    }
+
+    toggleBasemap(event) {
+        event.preventDefault();
+        if (this.basemap === 'osm') {
+            this.map.removeLayer(this.osmLayer);
+            this.orthoLayer.addTo(this.map);
+            this.basemap = 'ortho';
+        } else {
+            this.map.removeLayer(this.orthoLayer);
+            this.osmLayer.addTo(this.map);
+            this.basemap = 'osm';
+        }
+        this.refreshBasemapToggle();
+    }
+
+    removeMarker(mode) {
+        if (mode === 'parking') {
+            if (this.parkingMarkerRef) {
+                this.map.removeLayer(this.parkingMarkerRef);
+                this.parkingMarkerRef = null;
+            }
+            this.parking = null;
+            if (this.inputs.parkingLat) this.inputs.parkingLat.value = '';
+            if (this.inputs.parkingLng) this.inputs.parkingLng.value = '';
             return;
         }
-        this.parkingMode = !this.parkingMode;
-        this.refreshParkingToggle();
+        const slot = mode === 'p1' ? 0 : 1;
+        if (this.markers[slot]) {
+            this.map.removeLayer(this.markers[slot]);
+            this.markers[slot] = null;
+        }
+        this.points[slot] = null;
+        const latInput = slot === 0 ? this.inputs.p1Lat : this.inputs.p2Lat;
+        const lngInput = slot === 0 ? this.inputs.p1Lng : this.inputs.p2Lng;
+        if (latInput) latInput.value = '';
+        if (lngInput) lngInput.value = '';
+        this.refreshLine();
     }
 
-    refreshParkingToggle() {
-        if (!this.hasParkingToggleTarget) return;
-        const btn = this.parkingToggleTarget;
-        if (this.parking) {
-            btn.textContent = 'Smazat parkování';
-            btn.classList.add('is-active');
-        } else if (this.parkingMode) {
-            btn.textContent = 'Klikni do mapy…';
-            btn.classList.add('is-active');
+    placeMarker(slot, coord, writeBack) {
+        if (!this.markers[slot]) {
+            const icon = L.divIcon({
+                className: 'hl-point-marker',
+                html: `<span>${slot === 0 ? 1 : 2}</span>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+            });
+            const marker = L.marker(coord, { icon, draggable: true, title: slot === 0 ? 'Bod 1' : 'Bod 2' }).addTo(this.map);
+            marker.on('dragend', () => {
+                const { lat, lng } = marker.getLatLng();
+                this.points[slot] = [lat, lng];
+                this.writeInputs(slot, lat, lng);
+                this.refreshLine();
+            });
+            this.markers[slot] = marker;
         } else {
-            btn.textContent = 'Přidat parkování';
-            btn.classList.remove('is-active');
+            this.markers[slot].setLatLng(coord);
         }
-    }
-
-    removeParking() {
-        if (this.parkingMarkerRef) {
-            this.map.removeLayer(this.parkingMarkerRef);
-            this.parkingMarkerRef = null;
+        this.points[slot] = coord;
+        if (writeBack) {
+            this.writeInputs(slot, coord[0], coord[1]);
         }
-        this.parking = null;
-        if (this.inputs.parkingLat) this.inputs.parkingLat.value = '';
-        if (this.inputs.parkingLng) this.inputs.parkingLng.value = '';
-        this.parkingMode = false;
-        this.refreshParkingToggle();
+        this.refreshLine();
     }
 
     placeParkingMarker(coord, writeBack) {
@@ -152,49 +224,6 @@ export default class extends Controller {
         }
         this.parking = coord;
         if (writeBack) this.writeParkingInputs(coord[0], coord[1]);
-        this.refreshParkingToggle();
-    }
-
-    writeParkingInputs(lat, lng) {
-        if (!this.inputs.parkingLat || !this.inputs.parkingLng) return;
-        this.inputs.parkingLat.value = round(lat);
-        this.inputs.parkingLng.value = round(lng);
-        this.inputs.parkingLat.dispatchEvent(new Event('change', { bubbles: true }));
-        this.inputs.parkingLng.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-
-    disconnect() {
-        if (this.inputListeners) {
-            this.inputListeners.forEach(([el, handler]) => el.removeEventListener('input', handler));
-        }
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-    }
-
-    placeMarker(slot, coord, writeBack) {
-        if (!this.markers[slot]) {
-            const marker = L.marker(coord, {
-                draggable: true,
-                title: slot === 0 ? 'Bod 1' : 'Bod 2',
-            }).addTo(this.map);
-            marker.bindTooltip(slot === 0 ? '1' : '2', { permanent: true, direction: 'top', offset: [0, -36] });
-            marker.on('dragend', () => {
-                const { lat, lng } = marker.getLatLng();
-                this.points[slot] = [lat, lng];
-                this.writeInputs(slot, lat, lng);
-                this.refreshLine();
-            });
-            this.markers[slot] = marker;
-        } else {
-            this.markers[slot].setLatLng(coord);
-        }
-        this.points[slot] = coord;
-        if (writeBack) {
-            this.writeInputs(slot, coord[0], coord[1]);
-        }
-        this.refreshLine();
     }
 
     writeInputs(slot, lat, lng) {
@@ -204,6 +233,14 @@ export default class extends Controller {
         lngInput.value = round(lng);
         latInput.dispatchEvent(new Event('change', { bubbles: true }));
         lngInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    writeParkingInputs(lat, lng) {
+        if (!this.inputs.parkingLat || !this.inputs.parkingLng) return;
+        this.inputs.parkingLat.value = round(lat);
+        this.inputs.parkingLng.value = round(lng);
+        this.inputs.parkingLat.dispatchEvent(new Event('change', { bubbles: true }));
+        this.inputs.parkingLng.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     syncFromInputs() {
@@ -218,9 +255,41 @@ export default class extends Controller {
             this.map.removeLayer(this.parkingMarkerRef);
             this.parkingMarkerRef = null;
             this.parking = null;
-            this.refreshParkingToggle();
         }
         this.refreshLine();
+        this.refreshToggles();
+    }
+
+    refreshToggles() {
+        this.refreshToggle(this.hasP1ToggleTarget ? this.p1ToggleTarget : null, 'p1', this.points[0], 'bod 1');
+        this.refreshToggle(this.hasP2ToggleTarget ? this.p2ToggleTarget : null, 'p2', this.points[1], 'bod 2');
+        this.refreshToggle(this.hasParkingToggleTarget ? this.parkingToggleTarget : null, 'parking', this.parking, 'parkování');
+    }
+
+    refreshToggle(btn, mode, value, label) {
+        if (!btn) return;
+        if (value) {
+            btn.textContent = `Smazat ${label}`;
+            btn.classList.add('is-active');
+        } else if (this.activeMode === mode) {
+            btn.textContent = 'Klikni do mapy…';
+            btn.classList.add('is-active');
+        } else {
+            btn.textContent = `Přidat ${label}`;
+            btn.classList.remove('is-active');
+        }
+    }
+
+    refreshBasemapToggle() {
+        if (!this.hasBasemapToggleTarget) return;
+        const btn = this.basemapToggleTarget;
+        if (this.basemap === 'ortho') {
+            btn.textContent = 'Mapa';
+            btn.classList.add('is-active');
+        } else {
+            btn.textContent = 'Ortofoto';
+            btn.classList.remove('is-active');
+        }
     }
 
     refreshLine() {

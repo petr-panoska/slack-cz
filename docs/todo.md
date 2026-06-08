@@ -14,13 +14,22 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 ## Mapa highlines
 
-- [ ] Filtry na `/mapa` (typ, kraj, délka, výška)
-- [ ] Vlastní ikony per typ (Highline / Top Highline / Midline / Urban Line — různé barvy)
+- [ ] Filtry na `/mapa` (typ, délka, výška)
+- [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
 - [ ] Linie mezi `point1` a `point2` na hlavní mapě `/mapa` (na detailu už je)
 - [ ] Foto galerie — legacy import `highline_foto` + `highline_media` (sociální vrstva hotová, viz „Foto galerie" sekce dál).
-- [ ] Pretty-print legacy `kotveni` (často číselný kód) — namapovat na čitelný popis
 - [ ] „Přidat lajnu" CTA klikem na mapu (currently jen v hlavičce + ručně nastavené GPS) — z `/mapa` klik na prázdné místo by měl rovnou předvyplnit Bod 1
+
+## Lokalita / oblast (vypnuto, deferred)
+
+- Legacy pole `stat` (země), `kraj` (region) a `oblast` byla v původních datech, ale v nové app jsou **vypnutá** — zahozená z formuláře, detailu i importu. Sloupce `country` / `region` / `area` v DB zůstaly (kvůli auditu/snapshotům), jen se neplní ani nezobrazují.
+- **Země a kraj** jdou dopočítat z GPS (reverse-geocoding) → není nutné je držet ručně.
+- **`oblast`** byl ale konkrétní lokální název (Ostrov, Adršpach, Tisá, Divoká Šárka…), jemnější než vesnice a z GPS reverse-geocodingu ho spolehlivě nedostaneš. **Časem dodělat** — buď vlastní pole „Oblast", nebo odvodit z GPS + ruční korekce.
+
+## Kotvení - typ (vypnuto)
+
+- Legacy `kotveni` (číselné kódy 1/2/3 a kombinace `13`, `23`, `123`…) bez dochované lookup tabulky → pole „Typ kotvení" (`anchoring`) bylo **zahozeno** z formuláře, detailu i importu. Sloupec v DB ponechán. Pokud se význam kódů někdy dohledá, šlo by je namapovat na čitelný popis a pole vrátit.
 
 ## Offline PWA — highline mapa v terénu (PLÁN, NEIMPLEMENTOVAT)
 

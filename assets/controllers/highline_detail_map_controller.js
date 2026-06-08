@@ -51,8 +51,8 @@ export default class extends Controller {
                 opacity: 0.9,
             }).addTo(this.map);
 
-            this.endpointMarker(p1, 'Bod 1');
-            this.endpointMarker(p2, 'Bod 2');
+            this.endpointMarker(p1, 1);
+            this.endpointMarker(p2, 2);
 
             bounds.push(p1, p2);
         } else {
@@ -78,14 +78,14 @@ export default class extends Controller {
         }
     }
 
-    endpointMarker(coord, label) {
-        L.circleMarker(coord, {
-            color: '#e1005b',
-            fillColor: '#fff',
-            fillOpacity: 1,
-            radius: 6,
-            weight: 3,
-        }).bindTooltip(label, { permanent: false, direction: 'top' }).addTo(this.map);
+    endpointMarker(coord, number) {
+        const icon = L.divIcon({
+            className: 'hl-point-marker',
+            html: `<span>${number}</span>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+        });
+        L.marker(coord, { icon, title: `Bod ${number}` }).addTo(this.map);
     }
 
     parkingMarker(coord) {
