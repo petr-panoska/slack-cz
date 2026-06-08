@@ -17,7 +17,7 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Filtry na `/mapa` (typ, délka, výška)
 - [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
-- [ ] Linie mezi `point1` a `point2` na hlavní mapě `/mapa` (na detailu už je)
+- [x] Linie mezi `point1` a `point2` na hlavní mapě `/mapa` (hotovo — vlastní layer, viditelná od zoom ≥ 14)
 - [ ] Foto galerie — legacy import `highline_foto` + `highline_media` (sociální vrstva hotová, viz „Foto galerie" sekce dál).
 - [ ] „Přidat lajnu" CTA klikem na mapu (currently jen v hlavičce + ručně nastavené GPS) — z `/mapa` klik na prázdné místo by měl rovnou předvyplnit Bod 1
 

@@ -97,13 +97,13 @@ class HighlineCrossingRepository extends ServiceEntityRepository
                 'h.id AS id',
                 'h.slug AS slug',
                 'h.name AS name',
-                'h.latitude AS latitude',
-                'h.longitude AS longitude',
+                'h.point1Latitude AS latitude',
+                'h.point1Longitude AS longitude',
                 'COUNT(c.id) AS crossings',
             )
             ->join('c.highline', 'h')
             ->andWhere('c.user = :u')->setParameter('u', $user)
-            ->groupBy('h.id', 'h.slug', 'h.name', 'h.latitude', 'h.longitude')
+            ->groupBy('h.id', 'h.slug', 'h.name', 'h.point1Latitude', 'h.point1Longitude')
             ->getQuery()
             ->getArrayResult();
 
@@ -235,8 +235,8 @@ class HighlineCrossingRepository extends ServiceEntityRepository
                 'c.comment AS comment',
                 'h.slug AS highlineSlug',
                 'h.name AS highlineName',
-                'h.latitude AS latitude',
-                'h.longitude AS longitude',
+                'h.point1Latitude AS latitude',
+                'h.point1Longitude AS longitude',
                 'u.id AS userId',
                 'u.nick AS nick',
                 'u.email AS email',

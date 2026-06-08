@@ -38,7 +38,7 @@ id, highline FK, proposedBy ?User, snapshot json, status enum, createdAt, review
 
 Index `idx_highline_edit_status` — admin queue často filtruje `WHERE status='pending'`.
 
-`snapshot` = celá množina form-bound polí jako JSON. Pro `applied` rows = post-change stav, pro `pending`/`rejected` = navrhované hodnoty (které se ještě neaplikovaly). Derived sloupce (length, latitude, longitude — počítané z point1/point2) jsou v snapshotu taky uloženy.
+`snapshot` = celá množina form-bound polí jako JSON. Pro `applied` rows = post-change stav, pro `pending`/`rejected` = navrhované hodnoty (které se ještě neaplikovaly). Derived sloupec `length` (haversine z point1/point2) je v snapshotu taky uložený. (Lajna nemá žádné separátní `latitude`/`longitude` — lokace = oba kotvící body; viz `docs/architecture.md` § Mapa.)
 
 ## Routes
 
@@ -62,7 +62,7 @@ Index `idx_highline_edit_status` — admin queue často filtruje `WHERE status='
 
 **Verified lajny mají `name` zamčený** — `disabled: true` (server-side ignoruje POSTed value) + 🔒 ikonka u labelu s tooltipem ukazujícím URL a důvod. Slug se nikdy nepřegenerovává po vytvoření, takže zámek na názvu chrání URL stabilitu (existující odkazy / bookmarky / tisk nepřestanou fungovat). Nezamčené názvy jsou jen u unverified lajn (autor je ladí před verifikací).
 
-**Length / latitude / longitude NEJSOU v formu** — odvozují se v `HighlineCrudController::deriveGeometry()` z point1/point2 přes haversine (length v metrech, zaokrouhleno) + midpoint (lat/lng pro mapový marker).
+**Length NENÍ ve formu** — odvozuje se v `HighlineCrudController::deriveGeometry()` z point1/point2 přes haversine (v metrech, zaokrouhleno). Lajna nemá žádné separátní `latitude`/`longitude` (zahozené v migraci `Version20260609120000`) — lokace je daná výhradně dvěma kotvícími body; reprezentativní jeden bod = `point1`.
 
 GPS picker je Stimulus `highline_form_map_controller.js` — 2 markery s alternujícím placement na klik (1 → 2 → 1 → …), oba draggable, polyline + live distance overlay. Sync se 4 inputs oboustranně.
 

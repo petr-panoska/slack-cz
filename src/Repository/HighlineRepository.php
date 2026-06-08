@@ -48,13 +48,13 @@ class HighlineRepository extends ServiceEntityRepository
      * anchor points are included so the map can draw the actual line between them
      * (they're null until both ends are mapped).
      *
-     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string,point1Latitude:?string,point1Longitude:?string,point2Latitude:?string,point2Longitude:?string}>
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,area:?string,region:?string,point1Latitude:?string,point1Longitude:?string,point2Latitude:?string,point2Longitude:?string}>
      */
     public function findAllForMap(): array
     {
         return $this->createQueryBuilder('h')
             ->select(
-                'h.id, h.name, h.slug, h.type, h.length, h.height, h.latitude, h.longitude, h.area, h.region,'
+                'h.id, h.name, h.slug, h.type, h.length, h.height, h.area, h.region,'
                 . ' h.point1Latitude, h.point1Longitude, h.point2Latitude, h.point2Longitude',
             )
             ->getQuery()
@@ -66,7 +66,7 @@ class HighlineRepository extends ServiceEntityRepository
      * (= firstAscentDate, falling back to the earliest known crossing date).
      * Highlines with no first-ascent and no crossings are excluded — nothing to anchor them in time.
      *
-     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string,appearanceDate:string}>
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:?string,longitude:?string,area:?string,region:?string,appearanceDate:string}>
      */
     public function findAllForTimeline(): array
     {
@@ -78,8 +78,8 @@ class HighlineRepository extends ServiceEntityRepository
                 h.type,
                 h.length,
                 h.height,
-                h.latitude::text  AS latitude,
-                h.longitude::text AS longitude,
+                h.point1_latitude::text  AS latitude,
+                h.point1_longitude::text AS longitude,
                 h.area,
                 h.region,
                 COALESCE(h.first_ascent_date, MIN(c.crossed_at))::text AS appearance_date

@@ -56,6 +56,7 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 - Cílová entita: `App\Entity\Highline` (FK `legacyId` na původní `highline.id`)
 - Importováno: **254 / 254** (před fallbackem to bylo 138, 116 mělo prázdné lat/lng — viz `gps` table fallback). 133 / 254 má parkování naimportované z `gps WHERE type='PARKING'`.
 - Skipy: 0
+- **Pozn. (2026-06-09):** cílové sloupce `latitude`/`longitude` byly později zahozené (migrace `Version20260609120000`) — lajna se lokalizuje výhradně dvěma kotvícími body (`point1`/`point2`). Import command proto už lat/lng neplní a skip-gate je na `point1` místo legacy `lat`/`lng`. Viz `docs/architecture.md` § Mapa.
 - Mapování `typ` (int) → `HighlineType` enum přes `HighlineType::fromLegacyId()`: legacy `1` (Highline), `2` (Top Highline) i `4` (Urban Line) → `Highline`; `3` → `Midline`; cokoli jiného → `Unsorted`. Enum má 5 hodnot — `Unsorted`, `Highline`, `Midline`, `Longline`, `Waterline` — poslední dvě legacy import neprodukuje (jsou připravené pro budoucí ruční zadávání; per-typ ikony viz `todo.md`). Migrace `Version20260608120000` navíc slila už naimportované legacy stringy `top_highline`/`urban_line` do `highline` (úklid dvou nadbytečných typů).
 - **Verifikační flag** — migrace `Version20260510113004` flaguje všech 254 importovaných lajn jako `is_verified = true` (`UPDATE highline SET is_verified = TRUE WHERE legacy_id IS NOT NULL`). Tím se na ně automaticky aplikuje proposal flow pro budoucí edity. Detail v `docs/highline-edits.md`.
 

@@ -76,10 +76,11 @@ final class ImportHighlinesCommand extends Command
         $usedSlugs = [];
 
         foreach ($rows as $i => $row) {
-            $lat = $row['lat'] ?? null;
-            $lng = $row['lng'] ?? null;
-            if ($lat === null || $lng === null || trim((string) $lat) === '' || trim((string) $lng) === '') {
-                $io->writeln(sprintf('  <comment>skip</comment> #%d "%s" — missing GPS', $row['id'], $row['jmeno']));
+            // A line is located by its first anchor (point1); skip legacy rows without it.
+            $p1Lat = $row['point1_lat'] ?? null;
+            $p1Lng = $row['point1_lng'] ?? null;
+            if ($p1Lat === null || $p1Lng === null || trim((string) $p1Lat) === '' || trim((string) $p1Lng) === '') {
+                $io->writeln(sprintf('  <comment>skip</comment> #%d "%s" — missing GPS (bod 1)', $row['id'], $row['jmeno']));
                 $skipped++;
                 continue;
             }
@@ -97,8 +98,6 @@ final class ImportHighlinesCommand extends Command
             $h->setType(HighlineType::fromLegacyId((int) $row['typ']));
             $h->setLength((int) $row['delka']);
             $h->setHeight((int) $row['vyska']);
-            $h->setLatitude($this->normalizeCoord($lat));
-            $h->setLongitude($this->normalizeCoord($lng));
             $h->setPoint1Latitude($this->normalizeNullableCoord($row['point1_lat']));
             $h->setPoint1Longitude($this->normalizeNullableCoord($row['point1_lng']));
             $h->setPoint2Latitude($this->normalizeNullableCoord($row['point2_lat']));

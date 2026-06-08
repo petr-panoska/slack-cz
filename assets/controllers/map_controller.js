@@ -181,23 +181,15 @@ export default class extends Controller {
         const highlines = await response.json();
         const markers = [];
         for (const h of highlines) {
+            // A line is anchored by point1; the marker sits exactly on it. point2 is
+            // optional (legacy lines may have only the first anchor) — with both we
+            // also draw the actual line.
             const p1 = [parseFloat(h.point1Latitude), parseFloat(h.point1Longitude)];
+            if (p1.some(Number.isNaN)) continue;
             const p2 = [parseFloat(h.point2Latitude), parseFloat(h.point2Longitude)];
-            const hasLine = !p1.some(Number.isNaN) && !p2.some(Number.isNaN);
+            const hasLine = !p2.some(Number.isNaN);
 
-            // Anchor the marker to the line's first point when we have a line, so the
-            // pin sits exactly where the line starts. The stored latitude/longitude can
-            // drift from the real anchors, so it's only a fallback for legacy lines that
-            // have no mapped endpoints.
-            let markerPos = p1;
-            if (!hasLine) {
-                const lat = parseFloat(h.latitude);
-                const lng = parseFloat(h.longitude);
-                if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
-                markerPos = [lat, lng];
-            }
-
-            const marker = L.marker(markerPos).bindPopup(this.popupHtml(h));
+            const marker = L.marker(p1).bindPopup(this.popupHtml(h));
             marker.addTo(this.staticLayer);
             markers.push(marker);
 

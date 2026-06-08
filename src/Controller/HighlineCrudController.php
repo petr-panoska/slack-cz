@@ -35,15 +35,14 @@ final class HighlineCrudController extends AbstractController
     /**
      * Fields that are part of the form / snapshot. Listed once so the snapshot/apply pair stays in sync.
      *
-     * `length`, `latitude`, `longitude` are NOT in the form — they're derived from point1/point2
-     * (length via haversine, lat/lng as midpoint) on submit. We still snapshot them so the audit
-     * row reflects the post-derivation state.
+     * `length` is NOT in the form — it's derived from point1/point2 (haversine) on submit.
+     * We still snapshot it so the audit row reflects the post-derivation state.
      */
     private const FIELDS = [
         'name', 'type', 'height',
         'point1Latitude', 'point1Longitude', 'point2Latitude', 'point2Longitude',
         'parkingLatitude', 'parkingLongitude',
-        'length', 'latitude', 'longitude',
+        'length',
         'country', 'region', 'area',
         'description', 'pointOneInfo', 'pointTwoInfo',
         'anchoring', 'approachMinutes', 'tensioningMinutes',
@@ -447,8 +446,6 @@ final class HighlineCrudController extends AbstractController
             'type' => $h->getType()->value,
             'length' => $h->getLength(),
             'height' => $h->getHeight(),
-            'latitude' => $h->getLatitude(),
-            'longitude' => $h->getLongitude(),
             'point1Latitude' => $h->getPoint1Latitude(),
             'point1Longitude' => $h->getPoint1Longitude(),
             'point2Latitude' => $h->getPoint2Latitude(),
@@ -503,8 +500,9 @@ final class HighlineCrudController extends AbstractController
     }
 
     /**
-     * Compute length (haversine, integer meters) + midpoint (lat/lng) from point1/point2.
-     * Called after every form-bound mutation; keeps derived columns in sync with endpoints.
+     * Compute length (haversine, integer meters) from point1/point2. A line is defined
+     * solely by its two anchors — there is no separate stored midpoint coordinate.
+     * Called after every form-bound mutation to keep the derived length in sync.
      */
     private function deriveGeometry(Highline $h): void
     {
@@ -518,11 +516,6 @@ final class HighlineCrudController extends AbstractController
         }
 
         $h->setLength((int) round($this->haversineMeters($p1Lat, $p1Lng, $p2Lat, $p2Lng)));
-        // Clamp to the column's NUMERIC(10,7) precision — bez tohohle PHP cast (float → string)
-        // vyplivne 8+ desetinných míst, DB to truncuje na 7 při zápisu, a další load vrátí
-        // jinou hodnotu, takže snapshot diff hlásí změnu i když user nic nesáhl.
-        $h->setLatitude(number_format(($p1Lat + $p2Lat) / 2, 7, '.', ''));
-        $h->setLongitude(number_format(($p1Lng + $p2Lng) / 2, 7, '.', ''));
     }
 
     private function floatOrNull(?string $v): ?float

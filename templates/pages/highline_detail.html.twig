@@ -97,14 +97,26 @@
                     {% if highline.firstAscentBy %}<tr><th>Autor 1. napnutí</th><td>{{ highline.firstAscentBy }}</td></tr>{% endif %}
                     {% if highline.firstAscentDate %}<tr><th>Datum 1. napnutí</th><td>{{ highline.firstAscentDate|date('j. n. Y') }}</td></tr>{% endif %}
                     {% if highline.nameHistory %}<tr><th>Historie názvu</th><td class="hl-richtext">{{ highline.nameHistory|nl2br }}</td></tr>{% endif %}
-                    <tr>
-                        <th>GPS</th>
-                        <td>
-                            <a href="https://mapy.cz/turisticka?source=coor&id={{ highline.longitude }}%2C{{ highline.latitude }}" target="_blank" rel="noopener">
-                                {{ highline.latitude }}, {{ highline.longitude }}
-                            </a>
-                        </td>
-                    </tr>
+                    {% if highline.point1Latitude and highline.point1Longitude %}
+                        <tr>
+                            <th>GPS bod&nbsp;1</th>
+                            <td>
+                                <a href="https://mapy.cz/turisticka?source=coor&id={{ highline.point1Longitude }}%2C{{ highline.point1Latitude }}" target="_blank" rel="noopener">
+                                    {{ highline.point1Latitude }}, {{ highline.point1Longitude }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% if highline.point2Latitude and highline.point2Longitude %}
+                        <tr>
+                            <th>GPS bod&nbsp;2</th>
+                            <td>
+                                <a href="https://mapy.cz/turisticka?source=coor&id={{ highline.point2Longitude }}%2C{{ highline.point2Latitude }}" target="_blank" rel="noopener">
+                                    {{ highline.point2Latitude }}, {{ highline.point2Longitude }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
                     {% if highline.hasParking %}
                         <tr>
                             <th>Parkování</th>

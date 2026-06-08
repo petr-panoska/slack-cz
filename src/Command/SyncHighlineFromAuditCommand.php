@@ -98,8 +98,6 @@ final class SyncHighlineFromAuditCommand extends Command
         $h->setType(HighlineType::from((string) $s['type']));
         $h->setHeight((int) $s['height']);
         $h->setLength((int) ($s['length'] ?? 0));
-        $h->setLatitude((string) ($s['latitude'] ?? '0'));
-        $h->setLongitude((string) ($s['longitude'] ?? '0'));
         $h->setPoint1Latitude(isset($s['point1Latitude']) ? (string) $s['point1Latitude'] : null);
         $h->setPoint1Longitude(isset($s['point1Longitude']) ? (string) $s['point1Longitude'] : null);
         $h->setPoint2Latitude(isset($s['point2Latitude']) ? (string) $s['point2Latitude'] : null);

@@ -36,14 +36,6 @@ class Highline
     #[Assert\PositiveOrZero]
     private int $height = 0;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 7)]
-    #[Assert\Range(min: -90, max: 90)]
-    private ?string $latitude = null;
-
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 7)]
-    #[Assert\Range(min: -180, max: 180)]
-    private ?string $longitude = null;
-
     #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
     #[Assert\Range(min: -90, max: 90)]
     private ?string $point1Latitude = null;
@@ -188,26 +180,20 @@ class Highline
         return $this;
     }
 
+    /**
+     * Representative single point of the line = its first anchor. A line is defined
+     * solely by point1/point2 (+ optional parking); there is no separate stored
+     * latitude/longitude. Used wherever a single coordinate is needed (deník/feed dot,
+     * mapy.cz link, initial map center).
+     */
     public function getLatitude(): ?string
     {
-        return $this->latitude;
-    }
-
-    public function setLatitude(string $latitude): static
-    {
-        $this->latitude = $latitude;
-        return $this;
+        return $this->point1Latitude;
     }
 
     public function getLongitude(): ?string
     {
-        return $this->longitude;
-    }
-
-    public function setLongitude(string $longitude): static
-    {
-        $this->longitude = $longitude;
-        return $this;
+        return $this->point1Longitude;
     }
 
     public function getPoint1Latitude(): ?string
