@@ -2,6 +2,8 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { emojiForUser } from '../user_emoji.js';
+import { addBasemapToggle } from '../basemap.js';
+import { addFullscreenToggle } from '../map_fullscreen.js';
 
 const TYPE_LABELS = {
     unsorted: 'Nezařazeno',
@@ -24,6 +26,10 @@ const STYLE_LABELS = {
 };
 
 const CZECH_CENTER = [49.8, 15.5];
+
+// Below this zoom the lines would be sub-pixel noise over a country-wide view, so
+// we only draw the polyline between a highline's two anchors once zoomed in close.
+const LINE_MIN_ZOOM = 14;
 
 // Survives Turbo navigations (map → highline detail → back) so the user
 // returns to the same pan/zoom they left.
@@ -111,15 +117,19 @@ export default class extends Controller {
         );
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(this.map);
+        addBasemapToggle(this.map);
+        // Fullscreen the whole wrapper, not just the canvas, so the crossing feed and
+        // time-travel controls stay on screen.
+        addFullscreenToggle(this.map, { element: this.element });
 
         this.map.on('moveend zoomend', () => writeSavedView(this.map));
+        this.map.on('zoomend', () => this._updateLinesVisibility());
 
         // Static mode = highlines (always visible) + recent users emoji (toggleable via sidebar eye)
         this.staticLayer = L.layerGroup().addTo(this.map);
+        // Polyline per highline (the line between its two anchors); only shown once
+        // zoomed in past LINE_MIN_ZOOM — see _updateLinesVisibility.
+        this.linesLayer = L.layerGroup();
         this.usersLayer = L.layerGroup();
         // Timeline mode = highlines fading in chronologically + crossing pulses
         this.timelineLayer = L.layerGroup();
@@ -178,12 +188,25 @@ export default class extends Controller {
             const marker = L.marker([lat, lng]).bindPopup(this.popupHtml(h));
             marker.addTo(this.staticLayer);
             markers.push(marker);
+
+            // When both anchors are known, draw the actual line. It rides in its own
+            // layer so we can hide it again at low zoom (lines are meaningless from
+            // a country-wide view).
+            const p1 = [parseFloat(h.point1Latitude), parseFloat(h.point1Longitude)];
+            const p2 = [parseFloat(h.point2Latitude), parseFloat(h.point2Longitude)];
+            if (!p1.some(Number.isNaN) && !p2.some(Number.isNaN)) {
+                L.polyline([p1, p2], { color: '#e1005b', weight: 3, opacity: 0.85 })
+                    .bindPopup(this.popupHtml(h))
+                    .addTo(this.linesLayer);
+            }
         }
 
         if (markers.length > 0 && !this.viewRestored) {
             const group = L.featureGroup(markers);
             this.map.fitBounds(group.getBounds().pad(0.1));
         }
+
+        this._updateLinesVisibility();
     }
 
     async loadUsers() {
@@ -246,6 +269,7 @@ export default class extends Controller {
         this.timeTravel = true;
         this.staticLayer.removeFrom(this.map);
         this.usersLayer.removeFrom(this.map);
+        this.linesLayer.removeFrom(this.map);
         this.timelineLayer.addTo(this.map);
         this.element.classList.add('time-travel-active');
         if (this.hasTtToggleTarget) this.ttToggleTarget.textContent = 'Návrat do dneška';
@@ -273,6 +297,7 @@ export default class extends Controller {
         this.timelineLayer.clearLayers();
         this.timelineLayer.removeFrom(this.map);
         this.staticLayer.addTo(this.map);
+        this._updateLinesVisibility();
         if (this.usersVisible) this.usersLayer.addTo(this.map);
 
         this.element.classList.remove('time-travel-active');
@@ -463,7 +488,9 @@ export default class extends Controller {
     // ---------- Popups ----------
 
     popupHtml(h) {
-        const typeLabel = TYPE_LABELS[h.type] ?? h.type;
+        // "Nezařazeno" is the default/placeholder type on most lines — it carries no
+        // info, so skip the type line entirely when that's all we have.
+        const typeLabel = h.type === 'unsorted' ? '' : (TYPE_LABELS[h.type] ?? h.type);
         const place = [h.area, h.region].filter(Boolean).join(', ');
         const title = h.slug
             ? `<a href="/highline/${encodeURIComponent(h.slug)}">${escapeHtml(h.name)}</a>`
@@ -471,11 +498,23 @@ export default class extends Controller {
         return `
             <div class="highline-popup">
                 <strong>${title}</strong>
-                <div>${escapeHtml(typeLabel)}</div>
+                ${typeLabel ? `<div>${escapeHtml(typeLabel)}</div>` : ''}
                 <div>${h.length} m &middot; ${h.height} m vysoko</div>
                 ${place ? `<div class="muted">${escapeHtml(place)}</div>` : ''}
             </div>
         `;
+    }
+
+    // Lines only make sense up close — show them past LINE_MIN_ZOOM, and never in
+    // time-travel mode (the static layers are off the map then anyway).
+    _updateLinesVisibility() {
+        if (!this.map || !this.linesLayer) return;
+        const show = !this.timeTravel && this.map.getZoom() >= LINE_MIN_ZOOM;
+        if (show) {
+            this.linesLayer.addTo(this.map);
+        } else {
+            this.linesLayer.removeFrom(this.map);
+        }
     }
 
     _setUsersVisible(visible) {

@@ -2,6 +2,8 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { emojiForUser } from '../user_emoji.js';
+import { addBasemapToggle } from '../basemap.js';
+import { addFullscreenToggle } from '../map_fullscreen.js';
 
 // Homepage hero map. Unlike the full /mapa (which shows every highline at once),
 // this shows ONE crossing at a time: the sidebar list drives which one is active.
@@ -61,10 +63,8 @@ export default class extends Controller {
         this.map = L.map(this.canvasTarget, { zoomControl: false, scrollWheelZoom: false })
             .setView(center, zoom);
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(this.map);
+        addBasemapToggle(this.map, { ortho: true });
+        addFullscreenToggle(this.map);
 
         this.activeLayer = L.layerGroup().addTo(this.map);
         this.rafHandle = null;

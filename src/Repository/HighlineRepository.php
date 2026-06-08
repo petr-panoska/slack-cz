@@ -44,14 +44,19 @@ class HighlineRepository extends ServiceEntityRepository
     }
 
     /**
-     * Returns lightweight rows for the map (no description/HTML payload).
+     * Returns lightweight rows for the map (no description/HTML payload). The two
+     * anchor points are included so the map can draw the actual line between them
+     * (they're null until both ends are mapped).
      *
-     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string}>
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:string,longitude:string,area:?string,region:?string,point1Latitude:?string,point1Longitude:?string,point2Latitude:?string,point2Longitude:?string}>
      */
     public function findAllForMap(): array
     {
         return $this->createQueryBuilder('h')
-            ->select('h.id, h.name, h.slug, h.type, h.length, h.height, h.latitude, h.longitude, h.area, h.region')
+            ->select(
+                'h.id, h.name, h.slug, h.type, h.length, h.height, h.latitude, h.longitude, h.area, h.region,'
+                . ' h.point1Latitude, h.point1Longitude, h.point2Latitude, h.point2Longitude',
+            )
             ->getQuery()
             ->getArrayResult();
     }

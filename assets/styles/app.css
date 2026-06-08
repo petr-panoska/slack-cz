@@ -1765,6 +1765,73 @@ a.crossings-line:hover {
     width: 100%;
 }
 
+/* ---------- Map control pills: basemap + fullscreen (shared across all maps) ---------- */
+
+.map-ctrl-btn {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--color-line);
+    color: var(--color-fg);
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.map-ctrl-btn:hover,
+.map-ctrl-btn:focus-visible {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+    outline: none;
+}
+
+/* Active (ortho shown / in fullscreen) → dark pill, matching the highline form. */
+.map-ctrl-btn.is-active {
+    background: #1b1b1b;
+    color: #fff;
+    border-color: #1b1b1b;
+}
+
+/* Fullscreen toggle is icon-only → square button, slightly larger glyph. */
+.map-fullscreen-toggle {
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* On /mapa the top-right corner already holds the "Přehrát historii" toggle, so
+   push the basemap + fullscreen controls below it. */
+.highline-map-wrapper .leaflet-top.leaflet-right {
+    top: 44px;
+}
+
+/* Fullscreen: let the map target (and the Leaflet canvas inside it) fill the screen
+   without leftover rounded corners. addFullscreenToggle tags its target .map-fs-target. */
+.map-fs-target:fullscreen,
+.map-fs-target:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    background: var(--color-bg);
+}
+
+.map-fs-target:fullscreen .leaflet-container,
+.map-fs-target:-webkit-full-screen .leaflet-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+
 /* ---------- Crossing news-bar feed ---------- */
 
 .crossing-feed {

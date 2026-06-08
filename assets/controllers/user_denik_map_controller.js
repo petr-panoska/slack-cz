@@ -1,6 +1,8 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { addBasemapToggle } from '../basemap.js';
+import { addFullscreenToggle } from '../map_fullscreen.js';
 
 export default class extends Controller {
     static values = {
@@ -27,10 +29,8 @@ export default class extends Controller {
             scrollWheelZoom: false,
         }).setView([49.8, 15.5], 7);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(this.map);
+        addBasemapToggle(this.map);
+        addFullscreenToggle(this.map);
 
         if (points.length === 0) return;
 
