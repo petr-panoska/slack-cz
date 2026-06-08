@@ -129,7 +129,7 @@ Detailně v `deploy.md`. Krátce:
 
 - [ ] Restrikce YouTube API key v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — momentálně je key bez restriction, je v transkriptech konverzace
 - [ ] Po nasazení produkce: rotovat `YOUTUBE_API_KEY`
-- [ ] Uklidit `App\Old\Entity\Uzivatel` — zatím se používá pro debug view `/old-users`. Po user importu zvážit smazání route + entity (po user importu už máme data v nové DB).
+- [x] Uklidit `App\Old\Entity\Uzivatel` — smazáno celé: entita + repo + debug view `/old-users` (route i template) + ORM `old` entity_manager v `doctrine.yaml` + adresář `src/Old/`. DBAL `old` connection zůstává (importy přes ni čtou raw SQL).
 - [ ] Default Symfony `hello_controller.js` v `assets/controllers/` smazat až bude místo něj něco užitečného
 ## Homepage rework (probíhá)
 
@@ -157,7 +157,7 @@ Detailně v `deploy.md`. Krátce:
 - [x] **Highline `point1Latitude/Longitude` + `point2Latitude/Longitude`** — naimportováno z legacy `gps` tabulky přes JOIN na `point1_id` / `point2_id` (typ `LINE_POINT`).
 - [x] **User import** — 440 nových User + 1 enriched (existující dev účet) + 6 dropped legacy řádků mergováno (5 duplicit emailů). MD5 hesla zachována, `migrate_from` v security.yaml přehashuje na bcrypt při prvním loginu.
 - [x] **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datům). Style enum s 9 hodnotami, mapping legacy → enum, neznámé hodnoty se reportují jako warning.
-- [x] **`Makefile`** — targety `legacyImport` (re-import s `--truncate`) a `legacyImportFresh` (drop+create+migrate+full import).
+- [x] **`Makefile`** — target `legacyImport` (jednorázový import na čisté schéma, `--truncate`).
 - [x] **„Poslední přechody" panel** na indexu (vedle Slack.cz TV) — ukazuje N nejnovějších (datum / user / lajna / hodnocení v hvězdách). Limit centrálně v `RECENT_LIMIT`.
 - [x] Highline import 254/254 z legacy DB do nové Postgres
 - [x] Mapa `/mapa` s Leaflet + OSM, fixnutý problém s ikonami (asset URLs přes Stimulus values)

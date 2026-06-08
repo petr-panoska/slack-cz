@@ -56,8 +56,7 @@ docker compose exec -T php bin/console <cmd>
 | `make dcAssetMapCompile` | `bin/console asset-map:compile` — generuje `public/assets/manifest.json`. **NUTNÉ v prod** — bez něj 500 |
 | `make dcClearCacheProd` | cache:clear s vynuceným `APP_ENV=prod` (i kdyby `.env.local` měl `APP_ENV=dev`) |
 | `make loadLegacyDump` | jednorázový load `slackcz_44953.sql` po fresh `docker compose down -v` |
-| `make legacyImport` | re-run importů uvnitř existujícího schématu (DELETE crossings → highlines/users/crossings truncate) |
-| `make legacyImportFresh` | drop + create + migrate + full import (předpokládá nahraný legacy dump) |
+| `make legacyImport` | jednorázový import do čerstvého schématu (highlines/users/crossings `--truncate`); předpokládá nahraný legacy dump |
 
 **Produkce (SSH na `beta.slack.cz`):**
 
@@ -85,7 +84,6 @@ docker compose exec -T php bin/console cache:pool:clear cache.app
 docker compose exec -T php bin/console debug:router
 docker compose exec -T php bin/console debug:container --parameter=...
 docker compose exec -T php bin/console doctrine:mapping:info --em=default
-docker compose exec -T php bin/console doctrine:mapping:info --em=old
 
 # importmap (asset mapper)
 docker compose exec -T php bin/console importmap:require <package>
@@ -127,8 +125,6 @@ docker compose exec -T php bin/console doctrine:migrations:migrate -n        # s
 docker compose exec -T php bin/console doctrine:migrations:status            # přehled
 ```
 
-> ⚠ Po přidání entity do `src/Entity/` zkontroluj, že `make:migration` negeneruje migraci pro něco z `App\Old\Entity\*`. Pokud ano → entita patří do `src/Old/Entity/`, viz `architecture.md`.
-
 ### Legacy import — fresh end-to-end
 
 > ⚠ **Při úplně čistém startu** (např. po `docker compose down -v` nebo po reinstalu Dockeru) je MySQL volume prázdný — legacy dump se musí jednorázově nahrát, jinak importy padnou na "table doesn't exist". Compose neudělá nic auto-loadu.
@@ -148,7 +144,7 @@ docker compose exec -T php bin/console app:import:users --truncate
 docker compose exec -T php bin/console app:import:crossings --truncate
 ```
 
-Nebo `make legacyImportFresh` (vyžaduje, aby MySQL měla dump nahrátý — krok 0 výše dělá jen jednorázově po smazání volumes).
+Krok 2 (jen importy) je zabalený v `make legacyImport`. Pro zopakování celého: dropni novou DB (krok 1), nahraj legacy dump (krok 0), pak `make legacyImport`.
 
 ## Účty / správa uživatelů
 
@@ -204,7 +200,7 @@ curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'asset
   - `format_datetime` (potřebuje `twig/intl-extra`) — místo toho použij `|date('j. n. Y')`
   - `|u.truncate(...)` (potřebuje `twig/string-extra`) — místo toho použij CSS `-webkit-line-clamp`
 - **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/mapa.html.twig`. Pro plnohodnotnou mapu se 254 lajnami + time-travel use `map_controller`; pro slim single-line view (např. detail) je `highline_detail_map_controller`.
-- **Re-import highlines vs. crossings**: `legacyImport` target v Makefile padne, pokud už existují crossings (FK z crossings → highline brání DELETE). Order pro re-run uvnitř existujícího schématu: `dbal:run-sql "DELETE FROM highline_crossing"` → `app:import:highlines --truncate` → `app:import:crossings --truncate`. Nebo nech to udělat `legacyImportFresh` (drop + create + migrate + full import).
+- **Legacy import je jednorázová lokální věc na čisté schéma.** Spouští se při nahazování projektu (`make legacyImport`), kdy je DB prázdná — proto FK z crossings → highline nevadí (žádné crossings ještě nejsou). Když to chceš zopakovat: dropni novou DB, znovu nahraj legacy dump (adminer / `make loadLegacyDump`), pak `make legacyImport`.
 - **Asset URL hashe** se mění při edit → curl test musí parsovat URL z HTML, ne hardcodovat.
 - **Limit posledních přechodů** je centralizovaný v `App\Repository\HighlineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i sidebar feed. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
 

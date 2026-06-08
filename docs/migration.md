@@ -14,7 +14,7 @@ Konkrétně to znamená:
 - Pořadí runů musí být dokumentované (entity závislosti)
 - Žádný import nesmí dělat side effect mimo svou cílovou tabulku (např. mazat něco, co jiný import zapsal)
 
-Standardní fresh import (kompletně zabalené v `make legacyImportFresh`):
+Fresh import na čisté schéma — DB reset je ruční, samotné importy zabaluje `make legacyImport`:
 
 ```bash
 docker compose exec php bin/console doctrine:database:drop --force --if-exists
@@ -42,7 +42,7 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 ## Princip 3 — zdroj pravdy = legacy MySQL
 
 - Importy čtou přes DBAL `Connection` (autowire `doctrine.dbal.old_connection`)
-- **Žádné ORM entity pro legacy tabulky** (vyjma už existující `App\Old\Entity\Uzivatel`, která se používá pro debug view `/old-users`)
+- **Žádné ORM entity pro legacy tabulky** — vše se čte přes DBAL `old` connection
 - Raw SQL nebo `fetchAllAssociative()` — víme přesně, jaké sloupce čteme, žádný překlad přes mapping
 
 ---
@@ -218,7 +218,7 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 
 #### Co NEbude v MVP
 
-- Žádný `App\Old\Entity\HighlinePrechod` ORM mapping — čteme přes DBAL.
+- Žádný ORM mapping pro legacy přechody — čteme přes DBAL `old` connection.
 - Žádné UI pro přidávání přechodů přes nové appce. To řešíme později.
 
 ---
@@ -259,25 +259,22 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 ## Summary commands
 
 ```bash
-# Fresh end-to-end (drop + create + migrate + full import).
+# Legacy import = jednorázová lokální věc na čisté schéma.
 # Předpoklad: legacy MySQL má nahraný dump (`make loadLegacyDump` jednorázově po prvním `up`).
-make legacyImportFresh
-
-# Re-run importů uvnitř existujícího schématu (DELETE crossings → truncate highlines/users/crossings).
-# Použij když nepotřebuješ resetovat migrace, jen načíst data.
 make legacyImport
 ```
 
-Detail jednotlivých kroků (oba targety dělají to samé, jen s/bez DB resetu):
+`make legacyImport` spustí jen importy v pořadí daném FK závislostmi — na čistém schématu, takže žádný `DELETE FROM highline_crossing` workaround není potřeba:
 
 ```bash
-# legacyImport: smaž crossings (FK constraint), pak truncate-import všeho
-docker compose exec -T php bin/console dbal:run-sql "DELETE FROM highline_crossing"
 docker compose exec -T php bin/console app:import:highlines --truncate
 docker compose exec -T php bin/console app:import:users --truncate
 docker compose exec -T php bin/console app:import:crossings --truncate
+```
 
-# legacyImportFresh: navíc na začátku
+Zopakování od nuly = ruční reset DB před tím (a pokud je legacy MySQL prázdná, nejdřív `make loadLegacyDump`):
+
+```bash
 docker compose exec -T php bin/console doctrine:database:drop --force --if-exists
 docker compose exec -T php bin/console doctrine:database:create
 docker compose exec -T php bin/console doctrine:migrations:migrate -n

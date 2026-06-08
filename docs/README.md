@@ -20,7 +20,7 @@ Je míněn primárně pro vývojáře projektu (CAS).
 | Mám problém / chci… | Kouknout sem |
 |---|---|
 | Spustit Docker, console, smazat cache, smoke test endpointu | `dev.md` |
-| Pochopit, proč je `App\Old\Entity\*` mimo `src/Entity/` | `architecture.md` § *Důležité* |
+| Pochopit, proč se legacy data čtou přes DBAL (ne ORM) | `architecture.md` § *Důležité* |
 | Pustit legacy import (fresh / re-run) | `dev.md` § *Migrace + import* nebo `migration.md` § *Summary commands* |
 | Rozumět merge strategii pro duplicitní emaily | `migration.md` § *Users — DONE* |
 | Mapovat legacy `styl` string na enum | `crossing-styles.md` |

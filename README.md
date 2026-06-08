@@ -19,16 +19,25 @@ check symfony environment status:
 docker compose run php symfony check:requirements
 ```
 
-## Old database
+## Migrate data from legacy database
 
-### Import data
-- mysql database should be created automatically when running docker container
-- database can be created with Doctrine (e.g. `docker compose run php bin/console doctrine:database:create --connection=old`)
-- access database via [adminer](http://localhost:8080/?server=mysql&username=root&db=old)
-- use adminer to import source dump (`*.sql.gz`)
+### Export data from legacy Mysql db
+- `https://adminer17.vas-hosting.cz/?server=localhost&username=slackcz.44953&db=slackcz_44953&dump=`
+- keep default export settings
+- do not export `log` and `pristupy` tables
+- save the dump as `slackcz_44953.sql` in the project root (plain SQL, not gzipped)
 
-### Entities
-- legacy entities are mapped with Doctrine and live in `src/Old/Entity` (namespace `App\Old\Entity`); they are kept outside `src/Entity` so the default Postgres EM does not pick them up
+### Import data to local Mysql db
+- the `old` MySQL database is created automatically with the `mysql` container
+  (fallback: `docker compose run php bin/console doctrine:database:create --connection=old`)
+- load the dump — needed after first setup or any `docker compose down -v`:
+  ```
+  make loadLegacyDump
+  ```
+- alternatively import it by hand via [adminer](http://localhost:8080/?server=mysql&username=root&db=old)
+
+### Run import to Postgres
+- `make legacyImport`
 
 ## Documentation
 

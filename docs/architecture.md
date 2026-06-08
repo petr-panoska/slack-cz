@@ -32,32 +32,23 @@ src/
   Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, RegistrationForm, ...)
   Repository/       # Doctrine repos (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
-  Old/              # LEGACY mapping (MySQL, EM old) — namespace App\Old\*
-    Entity/         # legacy entity: Uzivatel
-    Repository/     # repos pro legacy
   Command/          # Console commands: app:import:*, app:admin:grant, app:edit:sync-from-history,
                     # app:user:list, app:user:reset-password
 ```
 
-### Důležité — proč je `App\Old\Entity\` mimo `src/Entity/`
+### Důležité — legacy data se čtou přes DBAL, ne přes ORM
 
-Default Postgres EM má `prefix: 'App\Entity'` a `dir: 'src/Entity'` — Doctrine driver scanuje rekurzivně a všechno pod `App\Entity\*` (včetně `App\Entity\Old\*`) by sebral do default EM. To by způsobilo, že každá `make:migration` chce přidat legacy tabulky (`uzivatel`, kdyby tam byl `Highline` zase kolize) do Postgres schématu.
-
-Řešení: legacy mapping žije v `src/Old/Entity/` (namespace `App\Old\Entity`). Default EM o nich neví, `old` EM ano.
+Legacy MySQL se **nemapuje na ORM entity**. Import commandy (`app:import:*`) čtou z legacy přes DBAL connection `old` raw SQL (autowire `doctrine.dbal.old_connection` + `fetchAllAssociative`) a zapisují nové `App\Entity\*` přes default (Postgres) EM. Díky tomu default EM o legacy tabulkách vůbec neví a `make:migration` je nikdy nezahrne do Postgres schématu.
 
 ```yaml
-# config/packages/doctrine.yaml
-old:
-    connection: old
-    mappings:
-        Old:
-            is_bundle: false
-            dir: '%kernel.project_dir%/src/Old/Entity'
-            prefix: 'App\Old\Entity'
-            alias: Old
+# config/packages/doctrine.yaml — jen DBAL connection, žádný ORM entity_manager nad legacy
+dbal:
+    connections:
+        old:
+            url: '%env(resolve:OLD_DATABASE_URL)%'
 ```
 
-Pravidlo: **nikdy nepřidávej legacy ORM entity pod `App\Entity\Old\*`. Dej je do `App\Old\Entity\*`.**
+Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, nemapuj je na ORM entity.**
 
 ## Frontend
 
@@ -206,7 +197,6 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/login`, `/register`, `/logout` | auth | ✓ |
 | `/reset-password`, `/reset-password/reset/{token}` | reset | ✓ |
 | `/verify/email` | email verify | login required |
-| `/old-users` | `app_old_users` | ✓ debug pohled na legacy uzivatele |
 | `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (17 kapitol z `wiki/`, live z GitHubu, `NN-slug.md` konvence, žádný frontmatter) |
 | `/docs`, `/docs/{slug}` | `app_docs_*` | ✓ technická dokumentace (interní), live z `docs/*.md` na GitHubu |
 

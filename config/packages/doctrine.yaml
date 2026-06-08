@@ -35,14 +35,6 @@ doctrine:
                         dir: '%kernel.project_dir%/src/Entity'
                         prefix: 'App\Entity'
                         alias: App
-            old:
-                connection: old
-                mappings:
-                    Old:
-                        is_bundle: false
-                        dir: '%kernel.project_dir%/src/Old/Entity'
-                        prefix: 'App\Old\Entity'
-                        alias: Old
 
 when@test:
     doctrine:

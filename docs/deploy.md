@@ -391,9 +391,9 @@ psql "$DB_URL" -c "..."
 
 Tohle dělá `scripts/sync-beta-restore.sh` — kdybys chtěl ručně něco pgčíst na betě, použij stejný pattern.
 
-### Doctrine `old` EM vyžaduje `php-mysql`
+### Doctrine `old` connection vyžaduje `php-mysql`
 
-I když na prod nepoužíváme MySQL, `config/packages/doctrine.yaml` registruje `old` connection na boot. Bez `php8.3-mysql` extension by se Doctrine ani nezavedlo. Setup ho instaluje, `OLD_DATABASE_URL` v `.env.local` ukazuje do prázdna (`mysql://nobody:nobody@127.0.0.1:3306/none`), connection se nikdy neotevře.
+I když na prod nepoužíváme MySQL, `config/packages/doctrine.yaml` registruje DBAL `old` connection na boot. Bez `php8.3-mysql` extension by se Doctrine ani nezavedlo. Setup ho instaluje, `OLD_DATABASE_URL` v `.env.local` ukazuje do prázdna (`mysql://nobody:nobody@127.0.0.1:3306/none`), connection se nikdy neotevře.
 
 ### `var/log` neexistuje, dokud Symfony poprvé nezaloguje
 
