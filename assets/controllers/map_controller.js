@@ -181,20 +181,29 @@ export default class extends Controller {
         const highlines = await response.json();
         const markers = [];
         for (const h of highlines) {
-            const lat = parseFloat(h.latitude);
-            const lng = parseFloat(h.longitude);
-            if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
+            const p1 = [parseFloat(h.point1Latitude), parseFloat(h.point1Longitude)];
+            const p2 = [parseFloat(h.point2Latitude), parseFloat(h.point2Longitude)];
+            const hasLine = !p1.some(Number.isNaN) && !p2.some(Number.isNaN);
 
-            const marker = L.marker([lat, lng]).bindPopup(this.popupHtml(h));
+            // Anchor the marker to the line's first point when we have a line, so the
+            // pin sits exactly where the line starts. The stored latitude/longitude can
+            // drift from the real anchors, so it's only a fallback for legacy lines that
+            // have no mapped endpoints.
+            let markerPos = p1;
+            if (!hasLine) {
+                const lat = parseFloat(h.latitude);
+                const lng = parseFloat(h.longitude);
+                if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
+                markerPos = [lat, lng];
+            }
+
+            const marker = L.marker(markerPos).bindPopup(this.popupHtml(h));
             marker.addTo(this.staticLayer);
             markers.push(marker);
 
-            // When both anchors are known, draw the actual line. It rides in its own
-            // layer so we can hide it again at low zoom (lines are meaningless from
-            // a country-wide view).
-            const p1 = [parseFloat(h.point1Latitude), parseFloat(h.point1Longitude)];
-            const p2 = [parseFloat(h.point2Latitude), parseFloat(h.point2Longitude)];
-            if (!p1.some(Number.isNaN) && !p2.some(Number.isNaN)) {
+            // The line rides in its own layer so we can hide it again at low zoom
+            // (lines are meaningless from a country-wide view).
+            if (hasLine) {
                 L.polyline([p1, p2], { color: '#e1005b', weight: 3, opacity: 0.85 })
                     .bindPopup(this.popupHtml(h))
                     .addTo(this.linesLayer);
