@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { addBasemapToggle } from '../basemap.js';
+import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 
 export default class extends Controller {
@@ -32,7 +32,7 @@ export default class extends Controller {
         const center = [this.latValue, this.lngValue];
         this.map = L.map(this.canvasTarget).setView(center, 15);
 
-        addBasemapToggle(this.map);
+        addBasemapPicker(this.map);
         addFullscreenToggle(this.map);
 
         const hasPolyline =

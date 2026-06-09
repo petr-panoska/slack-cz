@@ -1797,6 +1797,74 @@ a.crossings-line:hover {
     border-color: #1b1b1b;
 }
 
+/* Basemap picker: pill toggle that expands a small radio-like list below it. */
+.map-layers {
+    position: relative;
+}
+
+.map-layers.is-open .map-layers-toggle {
+    background: #1b1b1b;
+    color: #fff;
+    border-color: #1b1b1b;
+}
+
+.map-layers-panel {
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 6px);
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* Left-corner control → open the panel rightward; bottom corner → open upward. */
+.map-layers--left .map-layers-panel {
+    right: auto;
+    left: 0;
+}
+
+.map-layers--up .map-layers-panel {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+
+.map-layers-panel[hidden] {
+    display: none;
+}
+
+.map-layers-option {
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-fg);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.map-layers-option:hover,
+.map-layers-option:focus-visible {
+    background: var(--color-accent);
+    color: #fff;
+    outline: none;
+}
+
+.map-layers-option.is-active {
+    background: #1b1b1b;
+    color: #fff;
+}
+
 /* Fullscreen toggle is icon-only → square button, slightly larger glyph. */
 .map-fullscreen-toggle {
     padding: 0;
@@ -4276,12 +4344,6 @@ a.crossings-line:hover {
     background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     white-space: nowrap;
-}
-
-.hl-form-basemap-toggle.is-active {
-    background: #1b1b1b;
-    color: #fff;
-    border-color: #1b1b1b;
 }
 
 .hl-form-fullscreen-toggle.is-active {

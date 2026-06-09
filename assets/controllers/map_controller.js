@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { emojiForUser } from '../user_emoji.js';
-import { addBasemapToggle } from '../basemap.js';
+import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 
 const TYPE_LABELS = {
@@ -117,7 +117,7 @@ export default class extends Controller {
         );
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
-        addBasemapToggle(this.map);
+        addBasemapPicker(this.map);
         // Fullscreen the whole wrapper, not just the canvas, so the crossing feed and
         // time-travel controls stay on screen.
         addFullscreenToggle(this.map, { element: this.element });

@@ -1,15 +1,15 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { OSM_URL, OSM_ATTR, ORTHO_URL, ORTHO_ATTR } from '../basemap.js';
+import { addBasemapPicker } from '../basemap.js';
 
 /**
  * Two-endpoint + parking GPS picker for the highline form.
  *
  * Editing is button-driven (same pattern as parking): "Přidat bod 1/2" arms a mode,
  * the next map click drops that marker, and the button flips to "Smazat …". Markers
- * stay draggable and the four lat/lng inputs stay two-way bound. A basemap toggle
- * switches between OSM and Esri ortho imagery.
+ * stay draggable and the four lat/lng inputs stay two-way bound. The shared basemap
+ * picker (Mapa / Ortofoto / Hybrid) is added as a map control.
  *
  * Wires by ID, not by Stimulus targets — the inputs are rendered by Symfony Form and
  * live outside the controller's element scope.
@@ -26,7 +26,7 @@ export default class extends Controller {
         initLng: Number,
     };
 
-    static targets = ['canvas', 'distance', 'p1Toggle', 'p2Toggle', 'parkingToggle', 'basemapToggle', 'fullscreenToggle'];
+    static targets = ['canvas', 'distance', 'p1Toggle', 'p2Toggle', 'parkingToggle', 'fullscreenToggle'];
 
     connect() {
         this.inputs = {
@@ -45,9 +45,8 @@ export default class extends Controller {
         const zoom = (this.points[0] || this.points[1]) ? 15 : 7;
 
         this.map = L.map(this.canvasTarget).setView(center, zoom);
-        this.osmLayer = L.tileLayer(OSM_URL, { maxZoom: 19, attribution: OSM_ATTR }).addTo(this.map);
-        this.orthoLayer = L.tileLayer(ORTHO_URL, { maxZoom: 19, attribution: ORTHO_ATTR });
-        this.basemap = 'osm';
+        // top-left (under the zoom control); the top-right corner holds the point buttons.
+        addBasemapPicker(this.map, { position: 'topleft' });
 
         this.markers = [null, null];
         this.parkingMarkerRef = null;
@@ -59,7 +58,6 @@ export default class extends Controller {
         if (this.parking) this.placeParkingMarker(this.parking, false);
         this.refreshLine();
         this.refreshToggles();
-        this.refreshBasemapToggle();
 
         this.map.on('click', (event) => {
             if (!this.activeMode) return;
@@ -134,20 +132,6 @@ export default class extends Controller {
             this.activeMode = this.activeMode === mode ? null : mode;
         }
         this.refreshToggles();
-    }
-
-    toggleBasemap(event) {
-        event.preventDefault();
-        if (this.basemap === 'osm') {
-            this.map.removeLayer(this.osmLayer);
-            this.orthoLayer.addTo(this.map);
-            this.basemap = 'ortho';
-        } else {
-            this.map.removeLayer(this.orthoLayer);
-            this.osmLayer.addTo(this.map);
-            this.basemap = 'osm';
-        }
-        this.refreshBasemapToggle();
     }
 
     removeMarker(mode) {
@@ -272,18 +256,6 @@ export default class extends Controller {
             btn.classList.add('is-active');
         } else {
             btn.textContent = `Přidat ${label}`;
-            btn.classList.remove('is-active');
-        }
-    }
-
-    refreshBasemapToggle() {
-        if (!this.hasBasemapToggleTarget) return;
-        const btn = this.basemapToggleTarget;
-        if (this.basemap === 'ortho') {
-            btn.textContent = 'Mapa';
-            btn.classList.add('is-active');
-        } else {
-            btn.textContent = 'Ortofoto';
             btn.classList.remove('is-active');
         }
     }

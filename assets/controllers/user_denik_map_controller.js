@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { addBasemapToggle } from '../basemap.js';
+import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 
 export default class extends Controller {
@@ -29,7 +29,7 @@ export default class extends Controller {
             scrollWheelZoom: false,
         }).setView([49.8, 15.5], 7);
 
-        addBasemapToggle(this.map);
+        addBasemapPicker(this.map);
         addFullscreenToggle(this.map);
 
         if (points.length === 0) return;

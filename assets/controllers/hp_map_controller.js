@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { emojiForUser } from '../user_emoji.js';
-import { addBasemapToggle } from '../basemap.js';
+import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 
 // Homepage hero map. Unlike the full /mapa (which shows every highline at once),
@@ -63,7 +63,7 @@ export default class extends Controller {
         this.map = L.map(this.canvasTarget, { zoomControl: false, scrollWheelZoom: false })
             .setView(center, zoom);
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-        addBasemapToggle(this.map, { ortho: true });
+        addBasemapPicker(this.map, { ortho: true });
         addFullscreenToggle(this.map);
 
         this.activeLayer = L.layerGroup().addTo(this.map);
