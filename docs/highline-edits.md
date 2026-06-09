@@ -6,10 +6,16 @@ Trust model + proposal queue subsystém pro highline data. Otevřené pro autent
 
 | Stav lajny | Owner edit | Cizí user edit | Admin edit | Owner delete | Admin delete |
 |---|---|---|---|---|---|
-| `unverified` (čerstvě přidaná) | direct ✓ | ✗ access denied | direct ✓ | direct ✓ | direct ✓ |
-| `verified` (legacy 254 + admin-schválené) | proposal ⇒ queue | proposal ⇒ queue | direct ✓ | ✗ | direct ✓ |
+| `unverified` (čerstvě přidaná + **všech 254 legacy**) | direct ✓ | proposal ⇒ queue¹ | direct ✓ | direct ✓ | direct ✓ |
+| `verified` (jen admin-schválené) | proposal ⇒ queue | proposal ⇒ queue | direct ✓ | ✗ | direct ✓ |
+
+¹ Edit (návrh) může poslat **kdokoli přihlášený** — jde do admin fronty; direct edit jen owner/admin. Mazání je přísnější: cizí user nemaže (jen owner unverified / admin).
 
 **Vzkaz:** kdokoliv logged-in si může vytvořit „svou lajnu" a libovolně na ní dělat změny. Admin pak rozhodne, jestli ji verifikuje (= povýší do shared sady, kde každá změna jde přes review) nebo ji nechá osobní.
+
+> **⚠️ Legacy 254 jsou `unverified` (záměrně).** Migrace `Version20260510113004` sice obsahuje `UPDATE highline SET is_verified = TRUE WHERE legacy_id IS NOT NULL`, ale je to **no-op**: migrace běží nad *prázdnou* DB **před** importem (`make migrate` → `make legacyImport`), takže UPDATE potká 0 řádků a import pak lajny vytvoří s defaultem `false`. Ponecháno tak schválně — admin musí legacy data postupně pročistit (= verifikovat). **Důsledek:** legacy lajny mají `createdBy = null` (nikoho), takže je **napřímo edituje/maže jen admin**. Běžný přihlášený uživatel ale **může poslat návrh úpravy** (jde do admin fronty) — to platí pro každého, kdo není owner/admin, na jakékoli lajně. Direct edit/delete je gated na owner/admin (viz `edit()` — `canEditDirect = isAdmin || (isOwner && !isVerified)`).
+
+**„navrženo" štítek** na detailu lajny (`not isVerified`) se renderuje **jen adminovi** (`is_granted('ROLE_ADMIN')`) — je to signál pro verifikační workflow (de facto adminův cleanup checklist), ne info pro běžného návštěvníka. Jinak by visel na všech neověřených lajnách včetně 254 legacy.
 
 ## Entity
 

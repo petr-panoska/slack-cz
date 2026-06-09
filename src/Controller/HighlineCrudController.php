@@ -107,12 +107,11 @@ final class HighlineCrudController extends AbstractController
 
         $isAdmin = $this->isGranted('ROLE_ADMIN');
         $isOwner = $highline->isOwnedBy($user);
-        $queueProposal = !$isAdmin && $highline->isVerified();
-
-        if (!$isAdmin && !$isOwner && !$highline->isVerified()) {
-            // Unverified lajna patří jen ownerovi (a adminovi). Cizí user nesmí editovat.
-            throw $this->createAccessDeniedException('Tuhle neverifikovanou lajnu může upravit jen její autor.');
-        }
+        // Napřímo edituje jen admin nebo owner své (ještě neverifikované) lajny. Kdokoli jiný
+        // přihlášený — včetně úprav legacy lajn (bez ownera) i cizích lajn — pošle návrh do
+        // admin fronty místo aby dostal access denied.
+        $canEditDirect = $isAdmin || ($isOwner && !$highline->isVerified());
+        $queueProposal = !$canEditDirect;
 
         // Capture the pre-edit snapshot BEFORE form binding so we can persist the row's own
         // beforeSnapshot. This makes the audit row self-describing — its diff doesn't depend

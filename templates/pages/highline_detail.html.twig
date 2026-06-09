@@ -21,7 +21,9 @@
             <a href="{{ path('app_highline_map') }}" class="hl-back">← Mapa</a>
             <h1>
                 {{ highline.name }}
-                {% if not highline.isVerified %}
+                {# Štítek je signál pro admina (verifikační workflow) — běžný návštěvník
+                   ho nepotřebuje vidět, hlavně u 254 importovaných lajn. #}
+                {% if not highline.isVerified and is_granted('ROLE_ADMIN') %}
                     <span class="hl-proposal-badge" title="Lajna ještě není ověřená adminem">navrženo</span>
                 {% endif %}
             </h1>
@@ -34,10 +36,11 @@
             {% if app.user %}
                 {% set isAdmin = is_granted('ROLE_ADMIN') %}
                 {% set isOwner = highline.isOwnedBy(app.user) %}
-                {% set canDelete = isAdmin or (isOwner and not highline.isVerified) %}
+                {% set canEditDirect = isAdmin or (isOwner and not highline.isVerified) %}
+                {% set canDelete = canEditDirect %}
                 <div class="hl-detail-actions">
                     <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_edit', { slug: highline.slug }) }}">
-                        {{ highline.isVerified and not isAdmin ? 'Navrhnout úpravu' : 'Upravit' }}
+                        {{ canEditDirect ? 'Upravit' : 'Navrhnout úpravu' }}
                     </a>
                     {% if historyCount > 0 %}
                         <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_history', { slug: highline.slug }) }}">Historie ({{ historyCount }})</a>
