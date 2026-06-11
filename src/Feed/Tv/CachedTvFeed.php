@@ -84,7 +84,13 @@ final class CachedTvFeed implements TvFeedInterface
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($key, $pageToken) {
             $group = $this->inner->page($key, $pageToken);
-            $item->expiresAfter($group === null ? 60 : $this->ttlSeconds);
+
+            // A transient YouTube failure mid-pagination yields an empty group
+            // (no items, no next token). Cache that only briefly — caching it for
+            // the full TTL would "exhaust" that slider page for everyone for
+            // hours. Mirrors CachedFeedFetcher's empty-result handling.
+            $empty = $group === null || $group->items === [];
+            $item->expiresAfter($empty ? 60 : $this->ttlSeconds);
 
             return $group;
         });

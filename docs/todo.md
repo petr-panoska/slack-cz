@@ -126,7 +126,7 @@ Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý 
 **Follow-up z code review (session 2026-06-11):**
 - [x] **`/tv/more` validovat `key` proti configu** — `TvFeedInterface::knownKeys()` (nakonfigurované zdroje); `CachedTvFeed::page()` odmítne neznámý klíč **před** cache i API voláním, `YoutubeTvFeed::page()` totéž jako defense-in-depth. Ověřeno: `hashtag:#cats` / `channel:@evilhandle` → prázdno bez API callu.
 - [ ] **Cold-cache `/tv` dělá ~19 sekvenčních HTTP volání** — při expiraci `tv.sections` (6 h) první návštěvník čeká ~5–10 s (worst case víc; 6s timeout × N). Paralelizovat (concurrent HttpClient) nebo nahřívat cache cronem. (MED — UX jednou za TTL)
-- [ ] **Transient chyba při load-more trvale „vyčerpá" slider** — `page()` při přechodné chybě vrátí null (cache 60 s), `tv-more` to bere jako konec a přemění button na „Vše na YouTube"; uživatel přijde o zbytek do refreshe. Rozlišit chybu od konce stránek. (LOW-MED)
+- [x] **Transient chyba při load-more „vyčerpala" slider na 6 h** — transientní selhání vrátilo `FeedGroup{items:[], next:null}`, který se cachoval na plnou TTL → stránka slideru prázdná pro všechny na 6 h. Fix: `CachedTvFeed::page()` cachuje prázdný group (i null) jen 60 s (jako `CachedFeedFetcher`). Blast radius 6 h → 60 s. (Per-user okamžité „exhaust" na blip zůstává — to je 1 refresh.)
 - [ ] Hashtag taby bez klávesové navigace (arrow keys / roving `tabindex`) — není plný WAI-ARIA tablist. (LOW, a11y)
 
 ### Doporučení obsahu od userů (DEFERRED — promyslet, neimplementovat teď)
