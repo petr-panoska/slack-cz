@@ -1976,12 +1976,113 @@ a.crossings-line:hover {
 }
 
 .crossing-feed-caption {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.65);
     letter-spacing: 0.02em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    transition: color 0.15s;
+}
+
+.crossing-feed-caption::after {
+    content: '▾';
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.crossing-feed.filter-open .crossing-feed-caption::after {
+    transform: rotate(180deg);
+}
+
+.crossing-feed-caption:hover,
+.crossing-feed-caption:focus-visible {
+    color: #fff;
+    outline: none;
+}
+
+.crossing-feed-filter {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-line);
+    background: rgba(20, 0, 12, 0.92);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.78rem;
+}
+
+.crossing-feed-filter[hidden] {
+    display: none;
+}
+
+.crossing-feed-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.crossing-feed-filter-row input[type="radio"] {
+    accent-color: var(--color-accent);
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.crossing-feed-filter-num {
+    width: 56px;
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.78rem;
+}
+
+.crossing-feed-filter-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 22px; /* line up under the radio label text */
+}
+
+.crossing-feed-filter-range input[type="date"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.72rem;
+    color-scheme: dark; /* light native calendar icon on the dark panel */
+}
+
+.crossing-feed-filter input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.crossing-feed-filter-num:focus-visible,
+.crossing-feed-filter-range input[type="date"]:focus-visible {
+    border-color: rgba(255, 255, 255, 0.6);
+    outline: none;
 }
 
 .crossing-feed-toggle,
@@ -2028,6 +2129,7 @@ a.crossings-line:hover {
 }
 
 .crossing-feed.is-collapsed .crossing-feed-caption,
+.crossing-feed.is-collapsed .crossing-feed-filter,
 .crossing-feed.is-collapsed .crossing-feed-body-wrap {
     display: none;
 }

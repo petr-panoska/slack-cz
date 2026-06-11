@@ -25,7 +25,15 @@
             <span class="crossing-feed-dot" aria-hidden="true"></span>
             <div class="crossing-feed-titles">
                 <h2 class="crossing-feed-title">Přechody</h2>
-                <span class="crossing-feed-caption" data-crossing-feed-target="caption">Posledních 10 přechodů</span>
+                <button
+                    type="button"
+                    class="crossing-feed-caption"
+                    data-crossing-feed-target="caption"
+                    data-action="click->crossing-feed#toggleFilter"
+                    aria-expanded="false"
+                    aria-controls="crossing-feed-filter"
+                    title="Změnit filtr přechodů"
+                >Posledních 10 přechodů</button>
             </div>
             <button
                 type="button"
@@ -55,6 +63,60 @@
                 <span class="crossing-feed-toggle-icon" aria-hidden="true">‹</span>
             </button>
         </header>
+        <div
+            class="crossing-feed-filter"
+            id="crossing-feed-filter"
+            data-crossing-feed-target="filter"
+            hidden
+        >
+            <label class="crossing-feed-filter-row">
+                <input
+                    type="radio"
+                    name="feed-filter-mode"
+                    value="count"
+                    checked
+                    data-crossing-feed-target="modeCount"
+                    data-action="change->crossing-feed#changeMode"
+                >
+                <span>Posledních</span>
+                <input
+                    type="number"
+                    min="1"
+                    max="200"
+                    value="10"
+                    class="crossing-feed-filter-num"
+                    aria-label="Počet posledních přechodů"
+                    data-crossing-feed-target="count"
+                    data-action="input->crossing-feed#changeCount"
+                >
+                <span>přechodů</span>
+            </label>
+            <label class="crossing-feed-filter-row">
+                <input
+                    type="radio"
+                    name="feed-filter-mode"
+                    value="range"
+                    data-crossing-feed-target="modeRange"
+                    data-action="change->crossing-feed#changeMode"
+                >
+                <span>Rozsah dat</span>
+            </label>
+            <div class="crossing-feed-filter-range">
+                <input
+                    type="date"
+                    aria-label="Datum od"
+                    data-crossing-feed-target="from"
+                    data-action="change->crossing-feed#changeRange"
+                >
+                <span aria-hidden="true">–</span>
+                <input
+                    type="date"
+                    aria-label="Datum do"
+                    data-crossing-feed-target="to"
+                    data-action="change->crossing-feed#changeRange"
+                >
+            </div>
+        </div>
         <div class="crossing-feed-body-wrap">
             <ul class="crossing-feed-list" data-crossing-feed-target="list"></ul>
             <p class="crossing-feed-empty" data-crossing-feed-target="empty" hidden>Zatím žádný přechod.</p>

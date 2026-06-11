@@ -72,6 +72,7 @@ final class HighlineController extends AbstractController
     #[Route('/mapa/feed', name: 'app_highline_map_feed', methods: ['GET'])]
     public function feed(Request $request, HighlineCrossingRepository $repository): JsonResponse
     {
+        // Time-travel playback window (map controller): a virtual "now" minus a fixed span.
         $date = $request->query->get('date');
         $days = (int) $request->query->get('days', 0);
 
@@ -85,7 +86,33 @@ final class HighlineController extends AbstractController
             return new JsonResponse($repository->findForFeedInRange($from, $until));
         }
 
-        return new JsonResponse($repository->findRecentForJson());
+        // Sidebar filter — explicit date range (inclusive of the whole "to" day).
+        $fromParam = $request->query->get('from');
+        $toParam = $request->query->get('to');
+        if (is_string($fromParam) && is_string($toParam)
+            && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromParam) === 1
+            && preg_match('/^\d{4}-\d{2}-\d{2}$/', $toParam) === 1
+        ) {
+            try {
+                $from = new \DateTimeImmutable($fromParam);
+                $to = (new \DateTimeImmutable($toParam))->setTime(23, 59, 59);
+            } catch (\Exception) {
+                return new JsonResponse([], 400);
+            }
+            if ($from > $to) {
+                [$from, $to] = [$to->setTime(0, 0), $from->setTime(23, 59, 59)];
+            }
+            return new JsonResponse($repository->findForFeedInRange($from, $to));
+        }
+
+        // Sidebar filter — last N crossings. Invalid/missing → default RECENT_LIMIT; clamp to a sane ceiling.
+        $limit = null;
+        $rawLimit = (int) $request->query->get('limit', 0);
+        if ($rawLimit >= 1) {
+            $limit = min($rawLimit, HighlineCrossingRepository::FEED_LIMIT_MAX);
+        }
+
+        return new JsonResponse($repository->findRecentForJson($limit));
     }
 
     #[Route('/mapa/timeline-data', name: 'app_highline_map_timeline', methods: ['GET'])]

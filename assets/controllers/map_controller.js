@@ -31,6 +31,10 @@ const CZECH_CENTER = [49.8, 15.5];
 // we only draw the polyline between a highline's two anchors once zoomed in close.
 const LINE_MIN_ZOOM = 14;
 
+// When re-fitting the map to the filtered crossings, don't zoom in tighter than this
+// (a single crossing would otherwise slam to max zoom).
+const FIT_MAX_ZOOM = 13;
+
 // Survives Turbo navigations (map → highline detail → back) so the user
 // returns to the same pan/zoom they left.
 const VIEW_STORAGE_KEY = 'slack.cz:mapa:view';
@@ -149,6 +153,14 @@ export default class extends Controller {
         this._onUsersVisibility = (e) => this._setUsersVisible(e.detail?.visible ?? true);
         document.addEventListener('slack:users-visibility', this._onUsersVisibility);
 
+        // The sidebar feed owns the crossing filter (last N / date range); it broadcasts
+        // changes here so the emoji markers stay in sync with the list. Default mirrors the
+        // sidebar's default (last RECENT_LIMIT) so a missed boot-time broadcast is harmless.
+        this.feedFilter = { mode: 'count', count: 10 };
+        this._feedSig = 'count:10';
+        this._onFeedFilter = (e) => this._handleFeedFilter(e.detail);
+        document.addEventListener('slack:feed-filter', this._onFeedFilter);
+
         await this.loadHighlines();
         await this.loadUsers();
 
@@ -162,6 +174,9 @@ export default class extends Controller {
         }
         if (this._onUsersVisibility) {
             document.removeEventListener('slack:users-visibility', this._onUsersVisibility);
+        }
+        if (this._onFeedFilter) {
+            document.removeEventListener('slack:feed-filter', this._onFeedFilter);
         }
         if (this.map) {
             this.map.remove();
@@ -210,16 +225,23 @@ export default class extends Controller {
         this._updateLinesVisibility();
     }
 
-    async loadUsers() {
+    async loadUsers({ fit = false } = {}) {
         if (!this.hasUsersUrlValue) return;
 
-        const response = await fetch(this.usersUrlValue, { headers: { Accept: 'application/json' } });
+        // Guard against out-of-order responses if the filter changes mid-flight.
+        const token = (this._usersToken = (this._usersToken ?? 0) + 1);
+        const response = await fetch(this._feedFilterUrl(), { headers: { Accept: 'application/json' } });
+        if (token !== this._usersToken) return;
         if (!response.ok) {
             console.error('Failed to load users', response.status);
             return;
         }
 
         const users = await response.json();
+        if (token !== this._usersToken) return;
+
+        // Rebuild from scratch — the filter (last N / date range) may have changed.
+        this.usersLayer.clearLayers();
 
         const groups = new Map();
         for (const u of users) {
@@ -228,9 +250,11 @@ export default class extends Controller {
             groups.get(key).push(u);
         }
 
+        const points = [];
         for (const [key, list] of groups) {
             const [lat, lng] = key.split('|').map(parseFloat);
             if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
+            points.push([lat, lng]);
 
             list.forEach((u, i) => {
                 const offset = fanOffset(i, list.length);
@@ -245,6 +269,12 @@ export default class extends Controller {
                     .bindPopup(this.userPopupHtml(u))
                     .addTo(this.usersLayer);
             });
+        }
+
+        // On a filter change, frame the resulting crossings. Skip when there's nothing to
+        // show or the markers are hidden (zooming to invisible points would be confusing).
+        if (fit && this.usersVisible && !this.timeTravel && points.length > 0) {
+            this.map.fitBounds(L.latLngBounds(points).pad(0.2), { maxZoom: FIT_MAX_ZOOM });
         }
     }
 
@@ -527,6 +557,35 @@ export default class extends Controller {
     }
 
     // ---------- Cross-controller bus ----------
+
+    // The sidebar feed drives the crossing filter; mirror it onto the emoji markers.
+    _handleFeedFilter(detail) {
+        if (!detail || detail.mode === 'time-travel') return;
+        const sig = detail.mode === 'range'
+            ? `range:${detail.from}:${detail.to}`
+            : `count:${detail.count}`;
+        if (sig === this._feedSig) return;
+        this._feedSig = sig;
+        this.feedFilter = detail;
+        // In time-travel the users layer is off the map; the sidebar re-broadcasts when
+        // playback ends, so we reload then instead of now. Re-fit so the filtered crossings
+        // are actually in view.
+        if (!this.timeTravel) this.loadUsers({ fit: true });
+    }
+
+    _feedFilterUrl() {
+        const params = new URLSearchParams();
+        const f = this.feedFilter;
+        if (f?.mode === 'range') {
+            params.set('from', f.from);
+            params.set('to', f.to);
+        } else {
+            params.set('limit', String(f?.count ?? 10));
+        }
+        const qs = params.toString();
+        return qs ? `${this.usersUrlValue}?${qs}` : this.usersUrlValue;
+    }
+
     // Tells the news-bar feed which window of crossings to show.
     _publishMode() {
         if (this.timeTravel) {

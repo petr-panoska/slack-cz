@@ -13,8 +13,11 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class HighlineCrossingRepository extends ServiceEntityRepository
 {
-    /** Single source of truth for "how many recent crossings show up everywhere" (homepage list, map emoji markers, sidebar feed). */
+    /** Single source of truth for "how many recent crossings show up everywhere" (homepage list, map emoji markers, sidebar feed default). */
     public const RECENT_LIMIT = 10;
+
+    /** Ceiling for the user-adjustable sidebar feed "last N" filter. */
+    public const FEED_LIMIT_MAX = 200;
 
     public function __construct(ManagerRegistry $registry)
     {
