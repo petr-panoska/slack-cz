@@ -19,7 +19,7 @@
         </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Nahrát</button>
-            <a href="{{ path('app_highline_detail', { slug: highline.slug }) }}" class="btn btn-ghost">Zrušit</a>
+            <a href="{{ path('app_highline_detail', { slug: highline.slug }) }}" class="btn btn-secondary">Zrušit</a>
         </div>
         <p class="form-hint">JPG, PNG nebo WebP, max 4 MB. Z fotky odstraníme EXIF (vč. GPS) a srovnáme orientaci.</p>
         {{ form_end(form) }}

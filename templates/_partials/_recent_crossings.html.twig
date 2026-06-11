@@ -37,10 +37,10 @@
             {% endif %}
             {% if show_actions and app.user and c.user.id == app.user.id %}
                 <div class="crossings-actions">
-                    <a class="crossings-action crossings-action-edit" href="{{ path('app_crossing_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
+                    <a class="btn btn-secondary btn-sm" href="{{ path('app_crossing_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
                     <form method="post" action="{{ path('app_crossing_delete', { id: c.id }) }}" class="crossings-delete-form" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete-crossing-' ~ c.id) }}">
-                        <button type="submit" class="crossings-action crossings-action-delete" title="Smazat přechod">Smazat</button>
+                        <button type="submit" class="btn btn-danger btn-sm" title="Smazat přechod">Smazat</button>
                     </form>
                 </div>
             {% endif %}

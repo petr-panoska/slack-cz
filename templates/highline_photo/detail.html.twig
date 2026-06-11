@@ -11,10 +11,10 @@
         <a href="{{ path('app_highline_detail', { slug: highline.slug }) }}" class="hl-back">← {{ highline.name }}</a>
         <div class="hl-photo-nav">
             {% if prev %}
-                <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_photo_detail', { slug: highline.slug, id: prev.id }) }}">← Předchozí</a>
+                <a class="btn btn-secondary btn-sm" href="{{ path('app_highline_photo_detail', { slug: highline.slug, id: prev.id }) }}">← Předchozí</a>
             {% endif %}
             {% if next %}
-                <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_photo_detail', { slug: highline.slug, id: next.id }) }}">Další →</a>
+                <a class="btn btn-secondary btn-sm" href="{{ path('app_highline_photo_detail', { slug: highline.slug, id: next.id }) }}">Další →</a>
             {% endif %}
         </div>
     </header>
@@ -75,7 +75,7 @@
                     onsubmit="return confirm('Opravdu smazat fotku?');"
                 >
                     <input type="hidden" name="_token" value="{{ csrf_token('delete-photo-' ~ photo.id) }}">
-                    <button type="submit" class="btn btn-ghost btn-sm hl-action-delete">Smazat fotku</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Smazat fotku</button>
                 </form>
             {% endif %}
         </div>

@@ -166,10 +166,10 @@
         {% if app.user %}
             <a href="{{ path('app_profile') }}" class="user-email">{{ app.user.email }}</a>
             <form method="post" action="{{ path('app_logout') }}" class="logout-form">
-                <button type="submit" class="btn btn-ghost">Odhlásit</button>
+                <button type="submit" class="btn btn-secondary">Odhlásit</button>
             </form>
         {% else %}
-            <a href="{{ path('app_login') }}" class="btn btn-ghost">Přihlásit</a>
+            <a href="{{ path('app_login') }}" class="btn btn-secondary">Přihlásit</a>
             <a href="{{ path('app_register') }}" class="btn btn-primary">Registrovat</a>
         {% endif %}
     </div>

@@ -39,11 +39,11 @@
                 {% set canEditDirect = isAdmin or (isOwner and not highline.isVerified) %}
                 {% set canDelete = canEditDirect %}
                 <div class="hl-detail-actions">
-                    <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_edit', { slug: highline.slug }) }}">
+                    <a class="btn btn-secondary btn-sm" href="{{ path('app_highline_edit', { slug: highline.slug }) }}">
                         {{ canEditDirect ? 'Upravit' : 'Navrhnout úpravu' }}
                     </a>
                     {% if historyCount > 0 %}
-                        <a class="btn btn-ghost btn-sm" href="{{ path('app_highline_history', { slug: highline.slug }) }}">Historie ({{ historyCount }})</a>
+                        <a class="btn btn-secondary btn-sm" href="{{ path('app_highline_history', { slug: highline.slug }) }}">Historie ({{ historyCount }})</a>
                     {% endif %}
                     {% if isAdmin and not highline.isVerified %}
                         <form method="post" action="{{ path('app_highline_verify', { slug: highline.slug }) }}" class="hl-action-form" data-turbo="false">
@@ -54,7 +54,7 @@
                     {% if canDelete %}
                         <form method="post" action="{{ path('app_highline_delete', { slug: highline.slug }) }}" class="hl-action-form" onsubmit="return confirm('Opravdu smazat lajnu „{{ highline.name|e('js') }}"?');" data-turbo="false">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete-highline-' ~ highline.id) }}">
-                            <button type="submit" class="btn btn-ghost btn-sm hl-action-delete">Smazat</button>
+                            <button type="submit" class="btn btn-danger btn-sm">Smazat</button>
                         </form>
                     {% endif %}
                 </div>
@@ -181,7 +181,7 @@
                     {% if app.user %}
                         <a class="btn btn-primary btn-sm" href="{{ path('app_crossing_new', { slug: highline.slug }) }}">+ Přidat přechod</a>
                     {% else %}
-                        <a class="btn btn-ghost btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+                        <a class="btn btn-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
                     {% endif %}
                 </header>
                 {% if crossings|length > 0 %}

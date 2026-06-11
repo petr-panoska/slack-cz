@@ -8,7 +8,7 @@
         {% if app.user %}
             <a class="btn btn-primary btn-sm" href="{{ path('app_highline_photo_new', { slug: highline.slug }) }}">+ Přidat fotku</a>
         {% else %}
-            <a class="btn btn-ghost btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+            <a class="btn btn-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
         {% endif %}
     </header>
 

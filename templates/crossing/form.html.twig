@@ -39,9 +39,9 @@
             <div class="crossing-form-actions">
                 <button type="submit" class="btn btn-primary">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
                 {% if mode == 'edit' %}
-                    <a class="btn btn-ghost" href="{{ path('app_user_denik', { id: crossing.user.id }) }}">Zrušit</a>
+                    <a class="btn btn-secondary" href="{{ path('app_user_denik', { id: crossing.user.id }) }}">Zrušit</a>
                 {% else %}
-                    <a class="btn btn-ghost" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">Zrušit</a>
+                    <a class="btn btn-secondary" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">Zrušit</a>
                 {% endif %}
             </div>
         {{ form_end(form) }}

@@ -60,7 +60,7 @@
                         </form>
                         <form method="post" action="{{ path('app_admin_proposal_reject', { id: edit.id }) }}" onsubmit="return confirm('Opravdu zamítnout?');" data-turbo="false">
                             <input type="hidden" name="_token" value="{{ csrf_token('proposal-reject-' ~ edit.id) }}">
-                            <button type="submit" class="btn btn-ghost btn-sm">Zamítnout</button>
+                            <button type="submit" class="btn btn-secondary btn-sm">Zamítnout</button>
                         </form>
                     </footer>
                 </li>

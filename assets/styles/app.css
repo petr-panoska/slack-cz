@@ -97,43 +97,91 @@ a {
 
 /* ---------- Buttons ---------- */
 
+/* ============================================================
+   Buttons — single source of truth.
+   One base class `.btn` + variants (primary / secondary / danger) + size
+   modifiers (sm / lg) + `btn-block` for full-width form submits.
+   Nothing else should restyle button appearance; layout containers may
+   only position buttons (flex rows). Variants set their own color on both
+   rest and :hover so context link-color rules can never bleed through.
+   ============================================================ */
 .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     padding: 8px 16px;
     border: 1px solid transparent;
     border-radius: 4px;
-    font-size: 0.95em;
     font-family: inherit;
-    cursor: pointer;
-    text-decoration: none;
+    font-size: 0.95em;
+    font-weight: 500;
     line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
+.btn:disabled,
+.btn.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Variants */
 .btn-primary {
     background: var(--color-accent);
-    color: #fff;
     border-color: var(--color-accent);
+    color: #fff;
 }
 
 .btn-primary:hover {
     background: var(--color-accent-hover);
     border-color: var(--color-accent-hover);
+    color: #fff;
 }
 
-.btn-ghost {
+.btn-secondary {
     background: transparent;
-    color: var(--color-fg);
     border-color: var(--color-line);
+    color: var(--color-fg);
 }
 
-.btn-ghost:hover {
-    border-color: var(--color-fg);
+.btn-secondary:hover {
+    background: var(--color-line);
+    border-color: var(--color-line);
+    color: var(--color-fg);
+}
+
+.btn-danger {
+    background: transparent;
+    border-color: var(--color-line);
+    color: #c0143c;
+}
+
+.btn-danger:hover {
+    background: #c0143c;
+    border-color: #c0143c;
+    color: #fff;
+}
+
+/* Sizes */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.78rem;
 }
 
 .btn-lg {
     padding: 12px 24px;
     font-size: 1.05em;
+}
+
+/* Full-width — stacked single-action forms (login, register, password reset) */
+.btn-block {
+    display: flex;
+    width: 100%;
 }
 
 /* ---------- Flash messages ---------- */
@@ -2651,9 +2699,11 @@ a.crossings-line:hover {
     -webkit-backdrop-filter: blur(4px);
 }
 
-/* Action buttons sit over a dark cover photo — default ghost variant has dark text on transparent
- * bg → invisible. Reskin them with a translucent scrim + light text only inside the cover. */
-.hl-cover-content .btn-ghost {
+/* Action buttons sit over a dark cover photo — default ghost/danger variants have dark or red
+ * text on transparent bg → low contrast. Reskin them with a translucent scrim + light text
+ * only inside the cover (the danger variant keeps a red-tinted hover). */
+.hl-cover-content .btn-secondary,
+.hl-cover-content .btn-danger {
     color: #fff;
     background: rgba(0, 0, 0, 0.35);
     border-color: rgba(255, 255, 255, 0.45);
@@ -2661,13 +2711,13 @@ a.crossings-line:hover {
     -webkit-backdrop-filter: blur(4px);
 }
 
-.hl-cover-content .btn-ghost:hover {
+.hl-cover-content .btn-secondary:hover {
     background: rgba(0, 0, 0, 0.55);
     border-color: #fff;
     color: #fff;
 }
 
-.hl-cover-content .hl-action-delete:hover {
+.hl-cover-content .btn-danger:hover {
     background: rgba(192, 20, 60, 0.6);
     border-color: #fff;
     color: #fff;
@@ -3929,25 +3979,6 @@ a.crossings-line:hover {
     color: var(--color-muted);
 }
 
-.auth-card button[type="submit"] {
-    width: 100%;
-    padding: 11px 16px;
-    margin-top: 8px;
-    border: 1px solid var(--color-accent);
-    border-radius: 4px;
-    background: var(--color-accent);
-    color: #fff;
-    font: inherit;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
-}
-
-.auth-card button[type="submit"]:hover {
-    background: var(--color-accent-hover);
-    border-color: var(--color-accent-hover);
-}
-
 .auth-alert {
     padding: 10px 12px;
     margin-bottom: 16px;
@@ -4011,12 +4042,12 @@ a.crossings-line:hover {
     line-height: 1.45;
 }
 
-.auth-card a {
+.auth-card a:not(.btn) {
     color: var(--color-accent);
     text-decoration: none;
 }
 
-.auth-card a:hover {
+.auth-card a:not(.btn):hover {
     text-decoration: underline;
 }
 
@@ -4057,20 +4088,6 @@ a.crossings-line:hover {
 
 .profile-actions .btn {
     flex: 1;
-    text-align: center;
-}
-
-/* The primary button is an <a> inside .auth-card, where `.auth-card a` would paint it
-   magenta-on-magenta (invisible). Keep its label white. */
-.profile-actions .btn-primary {
-    color: #fff;
-}
-
-/* On the edit form the submit is a <button> that .auth-card forces to width:100%;
-   inside the flex row that breaks the layout. Let flex:1 size it like the cancel link. */
-.profile-actions button[type="submit"] {
-    width: auto;
-    margin-top: 0;
 }
 
 /* ---------- Crossing form (new / edit) ---------- */
@@ -4134,14 +4151,6 @@ a.crossings-line:hover {
 
 .crossing-form-actions .btn {
     flex: 1;
-    text-align: center;
-}
-
-/* The shared .auth-card form rule sets `button[type=submit] { width:100% }` —
-   override on the crossing form so the cancel button can sit next to submit. */
-.crossing-form-card button[type="submit"] {
-    width: auto;
-    margin-top: 0;
 }
 
 /* ---------- Crossing row actions (deník) ---------- */
@@ -4174,43 +4183,9 @@ a.crossings-line:hover {
     margin-top: 6px;
 }
 
-.crossings-action {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 8px;
-    border: 1px solid var(--color-line);
-    border-radius: 3px;
-    background: var(--color-bg);
-    color: var(--color-muted);
-    font: inherit;
-    font-size: 0.72rem;
-    line-height: 1.2;
-    text-decoration: none;
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
-}
-
-.crossings-action:hover {
-    border-color: var(--color-fg);
-    color: var(--color-fg);
-}
-
-.crossings-action-delete:hover {
-    border-color: #c0143c;
-    color: #c0143c;
-    background: #fdecea;
-}
-
 .crossings-delete-form {
     display: inline;
     margin: 0;
-}
-
-/* ---------- Small button modifier ---------- */
-
-.btn-sm {
-    padding: 5px 10px;
-    font-size: 0.78rem;
 }
 
 /* ---------- Highline form (new / edit) ---------- */
@@ -4321,12 +4296,6 @@ a.crossings-line:hover {
 
 .hl-form-actions .btn {
     min-width: 140px;
-    text-align: center;
-}
-
-.hl-form-card button[type="submit"] {
-    width: auto;
-    margin-top: 0;
 }
 
 .hl-form-map {
@@ -4564,12 +4533,6 @@ a.crossings-line:hover {
     margin: 0;
 }
 
-.hl-action-delete:hover {
-    border-color: #c0143c;
-    color: #c0143c;
-    background: #fdecea;
-}
-
 /* ---------- Admin proposals queue ---------- */
 
 .proposals-page {
@@ -4683,18 +4646,6 @@ a.crossings-line:hover {
 .hl-history-firstnote {
     font-style: normal;
     color: var(--color-muted);
-}
-
-/* History stack-pop button — destruktivní, ať to vypadá jako destruktivní. */
-.proposals-actions .hl-action-delete {
-    color: #c0143c;
-    border-color: rgba(192, 20, 60, 0.5);
-}
-
-.proposals-actions .hl-action-delete:hover {
-    background: #c0143c;
-    border-color: #c0143c;
-    color: #fff;
 }
 
 /* ---------- Site nav admin tint ---------- */

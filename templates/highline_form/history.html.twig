@@ -86,7 +86,7 @@
                         <footer class="proposals-actions">
                             <form method="post" action="{{ path('app_highline_history_delete', { slug: highline.slug, editId: edit.id }) }}" data-turbo="false" onsubmit="return confirm('Smazat poslední revizi? Lajna se vrátí do předchozího stavu.');">
                                 <input type="hidden" name="_token" value="{{ csrf_token('history-delete-' ~ edit.id) }}">
-                                <button type="submit" class="btn btn-ghost btn-sm hl-action-delete">Smazat poslední revizi</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Smazat poslední revizi</button>
                             </form>
                         </footer>
                     {% endif %}

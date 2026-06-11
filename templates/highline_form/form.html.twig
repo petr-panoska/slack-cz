@@ -80,21 +80,21 @@
                     <div class="hl-form-map-overlay">
                         <button
                             type="button"
-                            class="btn btn-ghost btn-sm hl-form-map-toggle"
+                            class="btn btn-secondary btn-sm hl-form-map-toggle"
                             data-highline-form-map-target="p1Toggle"
                             data-action="click->highline-form-map#toggle"
                             data-highline-form-map-mode-param="p1"
                         >Přidat bod 1</button>
                         <button
                             type="button"
-                            class="btn btn-ghost btn-sm hl-form-map-toggle"
+                            class="btn btn-secondary btn-sm hl-form-map-toggle"
                             data-highline-form-map-target="p2Toggle"
                             data-action="click->highline-form-map#toggle"
                             data-highline-form-map-mode-param="p2"
                         >Přidat bod 2</button>
                         <button
                             type="button"
-                            class="btn btn-ghost btn-sm hl-form-map-toggle hl-form-parking-toggle"
+                            class="btn btn-secondary btn-sm hl-form-map-toggle hl-form-parking-toggle"
                             data-highline-form-map-target="parkingToggle"
                             data-action="click->highline-form-map#toggle"
                             data-highline-form-map-mode-param="parking"
@@ -103,7 +103,7 @@
                     <div class="hl-form-map-controls-bl">
                         <button
                             type="button"
-                            class="btn btn-ghost btn-sm hl-form-map-btn hl-form-fullscreen-toggle"
+                            class="btn btn-secondary btn-sm hl-form-map-btn hl-form-fullscreen-toggle"
                             data-highline-form-map-target="fullscreenToggle"
                             data-action="click->highline-form-map#toggleFullscreen"
                         >⛶ Celá obrazovka</button>
@@ -147,9 +147,9 @@
                     {% else %}Přidat lajnu{% endif %}
                 </button>
                 {% if mode == 'edit' %}
-                    <a class="btn btn-ghost" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">Zrušit</a>
+                    <a class="btn btn-secondary" href="{{ path('app_highline_detail', { slug: highline.slug }) }}">Zrušit</a>
                 {% else %}
-                    <a class="btn btn-ghost" href="{{ path('app_highline_map') }}">Zrušit</a>
+                    <a class="btn btn-secondary" href="{{ path('app_highline_map') }}">Zrušit</a>
                 {% endif %}
             </div>
         {{ form_end(form) }}
