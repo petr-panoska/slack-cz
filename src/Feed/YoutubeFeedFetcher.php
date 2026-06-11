@@ -42,7 +42,7 @@ final class YoutubeFeedFetcher implements FeedFetcherInterface
 
         foreach ($this->channels as $channelId) {
             try {
-                $items = array_merge($items, $this->fetchChannelUploads($channelId));
+                $items = array_merge($items, $this->fetchChannelUploads($channelId, $limit));
             } catch (ExceptionInterface $e) {
                 $this->logger->warning('YouTube channel fetch failed', ['channel' => $channelId, 'error' => $e->getMessage()]);
             }
@@ -50,7 +50,7 @@ final class YoutubeFeedFetcher implements FeedFetcherInterface
 
         foreach ($this->queries as $query) {
             try {
-                $items = array_merge($items, $this->fetchSearch($query));
+                $items = array_merge($items, $this->fetchSearch($query, $limit));
             } catch (ExceptionInterface $e) {
                 $this->logger->warning('YouTube search fetch failed', ['query' => $query, 'error' => $e->getMessage()]);
             }
@@ -65,7 +65,7 @@ final class YoutubeFeedFetcher implements FeedFetcherInterface
     /**
      * @return list<FeedItem>
      */
-    private function fetchChannelUploads(string $channelId): array
+    private function fetchChannelUploads(string $channelId, int $limit): array
     {
         $channel = $this->call('/channels', [
             'part' => 'contentDetails,snippet',
@@ -86,7 +86,7 @@ final class YoutubeFeedFetcher implements FeedFetcherInterface
         $playlist = $this->call('/playlistItems', [
             'part' => 'snippet,contentDetails',
             'playlistId' => $uploadsPlaylist,
-            'maxResults' => 10,
+            'maxResults' => min(50, $limit),
         ]);
 
         $items = [];
@@ -104,14 +104,17 @@ final class YoutubeFeedFetcher implements FeedFetcherInterface
     /**
      * @return list<FeedItem>
      */
-    private function fetchSearch(string $query): array
+    private function fetchSearch(string $query, int $limit): array
     {
+        // maxResults is capped at 50 by the API; search costs a flat 100 quota
+        // units per call regardless of how many results we ask for, so we max
+        // it out — no extra quota cost for more videos.
         $result = $this->call('/search', [
             'part' => 'snippet',
             'q' => $query,
             'type' => 'video',
             'order' => 'date',
-            'maxResults' => 10,
+            'maxResults' => min(50, $limit),
         ]);
 
         $items = [];

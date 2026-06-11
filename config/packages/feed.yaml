@@ -14,6 +14,33 @@ parameters:
     # 6h cache. Community feed doesn't need to be real-time and we burn no quota inside the window.
     feed.cache.ttl_seconds: 21600
 
+    # slackTV sectioned page (/tv) — separate from the homepage flat feed above.
+    # Channels are @handles (resolved to their uploads playlist via forHandle, 1
+    # quota unit). Playlists by id. Hashtags go through search (100 units each —
+    # the only expensive source). Adding a source here is one line; the page +
+    # load-more endpoint are generic over it.
+    # NB: leading @ must be escaped as @@ in Symfony YAML (a single @ means a
+    # service reference). The resolved parameter value is the literal "@handle".
+    feed.tv.channels:
+        - '@@kolouchrecetam'
+        - '@@HIGHLIFEfilm'
+        - '@@PhilipBitnar'
+        - '@@slackshow4092'
+        - '@@EQBcz'
+
+    feed.tv.playlists:
+        - 'PLzcHMTZU7KFpKEg-PVTgRloM4BF__EEmx'
+        - 'PLoxabYJhgiYDSZr1c694xILPE_endi7FP'
+
+    # NB: bare #highline / #trickline return junk (VW Highline cars, Satta Matka
+    # charts) — qualified with "Slackline" to stay on-topic.
+    feed.tv.hashtags:
+        - '#czechslackline'
+        - '#slacklife'
+        - '#slackline'
+        - '#highlineSlackline'
+        - '#tricklineSlackline'
+
 services:
     App\Feed\YoutubeFeedFetcher: ~
     App\Feed\MockFeedFetcher: ~
@@ -23,6 +50,14 @@ services:
         class: App\Feed\CachedFeedFetcher
         arguments:
             $inner: '@App\Feed\FeedFetcherDispatcher'
+            $cache: '@cache.app'
+            $mock: '@App\Feed\MockFeedFetcher'
+            $ttlSeconds: '%feed.cache.ttl_seconds%'
+
+    App\Feed\Tv\TvFeedInterface:
+        class: App\Feed\Tv\CachedTvFeed
+        arguments:
+            $inner: '@App\Feed\Tv\YoutubeTvFeed'
             $cache: '@cache.app'
             $mock: '@App\Feed\MockFeedFetcher'
             $ttlSeconds: '%feed.cache.ttl_seconds%'

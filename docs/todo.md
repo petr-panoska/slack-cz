@@ -111,6 +111,36 @@ Trust model + proposal queue dokumentace v `docs/highline-edits.md`. Otevřené 
 - [ ] Přidat další search query / kanál — při aktuálním TTL 21600s (6h) je quota rezerva ~25×, takže pár dalších zdrojů se vejde bez úprav TTL (vzorec viz `architecture.md` § *Quota economics*). TTL prodlužovat až kdyby queries narostly o řád.
 - [ ] Promyslet, jestli má smysl přidat i FB Page CAS jako další zdroj (pak nutný jiný fetcher; Meta API)
 
+### Redesign `/tv` na sekce — ✅ HOTOVO (session 2026-06-11)
+
+Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý kanál/playlist = název + horizontální slider karet; hashtagy = taby (štítky, aktivní jen jeden) + slider. Implementace + architektura viz `architecture.md` § *Feed (slackTV)*.
+
+- Zdroje (zatím v `feed.yaml`):
+  - kanály: `@kolouchrecetam`, `@HIGHLIFEfilm`, `@PhilipBitnar`, `@slackshow4092`, `@EQBcz` (všech 5)
+  - playlisty: `PLzcHMTZU7KFpKEg-PVTgRloM4BF__EEmx`, `PLoxabYJhgiYDSZr1c694xILPE_endi7FP` (SLACKHOVOR — oba)
+  - hashtagy: `#czechslackline #slacklife #slackline #highlineSlackline #tricklineSlackline` (bare `#highline`/`#trickline` vrací balast — VW auta, Satta Matka — proto kvalifikované)
+- Datový zdroj: **YouTube Data API** (ne RSS) se **stránkováním** — „load more" reálně dotahuje další stránky, aby si user proklikal celý katalog „u nás". Kanály/playlisty `playlistItems.list` (1 unit/stránka, levné; `@handle` → uploads playlist přes `forHandle`). Hashtagy `search.list` (100 units/stránka — jediný drahý zdroj). První stránka server-side, další přes AJAX endpoint; každá stránka cachovaná (reuse last-known-good pattern z `CachedFeedFetcher`).
+- Tvar dat: flat `FeedFetcherInterface::fetch()` → strukturované `FeedGroup { title, kind, url, items[] }` po sekcích. Homepage flat feed může čerpat ze stejného cachovaného balíku (ušetří search).
+- Stimulus: `tv` (přehrávání) beze změny; `tv-more` (AJAX donačtení stránky); nový `tv-tabs` (hashtag taby).
+
+**Follow-up z code review (session 2026-06-11):**
+- [x] **`/tv/more` validovat `key` proti configu** — `TvFeedInterface::knownKeys()` (nakonfigurované zdroje); `CachedTvFeed::page()` odmítne neznámý klíč **před** cache i API voláním, `YoutubeTvFeed::page()` totéž jako defense-in-depth. Ověřeno: `hashtag:#cats` / `channel:@evilhandle` → prázdno bez API callu.
+- [ ] **Cold-cache `/tv` dělá ~19 sekvenčních HTTP volání** — při expiraci `tv.sections` (6 h) první návštěvník čeká ~5–10 s (worst case víc; 6s timeout × N). Paralelizovat (concurrent HttpClient) nebo nahřívat cache cronem. (MED — UX jednou za TTL)
+- [ ] **Transient chyba při load-more trvale „vyčerpá" slider** — `page()` při přechodné chybě vrátí null (cache 60 s), `tv-more` to bere jako konec a přemění button na „Vše na YouTube"; uživatel přijde o zbytek do refreshe. Rozlišit chybu od konce stránek. (LOW-MED)
+- [ ] Hashtag taby bez klávesové navigace (arrow keys / roving `tabindex`) — není plný WAI-ARIA tablist. (LOW, a11y)
+
+### Doporučení obsahu od userů (DEFERRED — promyslet, neimplementovat teď)
+
+> Stav: **myšlenka k dořešení.** User si není jistý, jestli celý koncept dává smysl — implementaci odložit. Sepsáno session 2026-06-11.
+
+- Záměr: přihlášený user vloží YouTube odkaz (video / kanál / playlist) jako tip; po **moderaci adminem** se schválené objeví v sekci **„Doporučeno komunitou"**.
+- Rozhodnuto v konzultaci:
+  - Sbírat **videa + kanály + playlisty** (ne jen videa).
+  - Schválené → **vlastní sekce „Doporučeno komunitou"** (oddělená od kanálů/playlistů/hashtagů).
+  - Default (k potvrzení): doporučovat jen **přihlášení**, nic se nezobrazí **bez schválení adminem**.
+- Technika: **oEmbed** (`youtube.com/oembed?url=…&format=json`) na validaci + metadata (název, autor, náhled) — **0 kvóty, bez klíče**. Nová entita `ContentSuggestion` (user, typ, YT id, metadata, status pending/approved/rejected). Admin moderační fronta (reuse admin patterns).
+- **OTEVŘENÉ (blokuje to):** kde žije seznam zdrojů sekcí — **config (`feed.yaml`) vs DB + admin**. Schválený kanál/playlist by se musel propsat mezi zdroje → tlačí to k DB-backed zdrojům spravovaným v adminu. Nerozhodnuto; tohle je důvod, proč je celá feature odložená.
+
 ## Deník uživatele
 
 - [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`

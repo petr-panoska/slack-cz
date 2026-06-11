@@ -1,0 +1,49 @@
+{# One horizontal slider for a FeedGroup (channel / playlist / hashtag panel).
+   `group` = FeedGroup. `headless` = true skips the h3 title (hashtag panels use
+   the tab as their label). The trailing card is either a "Načíst další" button
+   (while more pages exist) or a "Vše na YouTube" link (once exhausted); the
+   tv-more controller swaps button → link when AJAX runs out of pages. #}
+<div class="tv-slider-group">
+    {% if not headless|default(false) %}
+    <h3 class="tv-slider-title">
+        {% if group.url %}
+            <a href="{{ group.url }}" target="_blank" rel="noopener">{{ group.title }}</a>
+        {% else %}
+            {{ group.title }}
+        {% endif %}
+    </h3>
+    {% endif %}
+
+    <div
+        class="tv-slider"
+        data-controller="tv-more"
+        data-tv-more-key-value="{{ group.key }}"
+        data-tv-more-next-value="{{ group.nextPageToken }}"
+        data-tv-more-url-value="{{ group.url }}"
+    >
+        <div class="tv-slider-track" data-tv-more-target="track">
+            {{ include('pages/_tv_cards.html.twig', { items: group.items }) }}
+
+            {% if group.nextPageToken %}
+            <button
+                type="button"
+                class="tv-card tv-more-card"
+                data-tv-more-target="button"
+                data-action="tv-more#more"
+            >
+                <span class="tv-more-card-inner">
+                    <span class="tv-more-icon" aria-hidden="true">+</span>
+                    Načíst další
+                </span>
+            </button>
+            {% elseif group.url %}
+            <a class="tv-card tv-more-card" href="{{ group.url }}" target="_blank" rel="noopener">
+                <span class="tv-more-card-inner">
+                    <span class="tv-more-icon" aria-hidden="true">↗</span>
+                    Vše na YouTube
+                </span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

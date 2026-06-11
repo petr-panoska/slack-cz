@@ -1,0 +1,35 @@
+{# Video cards for one slider page. Shared by the initial render (_tv_slider)
+   and the load-more AJAX response (TvController::more). `items` = list<FeedItem>. #}
+{% for item in items %}
+<article
+    class="tv-card"
+    data-controller="tv"
+    data-tv-video-value="{{ item.source == 'youtube' ? item.id|slice(3) : '' }}"
+    data-tv-title-value="{{ item.title }}"
+>
+    <button
+        type="button"
+        class="tv-card-media"
+        data-tv-target="media"
+        data-action="tv#play"
+        aria-label="Přehrát: {{ item.title }}"
+    >
+        <img src="{{ item.thumbnailUrl }}" alt="" loading="lazy" />
+        <span class="tv-play" aria-hidden="true">▶</span>
+    </button>
+    <div class="tv-card-meta">
+        <p class="tv-title">
+            <a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a>
+        </p>
+        <div class="tv-sub">
+            {% if item.authorUrl %}
+                <a href="{{ item.authorUrl }}" target="_blank" rel="noopener">{{ item.authorName }}</a>
+            {% else %}
+                <span>{{ item.authorName }}</span>
+            {% endif %}
+            <span class="tv-sep">·</span>
+            <time datetime="{{ item.publishedAt|date('c') }}">{{ item.publishedAt|date('j. n. Y') }}</time>
+        </div>
+    </div>
+</article>
+{% endfor %}

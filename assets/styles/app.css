@@ -130,6 +130,12 @@ a {
     cursor: not-allowed;
 }
 
+/* `display: inline-flex` above out-specifies the UA [hidden] rule, so a .btn
+   with the hidden attribute would stay visible — make hiding actually work. */
+.btn[hidden] {
+    display: none;
+}
+
 /* Variants */
 .btn-primary {
     background: var(--color-accent);
@@ -736,10 +742,56 @@ a.crossings-line:hover {
     font-size: 0.9rem;
 }
 
-.tv-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px 20px;
+/* Sections (Kanály / Playlisty / Hashtagy) → each holds one or more horizontal
+   sliders. Slider = native horizontal scroll of fixed-width cards; the trailing
+   card is a load-more button (AJAX) or a "Vše na YouTube" link. */
+.tv-section {
+    margin-top: 44px;
+}
+
+.tv-section:first-of-type {
+    margin-top: 8px;
+}
+
+.tv-section-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.tv-slider-group {
+    margin-top: 22px;
+}
+
+.tv-slider-title {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.tv-slider-title a {
+    color: var(--color-fg);
+    text-decoration: none;
+}
+
+.tv-slider-title a:hover {
+    color: var(--color-accent);
+}
+
+.tv-slider {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+    padding-bottom: 8px;
+}
+
+.tv-slider-track {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    width: max-content;
 }
 
 .tv-card {
@@ -747,6 +799,106 @@ a.crossings-line:hover {
     flex-direction: column;
     gap: 10px;
     min-width: 0;
+}
+
+.tv-slider-track .tv-card {
+    flex: 0 0 260px;
+    width: 260px;
+    scroll-snap-align: start;
+}
+
+/* Trailing tile — load-more button or "view all on YouTube" link. Narrower
+   than a video card; the scoped rule below out-specifies `.tv-slider-track
+   .tv-card` (same 0,2,0 specificity, later in source). */
+.tv-slider-track .tv-more-card {
+    flex: 0 0 170px;
+    width: 170px;
+}
+
+.tv-more-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--color-line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-muted);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.tv-more-card:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.tv-more-card.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.tv-more-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.tv-more-icon {
+    font-size: 1.7rem;
+    line-height: 1;
+}
+
+/* Hashtag tabs — chips, one active at a time. */
+.tv-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 0;
+}
+
+.tv-tab {
+    padding: 5px 13px;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-muted);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.tv-tab:hover {
+    color: var(--color-fg);
+    border-color: var(--color-fg);
+}
+
+.tv-tab[aria-selected="true"] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+}
+
+.tv-tab-panel[hidden] {
+    display: none;
+}
+
+.tv-tab-panel .tv-slider-group {
+    margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+    .tv-slider-track .tv-card {
+        flex-basis: 220px;
+        width: 220px;
+    }
 }
 
 .tv-card-media {

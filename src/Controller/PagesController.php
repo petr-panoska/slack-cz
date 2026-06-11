@@ -60,14 +60,6 @@ final class PagesController extends AbstractController
         ]);
     }
 
-    #[Route('/tv', name: 'app_tv')]
-    public function tv(FeedFetcherInterface $feed): Response
-    {
-        return $this->render('pages/tv.html.twig', [
-            'feed_items' => $feed->fetch(24),
-        ]);
-    }
-
     #[Route('/o-projektu', name: 'app_about')]
     public function about(): Response
     {

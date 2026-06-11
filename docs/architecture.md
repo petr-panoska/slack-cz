@@ -30,7 +30,8 @@ src/
                     # HighlinePhoto, HighlinePhotoComment, HighlinePhotoLike, ResetPasswordRequest
   Enum/             # HighlineType, HighlineCrossingStyle, HighlineEditStatus, Gender
   EventSubscriber/  # HighlinePhotoSanitizerSubscriber (post-upload EXIF strip + orientace přes GD)
-  Feed/             # YouTube feed + cache + dispatcher (mock fallback)
+  Feed/             # plochý homepage feed + cache + dispatcher (mock fallback)
+    Tv/             # sekcový /tv feed: FeedGroup, TvFeedInterface, YoutubeClient, paginace + cache
   Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, RegistrationForm, ...)
   Legacy/           # UserMergeMap (singleton — duplicit-email merge mapa; plní app:import:users, čte app:import:crossings)
   Markdown/Section/ # MD subsystém pro /docs + /wiki, čte z lokálního checkoutu (detail v § Markdown sections níž)
@@ -117,20 +118,28 @@ Pro time-travel režim je separátní `findForFeedInRange(from, to)` (sidebar vo
 
 ## Feed (slackTV)
 
-- Prezentace: panel-teaser na indexu (`pages/index.html.twig`) + dedikovaná stránka **`/tv`** (`app_tv`, `pages/tv.html.twig`). Stránka je grid karet s click-to-play facade — `tv_controller.js` nahradí náhled `youtube-nocookie` embedem až po kliknutí (neload 24 iframů + privacy). VideoID se v Twigu derivuje z `FeedItem.id` (`yt:VIDEOID` → `|slice(3)`).
-- YouTube Data API v3 (`googleapis.com/youtube/v3`)
-- API key v `.env.local` jako `YOUTUBE_API_KEY` (gitignored)
-- `.env` deklaruje proměnnou prázdnou (dokumentace)
-- Konfigurační parametry v `config/packages/feed.yaml`:
-  - `feed.youtube.channels` — list channel IDs
-  - `feed.youtube.queries` — list search queries (každá = 100 quota units/fetch)
-- Architektura:
-  - `FeedFetcherInterface` — kontrakt
-  - `YoutubeFeedFetcher` — real (channels via `playlistItems`, queries via `search`)
-  - `MockFeedFetcher` — fixturní data pro dev / fallback když nic reálného nemáme
-  - `FeedFetcherDispatcher` — vybere real (když je API key), jinak mock
-  - `CachedFeedFetcher` — decorator přes `cache.app`. Default TTL 6h (`feed.cache.ttl_seconds: 21600`).
-    Kaskáda fallbacků: real fetch → last-known-good (7 dní, jen z reálných úspěšných fetchů) → mock (necachuje se). Prázdný real fetch se cachuje jen 60s, aby se po obnovení kvóty rychle vrátili reálná data.
+Dvě paralelní vrstvy nad stejným YouTube Data API v3 (`googleapis.com/youtube/v3`). API key v `.env.local` jako `YOUTUBE_API_KEY` (gitignored); `.env` ji deklaruje prázdnou (dokumentace).
+
+**1) Homepage teaser** — plochý feed (`FeedFetcherInterface`), panel na indexu (`pages/index.html.twig`), pár nejnovějších videí.
+
+**2) Sekcová stránka `/tv`** (`TvController` → `app_tv` + AJAX `app_tv_more`, `pages/tv.html.twig`) — rozdělená na sekce **Kanály / Playlisty / Hashtagy**, každý zdroj = horizontální slider karet. `tv_controller.js` zůstává click-to-play facade (náhled → `youtube-nocookie` embed až po kliknutí, neload desítek iframů + privacy). VideoID se v Twigu derivuje z `FeedItem.id` (`yt:VIDEOID` → `|slice(3)`).
+
+### Plochý feed (homepage)
+- Config `feed.youtube.channels` (channel IDs) + `feed.youtube.queries` (search queries).
+- `FeedFetcherInterface` → `CachedFeedFetcher` (cache.app, TTL 6 h) → `FeedFetcherDispatcher` (real když je key, jinak mock) → `YoutubeFeedFetcher` / `MockFeedFetcher`.
+- Fallback kaskáda: real fetch → last-known-good (7 dní, jen z reálných úspěšných fetchů) → mock (necachuje se). Prázdný real fetch se cachuje jen 60 s, aby se po obnovení kvóty rychle vrátila reálná data.
+
+### Sekcový feed (`/tv`)
+- Config v `feed.yaml`: `feed.tv.channels` (`@handle`y — **v YAML escapovat jako `@@`** — samotné `@` je reference na službu), `feed.tv.playlists` (PL ids), `feed.tv.hashtags`. Přidání zdroje = jeden řádek; stránka i load-more endpoint jsou nad ním generické.
+- `src/Feed/Tv/`:
+  - `FeedGroup` — pojmenovaná řada videí (`kind` channel/playlist/hashtag, `title`, `url`, `items`, `nextPageToken`). `key` = stabilní identifikátor zdroje (`channel:@x` / `playlist:PL…` / `hashtag:#x`), kterým AJAX adresuje další stránku.
+  - `TvFeedInterface` — `sections()` (první stránka všech zdrojů, seskupené) + `page(key, token)` (další stránka jednoho zdroje).
+  - `YoutubeClient` — raw wrapper: `resolveChannel` (`@handle` → uploads playlist přes `forHandle`), `resolvePlaylist`, `playlistItems`/`search` se stránkováním přes `pageToken`. Chyba volání → prázdný výsledek (logged), neshodí stránku.
+  - `YoutubeTvFeed` — skládá sekce; padlý zdroj se přeskočí, ne fatal.
+  - `CachedTvFeed` — decorator přes `cache.app`: cachuje celý balík (`tv.sections`) i jednotlivé load-more stránky (`tv.page.<md5>`). Stejná fallback kaskáda jako plochý feed (last-known-good 7 dní + mock SLACKHOVOR group jako poslední záchrana).
+- **Stránkování**: první stránka každého slideru je server-side; „load more" karta volá `GET /tv/more?key=&page=` → JSON `{html, nextPage}` (`_tv_cards.html.twig`, sdílený s prvním renderem). Když zdroj dojde, button se v JS přemění na „Vše na YouTube" odkaz.
+- Stimulus: `tv-more` (AJAX donačtení další stránky), `tv-tabs` (hashtag taby — 1 aktivní panel), `tv` (přehrávání) beze změny.
+- **Validace klíče:** `/tv/more` přijme jen klíč z `TvFeedInterface::knownKeys()` (nakonfigurované zdroje). `CachedTvFeed::page()` odmítne neznámý klíč ještě před cache i API voláním (+ `YoutubeTvFeed::page()` totéž jako defense-in-depth), takže veřejný endpoint nejde zneužít k pálení kvóty (search = 100 units) ani k zaplevelení `cache.app`.
 
 ### Quota economics
 
@@ -138,13 +147,17 @@ YouTube Data API daily free tier = **10 000 units / GCP project / den** (reset v
 
 | Endpoint | Cost | Kde |
 |---|---|---|
-| `search.list` | **100 units / call** | `feed.youtube.queries` |
-| `channels.list` | 1 unit / call | `feed.youtube.channels` (lookup uploads playlist) |
-| `playlistItems.list` | 1 unit / call | `feed.youtube.channels` (skutečná videa) |
+| `search.list` | **100 units / call** | `feed.youtube.queries`, `feed.tv.hashtags` |
+| `channels.list` | 1 unit / call | lookup uploads playlistu (handle/id) |
+| `playlists.list` | 1 unit / call | název playlistu (`/tv`) |
+| `playlistItems.list` | 1 unit / call | skutečná videa (kanály i playlisty) |
 
-Burn = **(počet queries × 100 + počet kanálů × 2) × (86400 / TTL)** units/den.
+Drahé jsou **jen hashtagy/queries** (search = 100 units); kanály i playlisty stojí ~1–2 units bez ohledu na to, kolik videí stránka vrátí.
 
-Aktuální config (1 query, 0 kanálů, TTL 6 h) = **400 units/den** — 25× headroom.
+- **Plochý feed (homepage):** (queries × 100 + kanály × 2) × (86400 / TTL). Aktuálně 1 query, 0 kanálů, TTL 6 h = **400 units/den**.
+- **Sekcový `/tv`** — jeden `tv.sections` miss: 5 kanálů × 2 + 2 playlisty × 2 + 5 hashtagů × 100 = **~514 units**; při TTL 6 h (4 missy/den) = **~2 056 units/den**. Load-more stránky jsou navíc, cachované per `(key, token)`: kanál/playlist +1–2 units/stránka, hashtag +100 units/stránka.
+
+Součet obou vrstev ≈ **2,5 k units/den** z 10 000 — pohodlná rezerva, ale **hashtagy nesou ~95 % nákladu**. Přidání hashtagu = +100 units × (86400/TTL)/den; přidání kanálu/playlistu prakticky zdarma.
 
 **Historicky jsme limit přepálili** s `feed.youtube.queries: [#czechslackline, czech slackline, czech highline]` a `feed.cache.ttl_seconds: 1800` (30 min):
 3 queries × 48 fetchů/den × 100 units = **14 400 units/den** — kvóta vyčerpaná každé odpoledne. Plus každý `bin/console cache:clear` během vývoje vyhodí `cache.app` a vyvolá další 300 units instantně. Comment v `config/packages/feed.yaml` má aktuální vzorec, používej ho při ladění queries listu.
@@ -223,6 +236,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Highline detail** `/highline/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
 - ✅ **Index page** (single-column rework): sloučený panel **Mapa** (`hp_map_controller.js`, identifier `hp-map`) = levý scrollovatelný sidebar posledních 10 přechodů + mapa, která ukazuje **jen aktivní přechod** (na load první). Aktivní přechod vykreslí reálnou linku (polyline point1↔point2), zazoomuje na ni a animuje ikonku (emoji walker) po posledním úseku lajny (`WALK_FRACTION`/`WALK_DURATION`, do budoucna chování dle typu přechodu). Po dojití se na ikonce spustí náhodná oslavná animace (`CELEBRATIONS` → CSS `hp-cel-*`: bounce/flip/spin/pop/wobble, respektuje `prefers-reduced-motion`). Má-li přechod komentář (`data-comment`), po dokončení chůze se nad ikonou objeví decentní „thought" bublina (`showThought()` injektuje `.hp-thought` do DOM markeru až na konci, ne během walku; clamp 3 řádky, fade-in, `textContent` = auto-escape). Stejná geometrie po sobě (víc přechodů na téže lajně) let přeskočí (`lastGeoKey`), aby mapa necukala; jiná lajna `flyToBounds` glide. Úvodní zobrazení po načtení je **instantní** (`activate(0, {animate:false})` + mapa se rovnou seedne u prvního přechodu) — jinak by velký z7→z17 fly-through nafoukl vrstvy a rozmazal tiles. Homepage běží jako **auto-showcase**: po dokončení přechodu se počká `DWELL` (7 s) a `scheduleAdvance()` přepne na další přechod dokola (cyklus ≈ fly 1,6 s + walk 5 s + dwell 7 s ≈ 14 s). Timer je vázaný na generaci (`gen`) a maže se v `activate`, takže manuální klik cyklus jen převezme z nového místa. Geometrie se čte ze `data-*` na `<li>` (server-render, žádný extra endpoint). Pod tím panel „Z galerie" a na konci horizontální slackTV strip.
 - ✅ **slackTV** — YouTube feed, hashtag/search/channel zdroje, in-memory cache, dedikovaná stránka `/tv` s inline přehráváním
+- ✅ **slackTV redesign na sekce** (session 2026-06-11) — `/tv` rozdělena na Kanály / Playlisty / Hashtagy, horizontální slidery, AJAX „load more" se stránkováním (`/tv/more`), hashtag taby. Druhá feed vrstva `App\Feed\Tv\*` (`TvFeedInterface`, `YoutubeClient` s `forHandle` + `pageToken`, `CachedTvFeed`). Viz § *Feed (slackTV)*.
 - ✅ **About / O projektu** s historií slacklive 2007 → slack.cz 2010 → ČAS 2011 → dnes, vč. archivního Kolouchova úvodního slova
 - ✅ Hlavní vizuál — světlý theme, magenta accent (`#e91e63` z původního slack.cz loga)
 - ✅ Auth (registrace, login, reset, email verify) — předvyřízeno před začátkem této vývojové větve
