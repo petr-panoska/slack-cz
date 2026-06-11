@@ -3,13 +3,14 @@
 namespace App\Markdown\Section;
 
 use App\Markdown\MarkdownRenderer;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Fetcher MD souborů z GitHub repa. Používá:
- *  - git trees API (`?recursive=1`) pro list — jeden call, podporuje subfoldery
- *  - raw.githubusercontent.com pro content — CDN, mimo API rate limit
+ * Fetcher MD souborů z lokálního filesystému (deployovaný checkout).
+ *
+ * Soubory sekce žijí přímo v repu (`wiki/`, `docs/`) a deploy je `git pull`-ne
+ * na server, takže není důvod je za runtime tahat přes HTTP z GitHubu — čteme
+ * je rovnou z disku. Blob/edit odkazy do GitHub UI se pořád skládají z `Config`
+ * (owner/repo/branch/path), žádný síťový request k tomu netřeba.
  *
  * Konvence (žádný frontmatter, žádné metadata pole):
  *  - Pořadí v sidebaru = abecední podle relativního path (folder má `^\d+-`
@@ -23,7 +24,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *
  * Slug musí být unikátní napříč subtree (kolize = první vyhraje).
  */
-final class GithubFetcher implements FetcherInterface
+final class FilesystemFetcher implements FetcherInterface
 {
     /** @var array<string,string>|null Mapa slug → relativní path (od `Config::path`). */
     private ?array $slugMap = null;
@@ -31,10 +32,14 @@ final class GithubFetcher implements FetcherInterface
     /** @var array<string,string>|null Mapa folder rel path → group label (z root README H2). */
     private ?array $folderLabels = null;
 
+    /** Absolutní cesta k adresáři sekce (`%kernel.project_dir%/{Config::path}`). */
+    private readonly string $baseDir;
+
     public function __construct(
-        private readonly HttpClientInterface $httpClient,
         private readonly Config $config,
+        string $projectDir,
     ) {
+        $this->baseDir = rtrim($projectDir, '/') . '/' . trim($this->config->path, '/');
     }
 
     public function list(): array
@@ -82,33 +87,15 @@ final class GithubFetcher implements FetcherInterface
 
     private function fetchByPath(string $slug, string $relPath): ?Page
     {
-        $url = sprintf(
-            'https://raw.githubusercontent.com/%s/%s/%s/%s/%s',
-            rawurlencode($this->config->owner),
-            rawurlencode($this->config->repo),
-            rawurlencode($this->config->branch),
-            $this->config->path,
-            implode('/', array_map('rawurlencode', explode('/', $relPath))),
-        );
-
-        $response = $this->httpClient->request('GET', $url, [
-            'headers' => $this->headers(),
-        ]);
-
-        try {
-            $status = $response->getStatusCode();
-        } catch (ExceptionInterface $e) {
-            throw new \RuntimeException(sprintf('Failed reading %s: %s', $url, $e->getMessage()), 0, $e);
-        }
-
-        if ($status === 404) {
+        $absPath = $this->baseDir . '/' . $relPath;
+        if (!is_file($absPath)) {
             return null;
         }
-        if ($status !== 200) {
-            throw new \RuntimeException(sprintf('GitHub raw returned HTTP %d for %s', $status, $url));
-        }
 
-        $body = $response->getContent(false);
+        $body = @file_get_contents($absPath);
+        if ($body === false) {
+            throw new \RuntimeException(sprintf('Failed reading %s', $absPath));
+        }
 
         return new Page(
             slug: $slug,
@@ -183,19 +170,9 @@ final class GithubFetcher implements FetcherInterface
 
     private function buildMaps(): void
     {
-        $tree = $this->fetchTree();
         $slugMap = [];
-        $prefix = rtrim($this->config->path, '/') . '/';
 
-        foreach ($tree as $node) {
-            if (($node['type'] ?? null) !== 'blob') {
-                continue;
-            }
-            $path = $node['path'] ?? '';
-            if (!str_starts_with($path, $prefix) || !str_ends_with($path, '.md')) {
-                continue;
-            }
-            $rel = substr($path, strlen($prefix));
+        foreach ($this->mdFilesRelative() as $rel) {
             // README na jakékoli úrovni přeskakujeme — sekční root = index,
             // ostatní jsou bezpředmětné (group label tahá root README parsing).
             if ($rel === 'README.md' || str_ends_with($rel, '/README.md')) {
@@ -212,6 +189,39 @@ final class GithubFetcher implements FetcherInterface
         $this->slugMap = $slugMap;
     }
 
+    /**
+     * Rekurzivně najde všechny `.md` soubory pod `baseDir` a vrátí jejich cesty
+     * relativní k `baseDir` (forward slashes). Pořadí není garantované — `list()`
+     * si je stejně lexikograficky řadí.
+     *
+     * @return list<string>
+     */
+    private function mdFilesRelative(): array
+    {
+        if (!is_dir($this->baseDir)) {
+            return [];
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->baseDir, \FilesystemIterator::SKIP_DOTS),
+        );
+
+        $prefix = rtrim($this->baseDir, '/') . '/';
+        $files = [];
+        foreach ($iterator as $file) {
+            /** @var \SplFileInfo $file */
+            $path = str_replace(\DIRECTORY_SEPARATOR, '/', $file->getPathname());
+            if (!$file->isFile() || !str_ends_with($path, '.md')) {
+                continue;
+            }
+            if (str_starts_with($path, $prefix)) {
+                $files[] = substr($path, strlen($prefix));
+            }
+        }
+
+        return $files;
+    }
+
     private function fallbackFolderLabel(string $folder): string
     {
         if ($folder === '') {
@@ -225,31 +235,6 @@ final class GithubFetcher implements FetcherInterface
     {
         $dir = dirname($relPath);
         return $dir === '.' ? '' : $dir;
-    }
-
-    /**
-     * @return list<array<string,mixed>>
-     */
-    private function fetchTree(): array
-    {
-        $url = sprintf(
-            'https://api.github.com/repos/%s/%s/git/trees/%s?recursive=1',
-            rawurlencode($this->config->owner),
-            rawurlencode($this->config->repo),
-            rawurlencode($this->config->branch),
-        );
-
-        $response = $this->httpClient->request('GET', $url, [
-            'headers' => $this->headers(['Accept' => 'application/vnd.github+json']),
-        ]);
-
-        $status = $response->getStatusCode();
-        if ($status !== 200) {
-            throw new \RuntimeException(sprintf('GitHub git trees API returned HTTP %d for %s', $status, $url));
-        }
-
-        $data = $response->toArray(false);
-        return $data['tree'] ?? [];
     }
 
     private function buildBlobUrl(string $relPath): string
@@ -274,21 +259,6 @@ final class GithubFetcher implements FetcherInterface
             $this->config->path,
             $relPath,
         );
-    }
-
-    /**
-     * @param array<string,string> $extra
-     * @return array<string,string>
-     */
-    private function headers(array $extra = []): array
-    {
-        $base = [
-            'User-Agent' => 'slack-cz-md-section/1.0',
-        ];
-        if ($this->config->token !== null && $this->config->token !== '') {
-            $base['Authorization'] = 'Bearer ' . $this->config->token;
-        }
-        return $base + $extra;
     }
 
     public static function slugFromFilename(string $filename): string

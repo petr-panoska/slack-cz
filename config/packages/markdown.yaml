@@ -1,8 +1,10 @@
 # Konfigurace MD sekcí (`/docs`, `/wiki`). Každá sekce = jedna instance
-# `App\Markdown\Section\Config` + svůj GithubFetcher + CachedFetcher.
+# `App\Markdown\Section\Config` + svůj FilesystemFetcher. Soubory žijí přímo
+# v repu (`docs/`, `wiki/`) a čtou se z disku — deploy je `git pull`-ne, takže
+# žádný runtime fetch z GitHubu ani cache vrstva netřeba.
 #
 # Přidání další sekce (např. `/changelog`):
-#   1. Přidej `app.section.changelog.config` (Config) + `.fetcher.inner` + `.fetcher` níž.
+#   1. Přidej `app.section.changelog.config` (Config) + `.fetcher` níž.
 #   2. V `MarkdownSectionController` injectni je a přidej route metody.
 
 services:
@@ -12,55 +14,34 @@ services:
     app.section.docs.config:
         class: App\Markdown\Section\Config
         arguments:
-            $name: 'docs'
             $owner: 'petr-panoska'
             $repo: 'slack-cz'
             $branch: 'main'
             $path: 'docs'
             $internalRoutePrefix: '/docs'
-            $token: '%env(default::DOCS_GITHUB_TOKEN)%'
-
-    app.section.docs.fetcher.inner:
-        class: App\Markdown\Section\GithubFetcher
-        arguments:
-            $httpClient: '@http_client'
-            $config: '@app.section.docs.config'
 
     app.section.docs.fetcher:
-        class: App\Markdown\Section\CachedFetcher
+        class: App\Markdown\Section\FilesystemFetcher
         arguments:
-            $inner: '@app.section.docs.fetcher.inner'
-            $cache: '@cache.app'
-            $cachePrefix: 'docs'
-            # 10 min — dost čerstvé pro doc edity, ~6 misses/h/list = bez tahu na rate limit.
-            $ttlSeconds: 600
+            $config: '@app.section.docs.config'
+            $projectDir: '%kernel.project_dir%'
 
     # ───── wiki sekce (highline guidebook) ────────────────────────────
 
     app.section.wiki.config:
         class: App\Markdown\Section\Config
         arguments:
-            $name: 'wiki'
             $owner: 'petr-panoska'
             $repo: 'slack-cz'
             $branch: 'main'
             $path: 'wiki'
             $internalRoutePrefix: '/wiki'
-            $token: '%env(default::WIKI_GITHUB_TOKEN)%'
-
-    app.section.wiki.fetcher.inner:
-        class: App\Markdown\Section\GithubFetcher
-        arguments:
-            $httpClient: '@http_client'
-            $config: '@app.section.wiki.config'
 
     app.section.wiki.fetcher:
-        class: App\Markdown\Section\CachedFetcher
+        class: App\Markdown\Section\FilesystemFetcher
         arguments:
-            $inner: '@app.section.wiki.fetcher.inner'
-            $cache: '@cache.app'
-            $cachePrefix: 'wiki'
-            $ttlSeconds: 600
+            $config: '@app.section.wiki.config'
+            $projectDir: '%kernel.project_dir%'
 
 # ─── parametry pro MarkdownRenderer (interní MD link rewrite na /docs/{slug}) ───
 

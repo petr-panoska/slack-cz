@@ -31,7 +31,7 @@ APP_ENV=prod php bin/console asset-map:compile
 echo "→ cache:clear (prod) — composer hook už cache pre-warmnul, tohle ji invaliduje"
 APP_ENV=prod php bin/console cache:clear
 
-echo "→ cache:pool:clear cache.app (vyhodí docs/wiki LKG, ať se znovu fetchne z GH)"
+echo "→ cache:pool:clear cache.app (doctrine result cache + feed cache po deployi)"
 APP_ENV=prod php bin/console cache:pool:clear cache.app
 
 echo "→ systemctl reload php8.3-fpm (refresh opcache)"

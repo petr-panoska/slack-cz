@@ -7,14 +7,17 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
  * Smoke testy veřejných rout, které NEsahají na databázi ani externí síť
- * (GitHub markdown fetcher / YouTube feed). Cíl: na každém push/PR ověřit,
- * že kernel nabootuje, DI container se zkompiluje a routing + security + Twig
- * + AssetMapper fungují.
+ * (YouTube feed). Cíl: na každém push/PR ověřit, že kernel nabootuje, DI
+ * container se zkompiluje a routing + security + Twig + AssetMapper fungují.
  *
- * DB-backed stránky (`/`, `/mapa`, `/denik/{id}`, `/highline/*`) ani síťové
- * (`/wiki`, `/docs`, slackTV) tu schválně nejsou — CI běží na prázdné SQLite
- * bez schématu, viz `.github/workflows/symfony.yml`. Až bude test DB se
- * schématem (např. `doctrine:schema:create` v test env), můžou přibýt.
+ * `/wiki` a `/docs` tu jsou — MD obsah se čte z lokálního checkoutu
+ * (`FilesystemFetcher`), takže žádná síť ani DB. Slouží i jako regrese na
+ * markdown sekce.
+ *
+ * DB-backed stránky (`/`, `/mapa`, `/denik/{id}`, `/highline/*`) ani zbylé
+ * síťové (slackTV) tu schválně nejsou — CI běží na prázdné SQLite bez schématu,
+ * viz `.github/workflows/symfony.yml`. Až bude test DB se schématem (např.
+ * `doctrine:schema:create` v test env), můžou přibýt.
  */
 final class PublicPagesSmokeTest extends WebTestCase
 {
@@ -25,6 +28,10 @@ final class PublicPagesSmokeTest extends WebTestCase
     {
         yield 'about' => ['/o-projektu'];
         yield 'login' => ['/login'];
+        yield 'wiki index' => ['/wiki'];
+        yield 'wiki page' => ['/wiki/bezpecnost'];
+        yield 'docs index' => ['/docs'];
+        yield 'docs page' => ['/docs/architecture'];
         // POZN: `/register` sem zatím nedávat — render `RegistrationForm` spouští
         // přímé deprecations (array-option validator constraints, viz roadmap.md
         // deprecation checklist). S `failOnDeprecation=true` by shodil CI. Přidat

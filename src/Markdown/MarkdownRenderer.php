@@ -7,7 +7,7 @@ use League\CommonMark\Event\DocumentParsedEvent;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Link;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
-use App\Markdown\Section\GithubFetcher;
+use App\Markdown\Section\FilesystemFetcher;
 use League\CommonMark\MarkdownConverter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -70,7 +70,7 @@ final class MarkdownRenderer
                 // chceme ho přepsat na `/wiki/bezpecnost` (slug = basename bez
                 // `^\d+-` prefixu, flat napříč subfoldery).
                 if (preg_match('/^(?:.*\/)?([A-Za-z0-9._-]+)\.md(#.+)?$/', $url, $m) === 1) {
-                    $slug = GithubFetcher::slugFromFilename($m[1] . '.md');
+                    $slug = FilesystemFetcher::slugFromFilename($m[1] . '.md');
                     $node->setUrl($prefix . '/' . $slug . ($m[2] ?? ''));
                 }
             }
