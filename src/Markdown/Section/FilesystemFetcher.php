@@ -53,16 +53,16 @@ final class FilesystemFetcher implements FetcherInterface
         $entries = [];
 
         foreach ($slugMap as $slug => $relPath) {
-            $page = $this->fetchByPath($slug, $relPath);
-            if ($page === null) {
-                continue;
-            }
+            // Pro label čteme jen hlavičku po první H1 — wiki MD můžou mít stovky
+            // KB inline base64 obrázků a list() běží na každém renderu, takže
+            // celý soubor sem tahat nechceme (body se čte až v get()).
+            $title = $this->titleByPath($relPath);
             $folder = $this->folderOf($relPath);
             $entries[] = new Entry(
-                slug: $page->slug,
+                slug: $slug,
                 filename: basename($relPath),
-                label: $page->title !== '' ? $page->title : $page->slug,
-                githubUrl: $page->githubUrl,
+                label: $title !== '' ? $title : $slug,
+                githubUrl: $this->buildBlobUrl($relPath),
                 group: $folderLabels[$folder] ?? $this->fallbackFolderLabel($folder),
             );
         }
@@ -105,6 +105,30 @@ final class FilesystemFetcher implements FetcherInterface
             githubEditUrl: $this->buildEditUrl($relPath),
             title: MarkdownRenderer::extractTitle($body) ?? '',
         );
+    }
+
+    /**
+     * Vytáhne H1 titulek bez načtení celého souboru — streamuje řádky a zastaví
+     * na první H1. Sémanticky shodné s `MarkdownRenderer::extractTitle()` (první
+     * `^#\s+` v dokumentu, H2+ nematchují), ale nečte MB-velké base64 přílohy.
+     */
+    private function titleByPath(string $relPath): string
+    {
+        $handle = @fopen($this->baseDir . '/' . $relPath, 'rb');
+        if ($handle === false) {
+            return '';
+        }
+
+        $title = '';
+        while (($line = fgets($handle)) !== false) {
+            if (preg_match('/^#\s+(.+?)\s*$/', $line, $m) === 1) {
+                $title = trim($m[1]);
+                break;
+            }
+        }
+        fclose($handle);
+
+        return $title;
     }
 
     /**
@@ -202,8 +226,13 @@ final class FilesystemFetcher implements FetcherInterface
             return [];
         }
 
+        // CATCH_GET_CHILD: nečitelný podadresář se přeskočí místo vyhození
+        // UnexpectedValueException — sekce se vyrendruje s tím, co jde přečíst,
+        // místo 500 (cache/LKG fallback tu už není, co by to odchytil).
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($this->baseDir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::LEAVES_ONLY,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD,
         );
 
         $prefix = rtrim($this->baseDir, '/') . '/';

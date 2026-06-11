@@ -13,9 +13,7 @@ interface FetcherInterface
     public function list(): array;
 
     /**
-     * Returns null when slug doesn't exist (GitHub 404). Pro transport errors
-     * (network / 5xx / rate limit) implementace mohou fallnout na last-known-good
-     * (viz `CachedFetcher`).
+     * Returns null when slug doesn't exist (soubor není v sekci).
      */
     public function get(string $slug): ?Page;
 }

@@ -33,7 +33,7 @@ src/
   Feed/             # YouTube feed + cache + dispatcher (mock fallback)
   Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, RegistrationForm, ...)
   Legacy/           # UserMergeMap (singleton — duplicit-email merge mapa; plní app:import:users, čte app:import:crossings)
-  Markdown/Section/ # GitHub-backed MD subsystém pro /docs + /wiki (detail v § Markdown sections níž)
+  Markdown/Section/ # MD subsystém pro /docs + /wiki, čte z lokálního checkoutu (detail v § Markdown sections níž)
   Repository/       # Doctrine repos (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
   Command/          # Console commands: app:import:*, app:admin:grant, app:edit:sync-from-history,
@@ -209,8 +209,8 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/login`, `/register`, `/logout` | auth | ✓ |
 | `/reset-password`, `/reset-password/reset/{token}` | reset | ✓ |
 | `/verify/email` | email verify | login required |
-| `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (17 kapitol z `wiki/`, live z GitHubu, `NN-slug.md` konvence, žádný frontmatter) |
-| `/docs`, `/docs/{slug}` | `app_docs_*` | ✓ technická dokumentace (interní), live z `docs/*.md` na GitHubu |
+| `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (17 kapitol z `wiki/`, čte se z lokálního checkoutu, `NN-slug.md` konvence, žádný frontmatter) |
+| `/docs`, `/docs/{slug}` | `app_docs_*` | ✓ technická dokumentace (interní), čte se z `docs/*.md` v repu |
 
 ## Hotové features
 
@@ -231,12 +231,12 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Time-travel mapa** — historický playback highlines + crossings v čase, controly v `.map-tt-panel` (z-index 500)
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými highlines, list všech přechodů
-- ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro GitHub-backed MD obsah. Detail níže.
+- ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro MD obsah z repa (čte se z disku). Detail níže.
 - ✅ **Highline foto galerie + sociální vrstva** — `HighlinePhoto` (highline FK, uploadedBy FK SET NULL, filename, caption, createdAt) + `HighlinePhotoLike` (UNIQUE photo+user) + `HighlinePhotoComment` (photo FK CASCADE, author FK SET NULL, text, createdAt). Upload přes `vich/uploader-bundle` (mapping `highline_photo` → `public/uploads/highline/{id}/<uniqid>.ext`, 4 MB cap, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `highline_thumb` 320×240 outbound, `highline_medium` 800×600 inset, `highline_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace přes `HighlinePhotoSanitizerSubscriber` (post-upload event, GD), takže ani originál v `/uploads/` neuniká GPS. Per-photo detail `/highline/{slug}/fotky/{id}` s AJAX like-toggle (Stimulus `photo_like_controller`, fetch s `Accept: application/json`, endpoint vrací `{liked, count}`), plain-text flat komentáři (owner/admin delete), prev/next navigací. Grid v `_highline_gallery.html.twig` zobrazuje overlay badges (likes ❤, komenty 💬). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked. Cover header lajny v `highline_detail.html.twig` je zatím čistě `Highline::getLegacyCoverUrl()` (legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`) — fotky z galerie do coveru zatím nemícháme. Legacy import `highline_foto` + `highline_media` deferred (vyžaduje SSH).
 
 ## Markdown sections (`/docs`, `/wiki`)
 
-Jeden generický subsystém v `App\Markdown\Section\*` slouží jak technické dokumentaci (`/docs` = `docs/*.md` v repu), tak highline guidebooku (`/wiki` = `wiki/NN-skupina/NN-slug.md` v repu). Žádný per-sekci kód, žádný frontmatter — všechno řídí filename + obsah markdownu.
+Jeden generický subsystém v `App\Markdown\Section\*` slouží jak technické dokumentaci (`/docs` = `docs/*.md` v repu), tak highline guidebooku (`/wiki` = `wiki/NN-skupina/NN-slug.md` v repu). Obsah se čte **z lokálního checkoutu** (ne přes GitHub API) — deploy je `git pull`-ne na server. Žádný per-sekci kód, žádný frontmatter — všechno řídí filename + obsah markdownu.
 
 ### Komponenty
 
@@ -244,10 +244,9 @@ Jeden generický subsystém v `App\Markdown\Section\*` slouží jak technické d
 src/Markdown/Section/
   Page.php                  # value object: slug, filename, body, GH urls, title (z prvního H1)
   Entry.php                 # lightweight DTO pro sidebar (slug, filename, label, group)
-  Config.php                # per-sekci konfigurace (owner/repo/branch/path/prefix/token)
+  Config.php                # per-sekci konfigurace (owner/repo/branch/path/prefix)
   FetcherInterface.php      # list() + get(slug)
-  GithubFetcher.php         # git trees API recursive, raw.githubusercontent.com fetch, slug/folder label parsing
-  CachedFetcher.php         # cache.app + 7d last-known-good fallback
+  FilesystemFetcher.php     # čte MD z lokálního checkoutu (wiki/, docs/), slug/folder label parsing
 src/Controller/MarkdownSectionController.php   # 4 routes (docs index/show, wiki index/show)
 templates/pages/_section/
   _sidebar.html.twig        # shared partial — README link + chapter list, group separators
@@ -258,17 +257,16 @@ config/packages/markdown.yaml                  # per-sekci service wiring
 
 ### Service wiring
 
-Každá sekce = trojice services v `config/packages/markdown.yaml`:
+Každá sekce = dvojice services v `config/packages/markdown.yaml`:
 
 | Service ID | Třída | Účel |
 |---|---|---|
-| `app.section.<name>.config` | `Config` | GH coordinates + route prefix + token |
-| `app.section.<name>.fetcher.inner` | `GithubFetcher` | actual HTTP fetch |
-| `app.section.<name>.fetcher` | `CachedFetcher` | cache wrapper, injected do controlleru |
+| `app.section.<name>.config` | `Config` | GitHub coordinates (už jen pro blob/edit URL) + route prefix |
+| `app.section.<name>.fetcher` | `FilesystemFetcher` | čte MD z `%kernel.project_dir%/{path}`, injected do controlleru |
 
-Přidání nové sekce = další trojice services + 2 route metody v controlleru. Controller binduje fetchery + configs přes `#[Autowire('@app.section.<name>.fetcher')]`.
+Přidání nové sekce = další dvojice services + 2 route metody v controlleru. Controller binduje fetchery + configs přes `#[Autowire('@app.section.<name>.fetcher')]`.
 
-Token každé sekce čte vlastní env var přes `%env(default::…)%` (default = prázdný, takže bez tokenu sekce funguje na public repu, jen s nižším GitHub rate-limitem): `/docs` → **`DOCS_GITHUB_TOKEN`**, `/wiki` → **`WIKI_GITHUB_TOKEN`**.
+Obsah se čte z lokálního checkoutu (deploy ho `git pull`-ne), takže žádný GitHub token, rate-limit ani cache vrstva. `owner/repo/branch` v Configu slouží už jen ke skládání blob/edit odkazů do GitHub UI (tlačítka „zobrazit/editovat na GitHubu").
 
 ### Konvence MD souborů (žádný frontmatter)
 
@@ -282,7 +280,7 @@ Po dropu YAML frontmatteru řídí všechno chování dva vstupy: **filename** a
 ### Layout v GH repu
 
 - **Docs** flat (`docs/*.md`), bez subfolderů, bez group separátorů (jejich `README.md` nemá H2 + linky → mapa folderů je prázdná).
-- **Wiki** nested (`wiki/NN-skupina/NN-slug.md`). Root `wiki/README.md` udržuje index + definuje group labely. Fetcher používá git trees API `?recursive=1` (jeden call).
+- **Wiki** nested (`wiki/NN-skupina/NN-slug.md`). Root `wiki/README.md` udržuje index + definuje group labely. Fetcher prochází adresář sekce rekurzivně (`RecursiveDirectoryIterator`).
 
 ### README.md
 
@@ -300,10 +298,10 @@ Text s ![alt][image1] obrázkem.
 
 **MUSÍ být `[image1]: data:...` (bare URL).** Pokud obalíš angular brackets — `[image1]: <data:...>` — CommonMark to fallne na autolink + odmítne parsovat při velkých URL (>10 KB). Výsledek: `<img>` tag se vůbec neudělá, ref-def se vypíše jako text.
 
-### Cache
+### Žádná cache (čtení z disku)
 
-`CachedFetcher` cachuje per-sekci s prefix klíčem (`docs.list`, `wiki.content.bezpecnost`, ...) v `cache.app`, TTL 600 s. Failure mode: inner throw → fallback na last-known-good (7 dní). Po deployi se vyplatí `bin/console cache:pool:clear cache.app`, ať fetcher hned podruhé jde na GH (jinak čeká na expiraci) — taky po schema-changing refactoru `Page`/`Entry` to vyhodí staré serializované objekty.
+Obsah žije v deployovaném checkoutu, takže fetcher čte přímo z disku — žádná cache vrstva ani last-known-good fallback (řešily by výpadek/ rate-limit GitHubu, který už nehrozí). `list()` čte u každého souboru jen **hlavičku po první H1** (label do sidebaru), aby netahal MB-velké inline base64 přílohy; plný `body` se načítá až v `get()` pro samotnou stránku. `slugMap` + `folderLabels` jsou memoizované per-request.
 
 ### Internal MD link rewriting
 
-`MarkdownRenderer::render($body, $internalRoutePrefix)` přepisuje relativní `*.md` linky (i v subfolderech: `01-pouzivani-highline/02-bezpecnost.md`) na `/{prefix}/{slug}` (`/wiki/bezpecnost`). Slug stripuje `^\d+-` přes `GithubFetcher::slugFromFilename()` (sjednocený zdroj transformace). Externí URL (s schemem `http:`, `mailto:` atd.) se ponechávají.
+`MarkdownRenderer::render($body, $internalRoutePrefix)` přepisuje relativní `*.md` linky (i v subfolderech: `01-pouzivani-highline/02-bezpecnost.md`) na `/{prefix}/{slug}` (`/wiki/bezpecnost`). Slug stripuje `^\d+-` přes `FilesystemFetcher::slugFromFilename()` (sjednocený zdroj transformace). Externí URL (s schemem `http:`, `mailto:` atd.) se ponechávají.
