@@ -36,6 +36,11 @@
                     <dd>{{ user.birthYear }}</dd>
                 {% endif %}
 
+                {% if user.phone %}
+                    <dt>Telefon</dt>
+                    <dd>{{ user.phone }}</dd>
+                {% endif %}
+
                 {% if first_crossing_date %}
                     <dt>První přechod</dt>
                     <dd>{{ first_crossing_date|date('j. n. Y') }}</dd>
@@ -43,11 +48,12 @@
             </dl>
 
             <div class="profile-actions">
+                <a class="btn btn-primary" href="{{ path('app_profile_edit') }}">Upravit profil</a>
                 <a class="btn btn-ghost" href="{{ path('app_logout') }}">Odhlásit se</a>
             </div>
 
             <p class="auth-help">
-                Editace profilu (avatar, bio, odkazy) je v plánu — viz <code>docs/todo.md</code>.
+                Avatar, bio a odkazy (IG, web) jsou zatím v plánu — viz <code>docs/todo.md</code>.
             </p>
         </div>
     </div>

@@ -31,6 +31,14 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 
 - Legacy `kotveni` (číselné kódy 1/2/3 a kombinace `13`, `23`, `123`…) bez dochované lookup tabulky → pole „Typ kotvení" (`anchoring`) bylo **zahozeno** z formuláře, detailu i importu. Sloupec v DB ponechán. Pokud se význam kódů někdy dohledá, šlo by je namapovat na čitelný popis a pole vrátit.
 
+## Pohlaví / gender (zahodit kompletně)
+
+- Pole **gender už nikoho nezajímá** — vyhozeno z profilového edit formu (`UserForm`). Dořešit **kompletní odstranění**:
+  - [ ] Přestat ho importovat — vyhodit `Gender::fromLegacy()` mapping z `ImportUsersCommand` (legacy hodnotu zahodit, neimportovat).
+  - [ ] Smazat sloupec `gender` z `User` entity + migrace (drop column).
+  - [ ] Smazat `App\Enum\Gender` (po odstranění z entity i importu už nebude mít použití).
+- Pozn.: zatím jen vyhozeno z UI; sloupec + enum v kódu pořád jsou, drží legacy data. Tohle je úklid „až bude čas".
+
 ## Offline PWA — highline mapa v terénu (PLÁN, NEIMPLEMENTOVAT)
 
 > Stav: **návrh k doladění.** Sepsáno session 2026-06-02. Záměr: highliner v horách bez signálu si appku nainstaluje jako PWA a má offline **celou ČR** (podkladová mapa + body highlinů + popupy + časová osa). Nic se zatím nestaví — nejdřív dorozhodnout otevřené body níž.

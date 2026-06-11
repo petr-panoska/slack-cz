@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Feed\FeedFetcherInterface;
+use App\Form\UserForm;
 use App\Repository\HighlineCrossingRepository;
 use App\Repository\HighlinePhotoRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -31,6 +35,28 @@ final class PagesController extends AbstractController
 
         return $this->render('pages/profile.html.twig', [
             'first_crossing_date' => $crossings->findFirstCrossingDate($this->getUser()),
+        ]);
+    }
+
+    #[Route('/profile/edit', name: 'app_profile_edit')]
+    public function editProfile(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $form = $this->createForm(UserForm::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Profil byl uložen.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        return $this->render('pages/profile_edit.html.twig', [
+            'form' => $form,
         ]);
     }
 

@@ -3899,7 +3899,10 @@ a.crossings-line:hover {
 
 .auth-card input[type="email"],
 .auth-card input[type="password"],
-.auth-card input[type="text"] {
+.auth-card input[type="text"],
+.auth-card input[type="number"],
+.auth-card input[type="tel"],
+.auth-card select {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--color-line);
@@ -4055,6 +4058,19 @@ a.crossings-line:hover {
 .profile-actions .btn {
     flex: 1;
     text-align: center;
+}
+
+/* The primary button is an <a> inside .auth-card, where `.auth-card a` would paint it
+   magenta-on-magenta (invisible). Keep its label white. */
+.profile-actions .btn-primary {
+    color: #fff;
+}
+
+/* On the edit form the submit is a <button> that .auth-card forces to width:100%;
+   inside the flex row that breaks the layout. Let flex:1 size it like the cancel link. */
+.profile-actions button[type="submit"] {
+    width: auto;
+    margin-top: 0;
 }
 
 /* ---------- Crossing form (new / edit) ---------- */

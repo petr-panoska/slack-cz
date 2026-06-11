@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upravit profil{% endblock %}
+
+{% block body %}
+    <div class="auth-page profile-page">
+        <div class="auth-card">
+            <h1>Upravit profil</h1>
+
+            {{ form_errors(form) }}
+
+            {{ form_start(form) }}
+                {% for field in [form.nick, form.firstName, form.lastName, form.city, form.birthYear, form.phone] %}
+                    <div class="form-group">
+                        {{ form_label(field) }}
+                        {{ form_widget(field) }}
+                        {{ form_errors(field) }}
+                    </div>
+                {% endfor %}
+
+                <div class="profile-actions">
+                    <button type="submit" class="btn btn-primary">Uložit</button>
+                    <a class="btn btn-ghost" href="{{ path('app_profile') }}">Zrušit</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
