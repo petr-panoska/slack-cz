@@ -4139,6 +4139,18 @@ a.crossings-line:hover {
         "actions actions";
 }
 
+/* On the user's own deník the author name is redundant — drop the user row and
+   left-align the rating. Placed after the actions-row override above so it wins
+   the cascade (same specificity, later source order). */
+.crossings-item-nouser {
+    grid-template-areas:
+        "date    style"
+        "rating  rating"
+        "line    line"
+        "comment comment"
+        "actions actions";
+}
+
 .crossings-actions {
     grid-area: actions;
     display: flex;

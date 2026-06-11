@@ -54,7 +54,7 @@
                 </div>
             </header>
             {% if crossings|length > 0 %}
-                {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: true, show_actions: true }) }}
+                {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: true, show_user: false, show_actions: true }) }}
             {% else %}
                 <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
             {% endif %}

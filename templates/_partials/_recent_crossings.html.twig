@@ -3,19 +3,23 @@
      crossings    – iterable of HighlineCrossing
      layout       – 'panel' (default, vertical list) or 'stripe' (horizontal scroll)
      show_line    – include the highline name (default true). Set false on a highline detail page where it's redundant.
+     show_user    – include the crossing author's name (default true). Set false on a user's own deník where it's redundant.
      show_actions – render edit/delete buttons next to crossings owned by the current user. Set true on the user's own deník. #}
 {% set layout = layout|default('panel') %}
 {% set show_line = show_line ?? true %}
+{% set show_user = show_user ?? true %}
 {% set show_actions = show_actions ?? false %}
 {% if crossings|length > 0 %}
 <ul class="crossings-list crossings-list-{{ layout }}">
     {% for c in crossings %}
-        <li class="crossings-item{% if not show_line %} crossings-item-noline{% endif %}">
+        <li class="crossings-item{% if not show_line %} crossings-item-noline{% endif %}{% if not show_user %} crossings-item-nouser{% endif %}">
             <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
             {% if c.style %}
                 <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
             {% endif %}
-            <a class="crossings-user" href="{{ path('app_user_denik', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
+            {% if show_user %}
+                <a class="crossings-user" href="{{ path('app_user_denik', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
+            {% endif %}
             <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
                 {% if c.rating %}
                     {% for s in 1..5 %}
