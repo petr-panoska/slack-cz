@@ -2,6 +2,12 @@
 
 Otevřené úkoly napříč projektem. Aktualizuj kdykoli zmizí / přibude.
 
+## Deník uživatele
+
+- [ ] **Veřejný rozcestník deníčků `/denicky`** — stránka, kde si kdokoliv prohlídne kdo / kde / kdy chodil (přehled všech uživatelů s prolinkem na jednotlivé `/denik/{id}`).
+- [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`
+- [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
+
 ## Priorita teď — UX přechodů/lajn + obsah ze starého slack.cz
 
 Nejvyšší priorita (sezení 2026-06-12). Cíl: ať je appka pro lajnery co nejjednodušší na používání a ať do ní dostaneme to nejlepší ze starého slack.cz.
@@ -129,11 +135,6 @@ Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý 
   - Default (k potvrzení): doporučovat jen **přihlášení**, nic se nezobrazí **bez schválení adminem**.
 - Technika: **oEmbed** (`youtube.com/oembed?url=…&format=json`) na validaci + metadata (název, autor, náhled) — **0 kvóty, bez klíče**. Nová entita `ContentSuggestion` (user, typ, YT id, metadata, status pending/approved/rejected). Admin moderační fronta (reuse admin patterns).
 - **OTEVŘENÉ (blokuje to):** kde žije seznam zdrojů sekcí — **config (`feed.yaml`) vs DB + admin**. Schválený kanál/playlist by se musel propsat mezi zdroje → tlačí to k DB-backed zdrojům spravovaným v adminu. Nerozhodnuto; tohle je důvod, proč je celá feature odložená.
-
-## Deník uživatele
-
-- [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`
-- [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
 
 ## Cutover legacy slack.cz → nový VPS
 
