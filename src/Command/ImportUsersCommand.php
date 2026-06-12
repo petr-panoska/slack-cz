@@ -21,6 +21,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * - Duplicate emails are merged into a single User: canonical row chosen by rule
  *   (oldest id, except vlkondra@email.cz where id 248 has the only crossing → kept).
  *   Dropped rows' data is preserved in legacyMergedIds + legacyDataSnapshot.
+ * - A few same-person accounts use different emails (SAME_PERSON_MERGES) and are merged
+ *   the same way; their crossings follow automatically via UserMergeMap.
  * - Disabled (enabled=0) users are imported with isActive=false.
  */
 #[AsCommand(
@@ -36,6 +38,18 @@ final class ImportUsersCommand extends Command
      */
     private const CANONICAL_OVERRIDES = [
         'vlkondra@email.cz' => 248, // has 1 crossing from 2014, see docs/migration.md
+    ];
+
+    /**
+     * Manual same-person merges across DIFFERENT emails. The email grouping below can't
+     * catch these (the two rows use different addresses), so we fold the dropped legacy
+     * row into its canonical's group by hand — identical end shape to a duplicate-email
+     * merge (canonical keeps its row; the dropped id lands in legacyMergedIds + snapshot,
+     * and the crossings import remaps it via UserMergeMap).
+     * Map: dropped uzivatel.id => surviving (canonical) uzivatel.id.
+     */
+    private const SAME_PERSON_MERGES = [
+        93 => 878, // Tereza Panochová: disabled "Terka" (93) → active "Terezka Slack" (878). See docs/migration.md.
     ];
 
     public function __construct(
@@ -71,9 +85,17 @@ final class ImportUsersCommand extends Command
         ');
         $io->info(sprintf('Found %d users in legacy DB', count($rows)));
 
+        // Same-person merges across different emails: pull those dropped rows out of the
+        // normal email grouping and stash them under their canonical id (attached below).
+        $samePersonDropped = []; // canonical uzivatel.id => list<dropped row>
+
         // Group rows by lowercased email
         $byEmail = [];
         foreach ($rows as $row) {
+            if (isset(self::SAME_PERSON_MERGES[(int) $row['id']])) {
+                $samePersonDropped[self::SAME_PERSON_MERGES[(int) $row['id']]][] = $row;
+                continue;
+            }
             $email = strtolower(trim($row['email'] ?? ''));
             if ($email === '') {
                 $io->writeln(sprintf('  <comment>[SKIP]</comment> uzivatel#%d "%s" — empty email', $row['id'], $row['nick'] ?? '?'));
@@ -86,16 +108,25 @@ final class ImportUsersCommand extends Command
         $merged = 0;
         $skipped = 0;
         $usedNicks = [];
+        $seenCanonicalIds = [];
 
         foreach ($byEmail as $email => $group) {
             $canonical = $this->pickCanonical($email, $group);
-            $dropped = array_values(array_filter($group, fn ($r) => $r['id'] !== $canonical['id']));
+            $canonicalId = (int) $canonical['id'];
+            $seenCanonicalIds[$canonicalId] = true;
+            $dropped = array_values(array_filter($group, fn ($r) => (int) $r['id'] !== $canonicalId));
 
             // Skip if this canonical was already imported (idempotency without --truncate)
-            $alreadyImported = $this->repository->findOneBy(['legacyId' => (int) $canonical['id']]);
+            $alreadyImported = $this->repository->findOneBy(['legacyId' => $canonicalId]);
             if ($alreadyImported !== null) {
                 $skipped++;
                 continue;
+            }
+
+            // Fold in same-person (cross-email) rows that map onto this canonical.
+            if (isset($samePersonDropped[$canonicalId])) {
+                $dropped = array_merge($dropped, $samePersonDropped[$canonicalId]);
+                unset($samePersonDropped[$canonicalId]);
             }
 
             $nick = $this->resolveNick($canonical['nick'] ?? null, $usedNicks, $io, (int) $canonical['id']);
@@ -136,6 +167,17 @@ final class ImportUsersCommand extends Command
             }
 
             $imported++;
+        }
+
+        // A same-person target still left here = its canonical email row was missing from
+        // legacy data (integrity issue). Already-imported canonicals were seen → silent.
+        foreach (array_keys($samePersonDropped) as $canonicalId) {
+            if (!isset($seenCanonicalIds[$canonicalId])) {
+                $io->writeln(sprintf(
+                    '  <comment>[WARN]</comment> same-person merge target uzivatel#%d not found in legacy data; dropped row(s) not merged',
+                    $canonicalId,
+                ));
+            }
         }
 
         if (!$dryRun) {

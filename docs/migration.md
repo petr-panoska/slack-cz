@@ -80,9 +80,9 @@ Tyhle `highline` sloupce v legacy datech byly, ale v nové app jsou **vypnuté**
 ### ✅ Users — DONE
 
 - Command: `app:import:users`
-- Source: `uzivatel` (447 rows)
+- Source: `uzivatel` (450 rows)
 - Cílová entita: `App\Entity\User` — rozšířená o legacy fieldy (viz níže)
-- Výsledek: **441 / 441 unique-email userů v DB** (440 nově vytvořených + 1 obohacený existující dev účet), **6 dropped legacy řádků mergováno** do 5 canonical účtů (5 duplicitních emailů — 6. duplicita to byly 3 řádky pod jedním emailem). MD5 hesla zachována 1:1, `migrate_from: legacy_md5` přehashuje na bcrypt při prvním přihlášení.
+- Výsledek: **443 User řádků v DB**, **7 legacy řádků mergováno** do canonical účtů: 6 duplicitních-email dropů přes 5 canonical účtů + **1 same-person cross-email merge** (Terka 93 → Terezka Slack 878, viz níž). MD5 hesla zachována 1:1, `migrate_from: legacy_md5` přehashuje na bcrypt při prvním přihlášení.
 
 #### Stav dat v legacy
 
@@ -187,10 +187,39 @@ final summary:
 
 Když uživatel chce někdy v budoucnu duplicitu rozseknout zpátky, snapshot mu to dovolí.
 
+#### Same-person merge (cross-email)
+
+Email-grouping výš spojí jen řádky se **stejným** emailem. Pár účtů ale patří jednomu člověku pod **různými emaily** — ty se grupováním nechytí. Řeší je ruční tabulka `ImportUsersCommand::SAME_PERSON_MERGES` (`dropped uzivatel.id => canonical uzivatel.id`): dropnutý řádek se vytáhne z email-grupování a přilepí do skupiny canonicalu → **identický výstupní tvar jako u email-duplicity** (canonical drží svůj řádek, dropped id padne do `legacyMergedIds` + snapshotu, a přechody se přemapují přes `UserMergeMap`). Canonical = **aktivní** účet (ne nejstarší ID).
+
+Aktuálně:
+
+| Dropped | Canonical (keep) | Kdo | Proč |
+|---|---|---|---|
+| 93 (Terka, disabled) | **878 (Terezka Slack, active)** | Tereza Panochová | Stejný člověk, jiný email. 93 drží 1 přechod (Alter Weg 2011) → po merge visí na aktivním 878. Vyplynulo z `enabled=0` analýzy níž. |
+
 #### Otázky k doptání (Kolouch / vedení CAS)
 
 - `record` role — co to bylo, máme něco zachovat na nové straně?
-- `enabled = 0` u 6 uživatelů — víme proč? mají být v new app login-disabled, nebo úplně skryti?
+- ~~`enabled = 0` u 6 uživatelů~~ — **vyřešeno analýzou 2026-06-12, viz níž** (od Koloucha už nic nezjistíme).
+
+#### enabled=0 — analýza (2026-06-12)
+
+Otázka „login-disabled, nebo úplně skrýt?" je vedle — těch 6 účtů **není smysluplná kategorie reálných userů**. Jsou to test / joke / opuštěné účty, z toho jeden je duplicitní profil aktivního usera. Žádný nemá obsah, který by stál za zobrazení.
+
+| legacy id | nick | kdo | verdikt |
+|---|---|---|---|
+| 93 | Terka | **Tereza Panochová** — duplicitní profil aktivního usera **878 „Terezka Slack"** (stejné jméno, jiný email → email-merge to nechytil). Má 1 přechod (Alter Weg, 2011-11-20, one way). | **Merge 93 → 878** (cross-email, stejný člověk); pak disabled řádek nic unikátního nedrží. |
+| 124 | Cipísek | Joke účet (Cipísek Rumcajsů, rok nar. 1900), 0 aktivity. | junk |
+| 129 | Barčík | Barbora Kašparová — reálně vypadá, ale žádný alt profil, 0 aktivity. | opuštěná / deaktivovaná registrace, není co zobrazit |
+| 845 | Test1 | Testovací účet Vejvise (jmeno „Vejvis", garbage email `asfs@sdfsd.cz`). Reálný účet = legacy **1 Vejvis**. | junk |
+| 869 | jezevec | Test účet Petra Panošky (`panda09823@gmail.com`). Reálný = **868** (Panda → dnes „Kokos"). | junk |
+| 876 | ananas | Druhý test účet Petra Panošky (`petr.panoska@uzis.cz`). Reálný = **868**. | junk |
+
+**Závěr:** `enabled=0` v legacy ≈ „deaktivováno / test junk", ne „reálný user, kterého chceme zobrazit, ale zablokovat mu login". Současný import to mapuje správně (`enabled=0 → isActive=false`, login zakázán). 5 z 6 má 0 přechodů; jediný s daty (93 Terka) je duplicita aktivního účtu a jeho přechod patří na 878.
+
+**Akce:**
+1. ✅ **Merge legacy 93 → 878** (Tereza Panochová) — **hotovo (2026-06-12)**: zařazeno do importu přes `SAME_PERSON_MERGES` (viz „Same-person merge" výš). Při čerstvém importu se 93 nevytvoří jako vlastní User a její přechod (Alter Weg 2011) visí na aktivní 878. Ověřeno scratch importem: 878 má `legacy_merged_ids=[93]` + 2 přechody.
+2. Zbylých 5 nechat `is_active=false` (už jsou). Test / joke / opuštěné, 0 dat — nikde nezobrazovat. Volitelně hard-delete 4 zjevné junk účty (124, 845, 869, 876); neškodí je ale nechat (žádné přechody).
 
 ---
 
