@@ -272,28 +272,20 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 
 ---
 
-### ⏸️ First ascents (`prvni_prechody_hl`) — DEFERRED
+### ❌ First ascents (`prvni_prechody_hl`) — NEIMPORTUJEME (rozhodnuto 2026-06-12)
 
-124 záznamů „prvních přechodů" highline. **Zatím skipujeme.** Doptat se a řešit později.
+124 záznamů „prvních přechodů" highline. **Tabulku importovat nebudeme.**
 
-#### Stav dat (pro budoucí rozhodnutí)
+#### Proč ne
 
-- 124 řádků celkem, roky 2009–2018 (peak 2012–2017)
-- **49 orphans** — `uzivatel_id IS NULL`, jen string `nick` ve sloupci. Pravděpodobně neregistrovaní hosté, kteří chodili lajny, ale nikdy neměli účet.
-- Jedna lajna může mít víc first-ascent záznamů ve stejný den → **týmové prvovýstupy** (např. „Ťuky ťuk" 2012-11-18 má 7 lidí)
-- Styl pole jako u běžných přechodů (`OS fm`, `fm`, `one way`, `OS,fm`, `OS`)
-- Schema: `id`, `nick`, `styl`, `uzivatel_id` (nullable), `highline_id`
+- **Historie už je zachovaná na lajně.** `Highline.firstAscentBy` (z legacy `highline.autor`) + `Highline.firstAscentDate` (z `highline.datum`) se importují u každé lajny — naplněné **225/254 (autor)** a **241/254 (datum)**. To pokrývá „kdo lajnu postavil / poprvé přešel + kdy", což je pro zachování historie dost.
+- **Per-osobní tabulka je bordel a nestojí za vlastní entitu.** 63 lajn / 124 řádků, ~2 na lajnu = **týmové prvovýstupy** (jedna lajna až 8 lidí). Není to čisté „kdo přešel poprvé".
+- **Data jsou nekonzistentní:** 49 orphanů (NULL `uzivatel_id`, jen text); některé řádky mají v jednom `nick` poli **celý tým** (`„Halfi, Lukš, Mišo, Malaf"`, `„Kwjet, Anče, Danny, Luky"`, `„Danny,Saša,Alex,K. Uhlík,Pída"`); stejný člověk je jednou linkovaný, jindy ne (`Lukš` 179 vs 0, `Pida`/`Píďa`). Tabulka nemá ani datum (jen `id, nick, styl, uzivatel_id, highline_id`).
+- Do **deníčkové** appky (osobní zápisy přechodů) se týmový prvovýstup konceptuálně nehodí.
 
-#### Otevřené možnosti pro budoucí migraci
+#### Důsledek
 
-1. **Sloučit s běžnými přechody** — přidat na `HighlineCrossing` flag `isFirstAscent: bool`. Plus pole `legacyGuestNick` pro orphans.
-   - Výhoda: jeden datový model, jednoduchá UI
-   - Nevýhoda: konceptuálně mícháme „přejití lajny" s historickou skutečností „kdo lajnu poprvé přešel"
-2. **Vlastní entita `HighlineFirstAscent`** s ref na Highline + (volitelný) User + datum + styl + free-text nick
-   - Výhoda: jasná sémantika, samostatné UI
-   - Nevýhoda: další tabulka, redundance se přechody (stejný uživatel může mít první přechod a několik dalších)
-
-**Doptat se Koloucha**: jak se na prvovýstupech historicky pohlíželo, mají být zvlášť zviditelněné v UI, nebo to bylo spíš info v deníčku.
+Žádný `app:import:first-ascents`, žádná entita `HighlineFirstAscent`. Kdyby se to někdy chtělo, surová data v legacy zůstávají. Prezentace historie = `firstAscentBy` / `firstAscentDate` na detailu lajny.
 
 ---
 

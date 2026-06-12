@@ -19,17 +19,6 @@ Nejvyšší priorita (sezení 2026-06-12). Cíl: ať je appka pro lajnery co nej
 - [x] Stránka `/intro` vytvořena (route `app_intro` + `templates/pages/intro.html.twig`). Představuje appku, co umí a motivaci vzniku (seed citáty „deníček" + „co po nás zbyde"). **Stranou — zatím nelinkováno z nav.**
 - [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).
 
-## Migrace dat (priority 1)
-
-Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a doptávky na Koloucha.
-
-## Migrace dat (deferred)
-
-- [ ] First ascents (`prvni_prechody_hl`, 124 řádků) — rozhodnout sloučení s běžnými přechody vs vlastní entita; doptat se Koloucha o smyslu / UI prezentaci. 49 orphans (NULL `uzivatel_id` s textovým nickem) potřebují fallback strategii.
-- [x] ~~Doptat se Koloucha co znamená `record` role~~ — **vyřešeno analýzou 2026-06-12**: mrtvý štítek na 1 power-userovi (Danny M.), nic neguard-oval, není rekordman → nic k zachování, `record → ROLE_USER` správně. Detaily v `migration.md` § „`record` role — analýza".
-- [x] ~~Doptat se proč 6 uživatelů má `enabled=0`~~ — **vyřešeno analýzou 2026-06-12** (od Koloucha už nic nezjistíme): test / joke / opuštěné účty, `enabled=0 → isActive=false` je správně. Tabulka + závěr v `migration.md` § „enabled=0 — analýza".
-- [x] **Merge legacy 93 → 878** (Tereza P.) — **hotovo 2026-06-12**: zařazeno do `ImportUsersCommand::SAME_PERSON_MERGES` (cross-email same-person merge). Při čerstvém importu se 93 nevytvoří, její přechod visí na aktivní 878. Ověřeno scratch importem. Detaily v `migration.md` § „Same-person merge".
-
 ## Mapa highlines
 
 - [ ] Filtry na `/mapa` (typ, délka, výška)
@@ -145,13 +134,12 @@ Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý 
 
 - [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`
 - [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
-- [ ] FA badge u přechodu / na profilu, jakmile dořešíme prvopřechody
 
 ## Cutover legacy slack.cz → nový VPS
 
 Detailně v `deploy.md`. Krátce:
 
-- [ ] Doimport legacy dat — chybí first ascents (viz „Migrace dat (deferred)" výš). Sync lokál → beta je hotový (`make syncBetaFromLocal`, viz `deploy.md`).
+- [x] ~~Doimport legacy dat~~ — kompletní. First ascents se neimportují (rozhodnuto, viz „Migrace dat" výš); historie lajn je v `firstAscentBy`/`firstAscentDate`. Sync lokál → beta hotový (`make syncBetaFromLocal`, viz `deploy.md`).
 - [ ] `MAILER_DSN` přes externí SMTP relay (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound. Dokud nejede, fallback: `bin/console app:user:reset-password <email>` (viz `deploy.md` § *Reset hesla / aktivace účtu, když nechodí maily*).
 - [ ] DNS swap: A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only)
 - [ ] Přidat `slack.cz` blok do `infra/Caddyfile` (analogický k `beta.slack.cz`) a `make deployCaddy`
@@ -181,6 +169,7 @@ Detailně v `deploy.md`. Krátce:
 
 ## Dokončené (krátký archiv)
 
+- [x] **Migrace legacy dat — kompletní.** Highlines / users / crossings naimportované; deferred otázky vyřešené (first ascents = neimportovat; `record` role = mrtvý štítek; `enabled=0` = test junk; cross-email merge Terky 93→878). Plný příběh + analýzy v `migration.md`.
 - [x] **Gender kompletně odstraněn** (session 2026-06-12) — pole už nikoho nezajímalo. Vyhozeno z importu (`Gender::fromLegacy()` mapping z `ImportUsersCommand`), smazána `User.gender` property + getter/setter, smazán enum `App\Enum\Gender`, drop-column migrace `Version20260612120000`. Z UI (`UserForm`) bylo pryč už dřív. `migration.md` „Pole k zachování" tabulka aktualizována.
 - [x] **Edit profile** — `/profile/edit` (route `app_profile_edit`, `UserForm`, `templates/pages/profile_edit.html.twig`). Přihlášený user si edituje město, ročník, telefon. Gender z formu vyhozen (kompletní odstranění z kódu řeší sekce „Pohlaví / gender"). Avatar/bio/odkazy zůstávají jako samostatný TODO v „Deník uživatele".
 - [x] **Infra: Caddyfile v repu + drift gate** (session 2026-05-11) — `infra/Caddyfile` jako single source of truth. `scripts/check-caddy.sh` (SSH cat + diff vs repo, exit 1 na drift) + `scripts/deploy-caddy.sh` (scp → `caddy validate` → atomic cp → `systemctl restart caddy` + smoke test). Makefile targety `checkCaddy` + `deployCaddy`; `make deploy` chain-uje `checkServerEnv checkCaddy` jako preflight (fail-fast). CI workflow `.github/workflows/deploy.yml` přidává `Check Caddy config drift` step do preflight jobu. Caddy restart se nikdy nedělá implicitně při code deploy — vlastní rozhodovací bod. Princip uložen do paměti jako [Infra v repu](feedback_infra_in_repo.md).
