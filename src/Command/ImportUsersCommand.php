@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  *
  * - Passwords stay as MD5; on first login Symfony's migrate_from rehashes to bcrypt.
  * - Duplicate emails are merged into a single User: canonical row chosen by rule
- *   (oldest id, except vlkondra@email.cz where id 248 has the only crossing → kept).
+ *   (oldest id, except a few hard-coded winners by id — see CANONICAL_WINNER_IDS).
  *   Dropped rows' data is preserved in legacyMergedIds + legacyDataSnapshot.
  * - A few same-person accounts use different emails (SAME_PERSON_MERGES) and are merged
  *   the same way; their crossings follow automatically via UserMergeMap.
@@ -32,12 +32,12 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 final class ImportUsersCommand extends Command
 {
     /**
-     * Hard-coded canonical winners for known duplicate-email cases.
-     * Map: lowercased email → uzivatel.id that should be kept.
+     * Legacy uzivatel.ids that must win their duplicate-email group (where "oldest id wins"
+     * would be wrong). Keyed by id, not email, to keep personal data out of source.
      * For all other duplicates we fall back to "oldest id wins".
      */
-    private const CANONICAL_OVERRIDES = [
-        'vlkondra@email.cz' => 248, // has 1 crossing from 2014, see docs/migration.md
+    private const CANONICAL_WINNER_IDS = [
+        248, // only account in its duplicate-email group with a crossing (2014). See docs/migration.md.
     ];
 
     /**
@@ -49,7 +49,7 @@ final class ImportUsersCommand extends Command
      * Map: dropped uzivatel.id => surviving (canonical) uzivatel.id.
      */
     private const SAME_PERSON_MERGES = [
-        93 => 878, // Tereza Panochová: disabled "Terka" (93) → active "Terezka Slack" (878). See docs/migration.md.
+        93 => 878, // one person, two emails: disabled legacy account (93) → their active one (878). See docs/migration.md.
     ];
 
     public function __construct(
@@ -111,7 +111,7 @@ final class ImportUsersCommand extends Command
         $seenCanonicalIds = [];
 
         foreach ($byEmail as $email => $group) {
-            $canonical = $this->pickCanonical($email, $group);
+            $canonical = $this->pickCanonical($group);
             $canonicalId = (int) $canonical['id'];
             $seenCanonicalIds[$canonicalId] = true;
             $dropped = array_values(array_filter($group, fn ($r) => (int) $r['id'] !== $canonicalId));
@@ -199,17 +199,14 @@ final class ImportUsersCommand extends Command
      * @param list<array<string, mixed>> $group
      * @return array<string, mixed>
      */
-    private function pickCanonical(string $email, array $group): array
+    private function pickCanonical(array $group): array
     {
         if (count($group) === 1) {
             return $group[0];
         }
-        if (isset(self::CANONICAL_OVERRIDES[$email])) {
-            $wantedId = self::CANONICAL_OVERRIDES[$email];
-            foreach ($group as $row) {
-                if ((int) $row['id'] === $wantedId) {
-                    return $row;
-                }
+        foreach ($group as $row) {
+            if (in_array((int) $row['id'], self::CANONICAL_WINNER_IDS, true)) {
+                return $row;
             }
         }
         // Default: oldest id wins

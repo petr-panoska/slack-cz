@@ -96,7 +96,7 @@ Tyhle `highline` sloupce v legacy datech byly, ale v nové app jsou **vypnuté**
 | Role: `guest` | 438 |
 | Role: `user` | 5 |
 | Role: `admin` | 3 |
-| Role: `record` | 1 (?) |
+| Role: `record` | 1 (Danny M. — mrtvý štítek, viz analýza níž) |
 
 #### Hesla — strategie
 
@@ -147,7 +147,7 @@ Mapping rolí:
 | `guest` | `ROLE_USER` | default |
 | `user` | `ROLE_USER` | (nebo přidat `ROLE_MEMBER` později — neřešit teď) |
 | `admin` | `ROLE_ADMIN` | |
-| `record` | `ROLE_USER` | nejasné co to bylo, doptat se Koloucha |
+| `record` | `ROLE_USER` | mrtvý legacy štítek (1× Danny M.), bez funkce — nic k zachování, viz „`record` role — analýza" |
 
 #### Duplicitní emaily — MERGE
 
@@ -157,11 +157,11 @@ Aktuálně 6 duplicit:
 
 | Email | Keep | Drop | Důvod výběru |
 |---|---|---|---|
-| `jackob008@seznam.cz` | 156 (Komi) | 157 (Kuba) | nejstarší ID |
-| `jurajsovcik@post.sk` | 146 (shovky) | 147 (ďuroSR) | nejstarší ID |
-| `LidaSmutkova@seznam.cz` | 452 (Lili) | 455 (Lilli87) | nejstarší ID |
-| `pepaanek@gmail.com` | 128 (Pepanek) | 197 (Pepek) | nejstarší ID |
-| `vlkondra@email.cz` | **248 (Vlčák)** | 213, 848 | **má 1 přechod (2014) — držíme aktivní účet** |
+| `j***@***m.cz` | 156 (Komi) | 157 (Kuba) | nejstarší ID |
+| `j***@***t.sk` | 146 (shovky) | 147 (ďuroSR) | nejstarší ID |
+| `L***@***m.cz` | 452 (Lili) | 455 (Lilli87) | nejstarší ID |
+| `p***@***l.com` | 128 (Pepanek) | 197 (Pepek) | nejstarší ID |
+| `v***@***l.cz` | **248 (Vlčák)** | 213, 848 | **má 1 přechod (2014) — držíme aktivní účet** |
 
 **Mechanismus zachování dat:**
 
@@ -175,7 +175,7 @@ Algoritmus importu:
 ```
 for each unique email in uzivatel:
     rows = all uzivatel rows with this email
-    canonical = pick by rule (default: oldest id; výjimka u vlkondra)
+    canonical = pick by rule (default: oldest id; výjimka u účtu 248)
     for each dropped row:
         log [MERGE] dropped uzivatel#X into uzivatel#Y (email "Z")
     create User with legacyId=canonical.id, legacyMergedIds=[dropped ids],
@@ -195,11 +195,11 @@ Aktuálně:
 
 | Dropped | Canonical (keep) | Kdo | Proč |
 |---|---|---|---|
-| 93 (Terka, disabled) | **878 (Terezka Slack, active)** | Tereza Panochová | Stejný člověk, jiný email. 93 drží 1 přechod (Alter Weg 2011) → po merge visí na aktivním 878. Vyplynulo z `enabled=0` analýzy níž. |
+| 93 (Terka, disabled) | **878 (Terezka Slack, active)** | Tereza P. | Stejný člověk, jiný email. 93 drží 1 přechod (Alter Weg 2011) → po merge visí na aktivním 878. Vyplynulo z `enabled=0` analýzy níž. |
 
 #### Otázky k doptání (Kolouch / vedení CAS)
 
-- `record` role — co to bylo, máme něco zachovat na nové straně?
+- ~~`record` role — co to bylo, máme něco zachovat?~~ — **vyřešeno analýzou 2026-06-12, viz níž** (od Koloucha už nic nezjistíme).
 - ~~`enabled = 0` u 6 uživatelů~~ — **vyřešeno analýzou 2026-06-12, viz níž** (od Koloucha už nic nezjistíme).
 
 #### enabled=0 — analýza (2026-06-12)
@@ -208,17 +208,23 @@ Otázka „login-disabled, nebo úplně skrýt?" je vedle — těch 6 účtů **
 
 | legacy id | nick | kdo | verdikt |
 |---|---|---|---|
-| 93 | Terka | **Tereza Panochová** — duplicitní profil aktivního usera **878 „Terezka Slack"** (stejné jméno, jiný email → email-merge to nechytil). Má 1 přechod (Alter Weg, 2011-11-20, one way). | **Merge 93 → 878** (cross-email, stejný člověk); pak disabled řádek nic unikátního nedrží. |
+| 93 | Terka | **Tereza P.** — duplicitní profil aktivního usera **878 „Terezka Slack"** (stejné jméno, jiný email → email-merge to nechytil). Má 1 přechod (Alter Weg, 2011-11-20, one way). | **Merge 93 → 878** (cross-email, stejný člověk); pak disabled řádek nic unikátního nedrží. |
 | 124 | Cipísek | Joke účet (Cipísek Rumcajsů, rok nar. 1900), 0 aktivity. | junk |
-| 129 | Barčík | Barbora Kašparová — reálně vypadá, ale žádný alt profil, 0 aktivity. | opuštěná / deaktivovaná registrace, není co zobrazit |
-| 845 | Test1 | Testovací účet Vejvise (jmeno „Vejvis", garbage email `asfs@sdfsd.cz`). Reálný účet = legacy **1 Vejvis**. | junk |
-| 869 | jezevec | Test účet Petra Panošky (`panda09823@gmail.com`). Reálný = **868** (Panda → dnes „Kokos"). | junk |
-| 876 | ananas | Druhý test účet Petra Panošky (`petr.panoska@uzis.cz`). Reálný = **868**. | junk |
+| 129 | Barčík | Barbora K. — reálně vypadá, ale žádný alt profil, 0 aktivity. | opuštěná / deaktivovaná registrace, není co zobrazit |
+| 845 | Test1 | Testovací účet Vejvise (jmeno „Vejvis", garbage email `a***@***d.cz`). Reálný účet = legacy **1 Vejvis**. | junk |
+| 869 | jezevec | Test účet Petra P. (`p***@***l.com`). Reálný = **868** (Panda → dnes „Kokos"). | junk |
+| 876 | ananas | Druhý test účet Petra P. (`p***@***s.cz`). Reálný = **868**. | junk |
 
 **Závěr:** `enabled=0` v legacy ≈ „deaktivováno / test junk", ne „reálný user, kterého chceme zobrazit, ale zablokovat mu login". Současný import to mapuje správně (`enabled=0 → isActive=false`, login zakázán). 5 z 6 má 0 přechodů; jediný s daty (93 Terka) je duplicita aktivního účtu a jeho přechod patří na 878.
 
+#### `record` role — analýza (2026-06-12)
+
+Jediný nositel: **Danny M.** (id 149, Praha, aktivní — 49 přechodů, 5 prvovýstupů, vlastní 11 highlinů). Role **nic neguard-ovala**: zakládání lajn bylo otevřené všem (191 z 254 highlinů vlastní guests, ne admini/record). A Danny **není ani rekordman** — přechody #5 (49 vs. Peeto 78), prvovýstupy ~#5 (5 vs. Lukš 9), nejdelší přešlá lajna 102 m (celkový max je 230 m). „record" je tak **mrtvý štítek** na jednom power-userovi, bez dochovaného významu a bez navázané funkce.
+
+**Závěr: není co zachovat.** Dannyho data (přechody, prvovýstupy, highliny) se importují normálně bez ohledu na roli. Mapování `record → ROLE_USER` je správné — je to běžný (aktivní) user. (Sedí i s filozofií appky: rekordy/žebříčky neřešíme.)
+
 **Akce:**
-1. ✅ **Merge legacy 93 → 878** (Tereza Panochová) — **hotovo (2026-06-12)**: zařazeno do importu přes `SAME_PERSON_MERGES` (viz „Same-person merge" výš). Při čerstvém importu se 93 nevytvoří jako vlastní User a její přechod (Alter Weg 2011) visí na aktivní 878. Ověřeno scratch importem: 878 má `legacy_merged_ids=[93]` + 2 přechody.
+1. ✅ **Merge legacy 93 → 878** (Tereza P.) — **hotovo (2026-06-12)**: zařazeno do importu přes `SAME_PERSON_MERGES` (viz „Same-person merge" výš). Při čerstvém importu se 93 nevytvoří jako vlastní User a její přechod (Alter Weg 2011) visí na aktivní 878. Ověřeno scratch importem: 878 má `legacy_merged_ids=[93]` + 2 přechody.
 2. Zbylých 5 nechat `is_active=false` (už jsou). Test / joke / opuštěné, 0 dat — nikde nezobrazovat. Volitelně hard-delete 4 zjevné junk účty (124, 845, 869, 876); neškodí je ale nechat (žádné přechody).
 
 ---

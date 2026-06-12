@@ -136,7 +136,7 @@ docker compose exec -T php bin/console app:admin:grant <email>
 docker compose exec -T php bin/console app:admin:grant <email> --revoke
 ```
 
-Aktuální admin: `panda09823@gmail.com` (ID 251).
+Aktuální admin: `p***@***l.com` (ID 251).
 
 `ROLE_ADMIN` automaticky implikuje `ROLE_USER` (Symfony role hierarchy default). V `User::getRoles()` se ROLE_USER připíše vždy navíc.
 

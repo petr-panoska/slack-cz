@@ -26,9 +26,9 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 ## Migrace dat (deferred)
 
 - [ ] First ascents (`prvni_prechody_hl`, 124 řádků) — rozhodnout sloučení s běžnými přechody vs vlastní entita; doptat se Koloucha o smyslu / UI prezentaci. 49 orphans (NULL `uzivatel_id` s textovým nickem) potřebují fallback strategii.
-- [ ] Doptat se Koloucha co znamená `record` role (1 uživatel) — máme něco zachovat?
+- [x] ~~Doptat se Koloucha co znamená `record` role~~ — **vyřešeno analýzou 2026-06-12**: mrtvý štítek na 1 power-userovi (Danny M.), nic neguard-oval, není rekordman → nic k zachování, `record → ROLE_USER` správně. Detaily v `migration.md` § „`record` role — analýza".
 - [x] ~~Doptat se proč 6 uživatelů má `enabled=0`~~ — **vyřešeno analýzou 2026-06-12** (od Koloucha už nic nezjistíme): test / joke / opuštěné účty, `enabled=0 → isActive=false` je správně. Tabulka + závěr v `migration.md` § „enabled=0 — analýza".
-- [x] **Merge legacy 93 → 878** (Tereza Panochová) — **hotovo 2026-06-12**: zařazeno do `ImportUsersCommand::SAME_PERSON_MERGES` (cross-email same-person merge). Při čerstvém importu se 93 nevytvoří, její přechod visí na aktivní 878. Ověřeno scratch importem. Detaily v `migration.md` § „Same-person merge".
+- [x] **Merge legacy 93 → 878** (Tereza P.) — **hotovo 2026-06-12**: zařazeno do `ImportUsersCommand::SAME_PERSON_MERGES` (cross-email same-person merge). Při čerstvém importu se 93 nevytvoří, její přechod visí na aktivní 878. Ověřeno scratch importem. Detaily v `migration.md` § „Same-person merge".
 
 ## Mapa highlines
 
