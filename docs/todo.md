@@ -2,6 +2,23 @@
 
 Otevřené úkoly napříč projektem. Aktualizuj kdykoli zmizí / přibude.
 
+## Priorita teď — UX přechodů/lajn + obsah ze starého slack.cz
+
+Nejvyšší priorita (sezení 2026-06-12). Cíl: ať je appka pro lajnery co nejjednodušší na používání a ať do ní dostaneme to nejlepší ze starého slack.cz.
+
+### UX — co nejjednodušší pro lajnery
+- [ ] **Smooth highline edit flow** — když chce user aktualizovat info o lajně, ať je to co nejjednodušší (minimum kroků, žádné tření). Projít celý edit flow lajny a vyhladit ho.
+- [ ] **Smooth zadávání přechodu** — stejný princip pro přidání přechodu lajny: co nejmíň klikání, rychlé zapsání zážitku.
+
+### Obsah ze starého slack.cz (nasát + archivovat)
+- [ ] **Archiv článků** — nasosat texty/články z původního slack.cz a udělat z nich archiv v nové appce.
+- [ ] **slackTV — content z old slack.cz** — nasát videa/odkazy ze starého webu do slackTV.
+- [ ] **Nové fotky** — z původního slack.cz máme hodně low-quality fotek, potřebujeme nové. Bude to asi hlavní výzva pro **Intro stránku** (`/intro`, viz níž).
+
+### Intro stránka
+- [x] Stránka `/intro` vytvořena (route `app_intro` + `templates/pages/intro.html.twig`). Představuje appku, co umí a motivaci vzniku (seed citáty „deníček" + „co po nás zbyde"). **Stranou — zatím nelinkováno z nav.**
+- [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).
+
 ## Migrace dat (priority 1)
 
 Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a doptávky na Koloucha.
@@ -145,9 +162,7 @@ Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý 
 
 - [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`
 - [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
-- [ ] „Síň slávy" / žebříček uživatelů (nejvíc přechodů, nejdelší lajna) — nový index na `/denicky`
 - [ ] FA badge u přechodu / na profilu, jakmile dořešíme prvopřechody
-- [ ] Edit profile (po přihlášení) — město, ročník, telefon, gender
 
 ## Cutover legacy slack.cz → nový VPS
 
@@ -183,6 +198,7 @@ Detailně v `deploy.md`. Krátce:
 
 ## Dokončené (krátký archiv)
 
+- [x] **Edit profile** — `/profile/edit` (route `app_profile_edit`, `UserForm`, `templates/pages/profile_edit.html.twig`). Přihlášený user si edituje město, ročník, telefon. Gender z formu vyhozen (kompletní odstranění z kódu řeší sekce „Pohlaví / gender"). Avatar/bio/odkazy zůstávají jako samostatný TODO v „Deník uživatele".
 - [x] **Infra: Caddyfile v repu + drift gate** (session 2026-05-11) — `infra/Caddyfile` jako single source of truth. `scripts/check-caddy.sh` (SSH cat + diff vs repo, exit 1 na drift) + `scripts/deploy-caddy.sh` (scp → `caddy validate` → atomic cp → `systemctl restart caddy` + smoke test). Makefile targety `checkCaddy` + `deployCaddy`; `make deploy` chain-uje `checkServerEnv checkCaddy` jako preflight (fail-fast). CI workflow `.github/workflows/deploy.yml` přidává `Check Caddy config drift` step do preflight jobu. Caddy restart se nikdy nedělá implicitně při code deploy — vlastní rozhodovací bod. Princip uložen do paměti jako [Infra v repu](feedback_infra_in_repo.md).
 - [x] **Galerie sociální vrstva + AJAX likes** (session 2026-05-11) — `HighlinePhotoLike` (UNIQUE photo+user) + `HighlinePhotoComment` (flat, plain-text, owner/admin delete). Per-photo detail page `/highline/{slug}/fotky/{id}` s like-toggle, prev/next nav, plain-text komentáři. Grid v `_highline_gallery.html.twig` přepsán: thumbnaily linkují na detail, overlay badges (❤ count, 💬 count). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked (sjednocený SQL přes Postgres `ORDER BY RANDOM()`). Like button neredirectuje — Stimulus `photo_like_controller.js` intercept-uje submit, POST s `Accept: application/json`, endpoint vrací `{liked, count}` JSON, controller updatuje UI bez reloadu. Graceful degradation: při fetch failu padá zpět na nativní form submit. Cover stránky highline je zatím **čistě legacy URL** (`highline.legacyCoverUrl`) — fotky z galerie do coveru nemícháme, vyřeší se později. Manuální cover-promote endpoint + `Highline.coverPhoto` field zahozeny v rámci stejné session. Migrace `Version20260511134125`.
 - [x] **Audit historie + stack-pop curation + verifikační merge** (session 2026-05-10) — `/highline/{slug}/historie` veřejný view nad `HighlineEdit` rows. Každá řádka má **vlastní `beforeSnapshot`** (migrace `Version20260510185639` + backfill), takže diff je nezávislý na sousedech a nikdy se nepropisují změny ze smazaných řádků. Admin tlačítko **„Smazat poslední revizi"** (červené, stack-pop) — fyzicky odstraní jen chronologicky poslední row + zavolá `applySnapshot(newLatestApplied)` na entitu, takže audit log je zdroj pravdy stavu lajny. První záznam smazat nelze. Při `verify` se celá dosavadní historie sloučí do jediné nové APPLIED creation revize (preserves `createdBy`, admin = reviewer) — odstraňuje konflikt mezi unverified rename historií a po-verifikaci zamknutým slugem. Creation row v UI ukazuje plnou tabulku Pole / Hodnota ze snapshot-u, ne prázdný „žádný diff". No-op submit (žádné změny) audit row vůbec nezapisuje. Maintenance command `app:edit:sync-from-history` opravil drift z předchozích deletů. Detaily v `docs/highline-edits.md`.

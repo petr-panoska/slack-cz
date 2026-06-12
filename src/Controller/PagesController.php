@@ -65,4 +65,11 @@ final class PagesController extends AbstractController
     {
         return $this->render('pages/about.html.twig');
     }
+
+    // Stranou, zatím nelinkováno z nav — později se rozhodne, jak ji ukázat uživatelům.
+    #[Route('/intro', name: 'app_intro')]
+    public function intro(): Response
+    {
+        return $this->render('pages/intro.html.twig');
+    }
 }
