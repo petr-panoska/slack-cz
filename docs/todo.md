@@ -38,24 +38,6 @@ Hotovo — viz archiv níž. Otevřená pouze deferred práce (first ascents) a 
 - [ ] Foto galerie — legacy import `highline_foto` + `highline_media` (sociální vrstva hotová, viz „Foto galerie" sekce dál).
 - [ ] „Přidat lajnu" CTA klikem na mapu (currently jen v hlavičce + ručně nastavené GPS) — z `/mapa` klik na prázdné místo by měl rovnou předvyplnit Bod 1
 
-## Lokalita / oblast (vypnuto, deferred)
-
-- Legacy pole `stat` (země), `kraj` (region) a `oblast` byla v původních datech, ale v nové app jsou **vypnutá** — zahozená z formuláře, detailu i importu. Sloupce `country` / `region` / `area` v DB zůstaly (kvůli auditu/snapshotům), jen se neplní ani nezobrazují.
-- **Země a kraj** jdou dopočítat z GPS (reverse-geocoding) → není nutné je držet ručně.
-- **`oblast`** byl ale konkrétní lokální název (Ostrov, Adršpach, Tisá, Divoká Šárka…), jemnější než vesnice a z GPS reverse-geocodingu ho spolehlivě nedostaneš. **Časem dodělat** — buď vlastní pole „Oblast", nebo odvodit z GPS + ruční korekce.
-
-## Kotvení - typ (vypnuto)
-
-- Legacy `kotveni` (číselné kódy 1/2/3 a kombinace `13`, `23`, `123`…) bez dochované lookup tabulky → pole „Typ kotvení" (`anchoring`) bylo **zahozeno** z formuláře, detailu i importu. Sloupec v DB ponechán. Pokud se význam kódů někdy dohledá, šlo by je namapovat na čitelný popis a pole vrátit.
-
-## Pohlaví / gender (zahodit kompletně)
-
-- Pole **gender už nikoho nezajímá** — vyhozeno z profilového edit formu (`UserForm`). Dořešit **kompletní odstranění**:
-  - [ ] Přestat ho importovat — vyhodit `Gender::fromLegacy()` mapping z `ImportUsersCommand` (legacy hodnotu zahodit, neimportovat).
-  - [ ] Smazat sloupec `gender` z `User` entity + migrace (drop column).
-  - [ ] Smazat `App\Enum\Gender` (po odstranění z entity i importu už nebude mít použití).
-- Pozn.: zatím jen vyhozeno z UI; sloupec + enum v kódu pořád jsou, drží legacy data. Tohle je úklid „až bude čas".
-
 ## Offline PWA — highline mapa v terénu (PLÁN, NEIMPLEMENTOVAT)
 
 > Stav: **návrh k doladění.** Sepsáno session 2026-06-02. Záměr: highliner v horách bez signálu si appku nainstaluje jako PWA a má offline **celou ČR** (podkladová mapa + body highlinů + popupy + časová osa). Nic se zatím nestaví — nejdřív dorozhodnout otevřené body níž.
@@ -198,6 +180,7 @@ Detailně v `deploy.md`. Krátce:
 
 ## Dokončené (krátký archiv)
 
+- [x] **Gender kompletně odstraněn** (session 2026-06-12) — pole už nikoho nezajímalo. Vyhozeno z importu (`Gender::fromLegacy()` mapping z `ImportUsersCommand`), smazána `User.gender` property + getter/setter, smazán enum `App\Enum\Gender`, drop-column migrace `Version20260612120000`. Z UI (`UserForm`) bylo pryč už dřív. `migration.md` „Pole k zachování" tabulka aktualizována.
 - [x] **Edit profile** — `/profile/edit` (route `app_profile_edit`, `UserForm`, `templates/pages/profile_edit.html.twig`). Přihlášený user si edituje město, ročník, telefon. Gender z formu vyhozen (kompletní odstranění z kódu řeší sekce „Pohlaví / gender"). Avatar/bio/odkazy zůstávají jako samostatný TODO v „Deník uživatele".
 - [x] **Infra: Caddyfile v repu + drift gate** (session 2026-05-11) — `infra/Caddyfile` jako single source of truth. `scripts/check-caddy.sh` (SSH cat + diff vs repo, exit 1 na drift) + `scripts/deploy-caddy.sh` (scp → `caddy validate` → atomic cp → `systemctl restart caddy` + smoke test). Makefile targety `checkCaddy` + `deployCaddy`; `make deploy` chain-uje `checkServerEnv checkCaddy` jako preflight (fail-fast). CI workflow `.github/workflows/deploy.yml` přidává `Check Caddy config drift` step do preflight jobu. Caddy restart se nikdy nedělá implicitně při code deploy — vlastní rozhodovací bod. Princip uložen do paměti jako [Infra v repu](feedback_infra_in_repo.md).
 - [x] **Galerie sociální vrstva + AJAX likes** (session 2026-05-11) — `HighlinePhotoLike` (UNIQUE photo+user) + `HighlinePhotoComment` (flat, plain-text, owner/admin delete). Per-photo detail page `/highline/{slug}/fotky/{id}` s like-toggle, prev/next nav, plain-text komentáři. Grid v `_highline_gallery.html.twig` přepsán: thumbnaily linkují na detail, overlay badges (❤ count, 💬 count). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked (sjednocený SQL přes Postgres `ORDER BY RANDOM()`). Like button neredirectuje — Stimulus `photo_like_controller.js` intercept-uje submit, POST s `Accept: application/json`, endpoint vrací `{liked, count}` JSON, controller updatuje UI bez reloadu. Graceful degradation: při fetch failu padá zpět na nativní form submit. Cover stránky highline je zatím **čistě legacy URL** (`highline.legacyCoverUrl`) — fotky z galerie do coveru nemícháme, vyřeší se později. Manuální cover-promote endpoint + `Highline.coverPhoto` field zahozeny v rámci stejné session. Migrace `Version20260511134125`.

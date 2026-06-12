@@ -3,7 +3,6 @@
 namespace App\Command;
 
 use App\Entity\User;
-use App\Enum\Gender;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -111,7 +110,6 @@ final class ImportUsersCommand extends Command
             $user->setCity($this->trimOrNull($canonical['mesto'] ?? null));
             $user->setBirthYear($canonical['rok_nar'] !== null ? (int) $canonical['rok_nar'] : null);
             $user->setPhone($this->trimOrNull($canonical['telefon'] ?? null));
-            $user->setGender(Gender::fromLegacy($canonical['pohlavi'] ?? null));
             $user->setRoles($this->mapRoles((string) ($canonical['role'] ?? 'guest')));
             $user->setIsActive((int) $canonical['enabled'] === 1);
             $user->setIsVerified(true); // legacy users are considered verified

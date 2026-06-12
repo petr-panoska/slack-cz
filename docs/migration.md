@@ -64,6 +64,19 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 
 - **Foto galerie** (`highline_foto`, `highline_media`) — celé skipnuté. Cover photo se zatím tahá z legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`. Plán: PR2 = own foto galerie + likes/komentáře, viz `todo.md`.
 
+#### Vypnutá legacy pole (lokalita + kotvení)
+
+Tyhle `highline` sloupce v legacy datech byly, ale v nové app jsou **vypnuté** — zahozené z formuláře, detailu i importu. Sloupce v DB zůstaly (kvůli auditu/snapshotům), jen se neplní ani nezobrazují.
+
+**Lokalita / oblast** (`stat` → `country`, `kraj` → `region`, `oblast` → `area`)
+
+- **Země a kraj** jdou dopočítat z GPS (reverse-geocoding) → není nutné je držet ručně.
+- **`oblast`** byl ale konkrétní lokální název (Ostrov, Adršpach, Tisá, Divoká Šárka…), jemnější než vesnice a z GPS reverse-geocodingu ho spolehlivě nedostaneš. **Časem dodělat** — buď vlastní pole „Oblast", nebo odvodit z GPS + ruční korekce.
+
+**Typ kotvení** (`kotveni` → `anchoring`)
+
+- Legacy `kotveni` byly číselné kódy (1/2/3 a kombinace `13`, `23`, `123`…) **bez dochované lookup tabulky** → pole „Typ kotvení" zahozeno z formuláře, detailu i importu. Sloupec v DB ponechán. Pokud se význam kódů někdy dohledá, šlo by je namapovat na čitelný popis a pole vrátit.
+
 ### ✅ Users — DONE
 
 - Command: `app:import:users`
@@ -123,7 +136,7 @@ User entitu rozšíříme o:
 | `mesto` | `city` | nullable string 50 |
 | `rok_nar` | `birthYear` | nullable int |
 | `telefon` | `phone` | nullable string 30 |
-| `pohlavi` | `gender` | nullable enum (M/F/—) |
+| `pohlavi` | ~~`gender`~~ | **zahozeno 2026-06-12** — gender kompletně odstraněn (sloupec, enum `App\Enum\Gender`, import). Už se neimportuje. |
 | `role` | `roles` | mapping níže |
 | `enabled` | `isVerified` + nějaký `isActive` | enabled=0 → isActive=false (login zakázaný), ale data zachováme |
 

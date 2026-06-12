@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Enum\Gender;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -60,9 +59,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $phone = null;
-
-    #[ORM\Column(length: 1, nullable: true, enumType: Gender::class)]
-    private ?Gender $gender = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $legacyId = null;
@@ -245,17 +241,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
-        return $this;
-    }
-
-    public function getGender(): ?Gender
-    {
-        return $this->gender;
-    }
-
-    public function setGender(?Gender $gender): static
-    {
-        $this->gender = $gender;
         return $this;
     }
 
