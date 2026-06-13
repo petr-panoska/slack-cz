@@ -21,8 +21,9 @@ docker compose exec php bin/console doctrine:database:drop --force --if-exists
 docker compose exec php bin/console doctrine:database:create
 docker compose exec php bin/console doctrine:migrations:migrate --no-interaction
 docker compose exec php bin/console app:import:highlines --truncate
-docker compose exec php bin/console app:import:users     --truncate
-docker compose exec php bin/console app:import:crossings --truncate
+docker compose exec php bin/console app:import:users --truncate
+docker compose exec php bin/console app:import:highline-crossings --truncate
+docker compose exec php bin/console app:import:longline-crossings --truncate
 ```
 
 ## Princip 2 — exception reporting
@@ -231,7 +232,7 @@ Jediný nositel: **Danny M.** (id 149, Praha, aktivní — 49 přechodů, 5 prvo
 
 ### ✅ Highline crossings (přechody) — DONE
 
-- Command: `app:import:crossings`
+- Command: `app:import:highline-crossings`
 - Source: `highline_prechody` (995 rows)
 - Cílová entita: `App\Entity\HighlineCrossing`
 - Výsledek: **993 / 995 přechodů importováno**, 2 skipy kvůli neplatnému `0000-00-00` datu
@@ -248,7 +249,7 @@ class HighlineCrossing
     private Highline $highline;     // ManyToOne, not nullable
     private User $user;             // ManyToOne, not nullable (po user merge → vždy canonical)
     private \DateTimeImmutable $crossedAt;             // date_immutable (jen datum, ne čas)
-    private ?HighlineCrossingStyle $style = null;       // enum string col length 20, viz crossing-styles.md
+    private ?CrossingStyle $style = null;       // enum string col length 20, viz crossing-styles.md
     private ?int $rating = null;                        // 1–5
     private ?string $comment = null;                    // text (legacy bylo 100 — text dává rezervu)
     private ?int $legacyId = null;                      // nullable, lookup index pro --truncate idempotenci
@@ -263,12 +264,50 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 #### Závislosti
 
 - Vyžaduje, aby běžel **po** `app:import:users` (kvůli FK `User`)
-- Sdílí službu `App\Legacy\UserMergeMap` — singleton, kterou plní `app:import:users` (kept canonical + dropped → kept) a čte `app:import:crossings` přes `userMergeMap->find($legacyUzivatelId)`. Tím se přechody pod dropped emailem automaticky napárují na canonical User.
+- Sdílí službu `App\Legacy\UserMergeMap` — singleton, kterou plní `app:import:users` (kept canonical + dropped → kept) a čte `app:import:highline-crossings` přes `userMergeMap->find($legacyUzivatelId)`. Tím se přechody pod dropped emailem automaticky napárují na canonical User.
 
 #### Co NEbude v MVP
 
 - Žádný ORM mapping pro legacy přechody — čteme přes DBAL `old` connection.
 - Žádné UI pro přidávání přechodů přes nové appce. To řešíme později.
+
+---
+
+### ✅ Longline crossings (longline deník) — DONE (2026-06-13)
+
+- Command: `app:import:longline-crossings`
+- Source: `longline` (435 rows)
+- Cílová entita: `App\Entity\LonglineCrossing`
+- Výsledek: **414 / 435 importováno**, 21 skipů kvůli neplatnému `0000-00-00` datu
+- **Žádná lajna / GPS** — longline se nezapisuje k highline, `place` (legacy `misto`) je volný text. Proto vlastní entita, ne `HighlineCrossing`.
+
+Schema (implementováno v `App\Entity\LonglineCrossing`):
+
+```php
+class LonglineCrossing
+{
+    private ?int $id = null;
+    private User $user;                          // ManyToOne, not nullable (po user merge → canonical)
+    private \DateTimeImmutable $crossedAt;       // date_immutable (legacy `datum`)
+    private int $length;                         // metry (legacy `delka`)
+    private string $place;                       // legacy `misto` (varchar 30 → 120), volný text
+    private ?CrossingStyle $style = null;        // sdílený enum s highline, viz níž
+    private ?string $comment = null;             // nově (legacy nemá), pro nové zápisy v appce
+    private ?int $legacyId = null;               // lookup index pro --truncate idempotenci
+    private \DateTimeImmutable $createdAt;
+}
+```
+
+Index `idx_longline_crossed_at` na `crossedAt`.
+
+#### Mapování stylů — sdílený enum `App\Enum\CrossingStyle`
+
+Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS fm`, `fm`, `OS`, `OS, fm`, `one w`), mapuje ho **stejné `CrossingStyle::fromLegacy()`** (doplněn alias `one w → OW`). Import nepotkal žádný neznámý styl. Leash-only styly (`swami`/`solo`/`kotník`) v longline datech nejsou a v UI pickeru se filtrují přes `CrossingStyle::appliesToLongline()`. (Kvůli tomuhle sdílení byl `HighlineCrossingStyle` přejmenován na `CrossingStyle`.)
+
+#### Závislosti
+
+- Vyžaduje, aby běžel **po** `app:import:users` (kvůli FK `User`)
+- Sdílí `App\Legacy\UserMergeMap` stejně jako crossings import (`userMergeMap->find($legacyUzivatel)`)
 
 ---
 
@@ -291,7 +330,7 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 
 ### ⏭️ Mimo scope
 
-- **Longline crossings** — uživatel řekl explicitně neresit
+- ~~**Longline crossings**~~ — **HOTOVO 2026-06-13**, viz sekce „Longline crossings" výš
 - **`highline_prechody_n`** — 0 řádků v legacy, ignorujeme
 - **`bany`, `forum`, `kalendar`, `clanky`, `clanky_koment`, `eshopBanners`, `event`, `kategorie_rs`, `krouzky`, `media_o_nas`, `novinky`, `objednavky`, `products`, `videa`, `fotolive`, `slack_*`** — všechny ostatní legacy tabulky zatím mimo plán importu
 
@@ -310,7 +349,8 @@ make legacyImport
 ```bash
 docker compose exec -T php bin/console app:import:highlines --truncate
 docker compose exec -T php bin/console app:import:users --truncate
-docker compose exec -T php bin/console app:import:crossings --truncate
+docker compose exec -T php bin/console app:import:highline-crossings --truncate
+docker compose exec -T php bin/console app:import:longline-crossings --truncate
 ```
 
 Zopakování od nuly = ruční reset DB před tím (a pokud je legacy MySQL prázdná, nejdřív `make loadLegacyDump`):

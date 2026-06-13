@@ -3,12 +3,14 @@
 namespace App\Enum;
 
 /**
- * Highline crossing styles. See docs/crossing-styles.md for definitions.
+ * Crossing styles, shared by highline and longline deníky. See
+ * docs/crossing-styles.md for definitions. SWAMI / SOLO / KOTNIK are
+ * leash/protection styles that only apply to highline — see appliesToLongline().
  *
  * Important: OS_FM and OS_THEN_FM are different things — `OS, FM` (with comma)
  * means one direction OS, the other FM (clean but not first try). Don't merge them.
  */
-enum HighlineCrossingStyle: string
+enum CrossingStyle: string
 {
     case OS_FM = 'os_fm';
     case OS_THEN_FM = 'os_fm_split';
@@ -36,6 +38,17 @@ enum HighlineCrossingStyle: string
     }
 
     /**
+     * Whether this style makes sense for a longline (the /denik longline tab
+     * reuses this enum). SWAMI / SOLO / KOTNIK describe the leash / protection,
+     * which only highlines have — so they're highline-only and excluded from the
+     * longline style picker.
+     */
+    public function appliesToLongline(): bool
+    {
+        return !in_array($this, [self::SWAMI, self::SOLO, self::KOTNIK], true);
+    }
+
+    /**
      * Map a legacy `styl` text to an enum case (or null for empty/unknown).
      */
     public static function fromLegacy(?string $value): ?self
@@ -52,7 +65,7 @@ enum HighlineCrossingStyle: string
             'os, fm' => self::OS_THEN_FM,
             'os' => self::OS,
             'fm' => self::FM,
-            'one way', 'ow' => self::OW,
+            'one way', 'one w', 'ow' => self::OW,
             'af' => self::AF,
             'swami' => self::SWAMI,
             'solo' => self::SOLO,

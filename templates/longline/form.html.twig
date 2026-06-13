@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }} – slack.cz{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="auth-card crossing-form-card">
+        <a class="hl-back" href="{{ path('app_user_denik', { id: longline.user.id }) }}#longline">← Longline deník</a>
+        <h1>{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }}</h1>
+
+        {{ form_errors(form) }}
+
+        {{ form_start(form, { attr: { 'data-turbo': 'false' } }) }}
+            <div class="form-group">
+                {{ form_label(form.crossedAt) }}
+                {{ form_widget(form.crossedAt) }}
+                {{ form_errors(form.crossedAt) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.length) }}
+                {{ form_widget(form.length) }}
+                {{ form_errors(form.length) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.place) }}
+                {{ form_widget(form.place) }}
+                {{ form_errors(form.place) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.style) }}
+                {{ form_widget(form.style) }}
+                {{ form_errors(form.style) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.comment) }}
+                {{ form_widget(form.comment) }}
+                {{ form_errors(form.comment) }}
+            </div>
+
+            <div class="crossing-form-actions">
+                <button type="submit" class="btn btn-primary">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
+                <a class="btn btn-secondary" href="{{ path('app_user_denik', { id: longline.user.id }) }}#longline">Zrušit</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

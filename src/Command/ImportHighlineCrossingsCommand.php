@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Entity\HighlineCrossing;
-use App\Enum\HighlineCrossingStyle;
+use App\Enum\CrossingStyle;
 use App\Legacy\UserMergeMap;
 use App\Repository\HighlineCrossingRepository;
 use App\Repository\HighlineRepository;
@@ -18,10 +18,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
-    name: 'app:import:crossings',
+    name: 'app:import:highline-crossings',
     description: 'Imports highline crossings (deníček) from legacy MySQL into the new Postgres schema',
 )]
-final class ImportCrossingsCommand extends Command
+final class ImportHighlineCrossingsCommand extends Command
 {
     public function __construct(
         #[Autowire(service: 'doctrine.dbal.old_connection')]
@@ -103,7 +103,7 @@ final class ImportCrossingsCommand extends Command
                 continue;
             }
 
-            $style = HighlineCrossingStyle::fromLegacy($row['styl'] ?? null);
+            $style = CrossingStyle::fromLegacy($row['styl'] ?? null);
             if ($style === null && !empty(trim((string) ($row['styl'] ?? ''))) && trim((string) $row['styl']) !== '-') {
                 $unknownStyle[trim((string) $row['styl'])] = ($unknownStyle[trim((string) $row['styl'])] ?? 0) + 1;
             }

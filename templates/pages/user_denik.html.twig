@@ -22,43 +22,71 @@
         </div>
     </header>
 
-    <div class="denik-grid">
-        <section class="panel denik-map-panel">
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-map"></span>
-                    <h2>Mapa <span class="hl-crossings-count">{{ mapHighlines|length }}</span></h2>
-                </div>
-            </header>
-            {% if mapHighlines|length > 0 %}
-                <div
-                    class="denik-map-wrapper"
-                    data-controller="user-denik-map"
-                    data-user-denik-map-highlines-value="{{ mapHighlines|json_encode|e('html_attr') }}"
-                    data-user-denik-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-                    data-user-denik-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-                    data-user-denik-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
-                >
-                    <div class="denik-map-canvas" data-user-denik-map-target="canvas"></div>
-                </div>
-            {% else %}
-                <p class="hl-empty">Zatím bez záznamu na mapě.</p>
-            {% endif %}
-        </section>
+    <div class="denik-tabs tabs" data-controller="tabs">
+        <div class="tabs-list" role="tablist">
+            <button type="button" class="tab" role="tab" data-tabs-target="tab" data-action="tabs#select" data-tabs-hash-param="highline" aria-selected="true">Highline deník</button>
+            <button type="button" class="tab" role="tab" data-tabs-target="tab" data-action="tabs#select" data-tabs-hash-param="longline" aria-selected="false">Longline deník</button>
+        </div>
 
-        <section class="panel denik-crossings-panel">
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-crossings"></span>
-                    <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
-                </div>
-            </header>
-            {% if crossings|length > 0 %}
-                {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: true, show_user: false, show_actions: true }) }}
-            {% else %}
-                <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
-            {% endif %}
-        </section>
+        <div class="tab-panel" role="tabpanel" data-tabs-target="panel">
+            <div class="denik-grid">
+                <section class="panel denik-map-panel">
+                    <header class="panel-header">
+                        <div class="panel-title">
+                            <span class="panel-dot panel-dot-map"></span>
+                            <h2>Mapa <span class="hl-crossings-count">{{ mapHighlines|length }}</span></h2>
+                        </div>
+                    </header>
+                    {% if mapHighlines|length > 0 %}
+                        <div
+                            class="denik-map-wrapper"
+                            data-controller="user-denik-map"
+                            data-user-denik-map-highlines-value="{{ mapHighlines|json_encode|e('html_attr') }}"
+                            data-user-denik-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                            data-user-denik-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                            data-user-denik-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                        >
+                            <div class="denik-map-canvas" data-user-denik-map-target="canvas"></div>
+                        </div>
+                    {% else %}
+                        <p class="hl-empty">Zatím bez záznamu na mapě.</p>
+                    {% endif %}
+                </section>
+
+                <section class="panel denik-crossings-panel">
+                    <header class="panel-header">
+                        <div class="panel-title">
+                            <span class="panel-dot panel-dot-crossings"></span>
+                            <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
+                        </div>
+                    </header>
+                    {% if crossings|length > 0 %}
+                        {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: true, show_user: false, show_actions: true }) }}
+                    {% else %}
+                        <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" data-tabs-target="panel" hidden>
+            <section class="panel denik-longline-panel">
+                <header class="panel-header">
+                    <div class="panel-title">
+                        <span class="panel-dot panel-dot-crossings"></span>
+                        <h2>Longline přechody <span class="hl-crossings-count">{{ longlineCrossings|length }}</span></h2>
+                    </div>
+                    {% if app.user and app.user.id == profile.id %}
+                        <a class="btn btn-primary btn-sm" href="{{ path('app_longline_new') }}">Zapiš přechod</a>
+                    {% endif %}
+                </header>
+                {% if longlineCrossings|length > 0 %}
+                    {{ include('_partials/_longline_crossings.html.twig', { crossings: longlineCrossings, show_actions: true }) }}
+                {% else %}
+                    <p class="hl-empty">Zatím žádný longline přechod.</p>
+                {% endif %}
+            </section>
+        </div>
     </div>
 </article>
 {% endblock %}

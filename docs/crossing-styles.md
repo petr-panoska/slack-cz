@@ -1,6 +1,8 @@
-# Styly highline přechodů
+# Styly přechodů
 
 Legacy `highline_prechody.styl` (a stejně tak `prvni_prechody_hl.styl`) je `varchar(10)` bez kontroly hodnot, takže v něm je bordel z let 2010+.
+
+> Enum `App\Enum\CrossingStyle` **sdílí highline i longline deník** (legacy `longline.styl` má stejný slovník). `SWAMI` / `SOLO` / `KOTNIK` jsou ale leash/jištění styly platné jen pro highline — longline picker je filtruje přes `CrossingStyle::appliesToLongline()`.
 
 ## Distinct hodnoty v legacy DB (highline_prechody, 995 řádků)
 
@@ -30,10 +32,10 @@ Legacy `highline_prechody.styl` (a stejně tak `prvni_prechody_hl.styl`) je `var
 
 ## Cílový enum
 
-`App\Enum\HighlineCrossingStyle` (PHP backed enum).
+`App\Enum\CrossingStyle` (PHP backed enum).
 
 ```php
-enum HighlineCrossingStyle: string
+enum CrossingStyle: string
 {
     case OS_FM    = 'os_fm';     // OS FM — oba směry OS
     case OS_THEN_FM = 'os_fm_split'; // OS, FM — jeden směr OS, druhý FM

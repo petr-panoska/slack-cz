@@ -25,15 +25,15 @@ Aktuální dynamické porty: `docker compose port database 5432`, `docker compos
 ```
 src/
   Controller/       # PagesController, HighlineController, HighlineCrudController, HighlinePhotoController,
-                    # CrossingController, UserController, MarkdownSectionController, Registration/Reset/Security
-  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, HighlineEdit,
-                    # HighlinePhoto, HighlinePhotoComment, HighlinePhotoLike, ResetPasswordRequest
-  Enum/             # HighlineType, HighlineCrossingStyle, HighlineEditStatus, Gender
+                    # CrossingController, LonglineCrossingController, UserController, MarkdownSectionController, Registration/Reset/Security
+  Entity/           # NOVÉ entity (Postgres, EM default): User, Highline, HighlineCrossing, LonglineCrossing,
+                    # HighlineEdit, HighlinePhoto, HighlinePhotoComment, HighlinePhotoLike, ResetPasswordRequest
+  Enum/             # HighlineType, CrossingStyle, HighlineEditStatus, Gender
   EventSubscriber/  # HighlinePhotoSanitizerSubscriber (post-upload EXIF strip + orientace přes GD)
   Feed/             # plochý homepage feed + cache + dispatcher (mock fallback)
     Tv/             # sekcový /tv feed: FeedGroup, TvFeedInterface, YoutubeClient, paginace + cache
-  Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, RegistrationForm, ...)
-  Legacy/           # UserMergeMap (singleton — duplicit-email merge mapa; plní app:import:users, čte app:import:crossings)
+  Form/             # Symfony forms (HighlineForm, HighlineCrossingForm, LonglineCrossingForm, RegistrationForm, ...)
+  Legacy/           # UserMergeMap (singleton — duplicit-email merge mapa; plní app:import:users, čte :highline-crossings + :longline-crossings)
   Markdown/Section/ # MD subsystém pro /docs + /wiki, čte z lokálního checkoutu (detail v § Markdown sections níž)
   Repository/       # Doctrine repos (HighlineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
@@ -74,6 +74,7 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
   - `live_slug_controller.js` — live URL preview pro unverified highline edit form: slugify-uje typed name a updatuje `<code>` preview. Server na save přegeneruje slug přes `makeUniqueSlug`.
   - `photo_like_controller.js` — like button na `/highline/{slug}/fotky/{id}`; intercept-uje form submit, POST přes fetch s `Accept: application/json`, endpoint vrátí `{liked, count}` JSON, controller updatuje classy + `aria-pressed` + icon + count. Při fetch failu padá zpět na nativní form submit (graceful degradation).
   - `tv_controller.js` — click-to-play facade na `/tv`: náhled karty nahradí `youtube-nocookie` embedem až po kliknutí (neload 24 iframů + privacy). Viz § *Feed (slackTV)*.
+  - `tabs_controller.js` — **obecná** tab komponenta: přepíná `aria-selected` + `hidden` panel podle indexu, volitelný deep-link přes URL hash (`data-tabs-hash-param`). Vzhled čistě v CSS (`.tabs` underline / `.tabs-pills` chip varianta). Použito na `/tv` (hashtag taby) a `/denik/{id}` (Highline/Longline).
 
 #### Cross-controller event bus
 
@@ -139,7 +140,7 @@ Dvě paralelní vrstvy nad stejným YouTube Data API v3 (`googleapis.com/youtube
   - `YoutubeTvFeed` — skládá sekce; padlý zdroj se přeskočí, ne fatal. Oldest-first zdroj (`TvSource::oldestFirst`) stáhne celý výpis, otočí ho a stránkuje **lokálně** — page token je prostý integer offset počítaný od nejstaršího (stabilní i když přibydou nová videa), ne YouTube `pageToken`.
   - `CachedTvFeed` — decorator přes `cache.app`: cachuje celý balík (`tv.sections`) i jednotlivé load-more stránky (`tv.page.<md5>`). Stejná fallback kaskáda jako plochý feed (last-known-good 7 dní + mock SLACKHOVOR group jako poslední záchrana).
 - **Stránkování**: první stránka každého slideru je server-side; „load more" karta volá `GET /tv/more?key=&page=` → JSON `{html, nextPage}` (`_tv_cards.html.twig`, sdílený s prvním renderem). Když zdroj dojde, button se v JS přemění na „Vše na YouTube" odkaz.
-- Stimulus: `tv-more` (AJAX donačtení další stránky), `tv-tabs` (hashtag taby — 1 aktivní panel), `tv` (přehrávání) beze změny.
+- Stimulus: `tv-more` (AJAX donačtení další stránky), `tabs` (hashtag taby — obecná komponenta, `.tabs-pills` varianta), `tv` (přehrávání).
 - **Validace klíče:** `/tv/more` přijme jen klíč z `TvFeedInterface::knownKeys()` (nakonfigurované zdroje). `CachedTvFeed::page()` odmítne neznámý klíč ještě před cache i API voláním (+ `YoutubeTvFeed::page()` totéž jako defense-in-depth), takže veřejný endpoint nejde zneužít k pálení kvóty (search = 100 units) ani k zaplevelení `cache.app`.
 
 ### Quota economics
@@ -214,11 +215,14 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/highline/{slug}/prechod/novy` | `app_crossing_new` | `ROLE_USER` — přidat přechod |
 | `/prechod/{id}/upravit` | `app_crossing_edit` | `ROLE_USER` — vlastní přechody |
 | `/prechod/{id}/smazat` | `app_crossing_delete` | `ROLE_USER` — vlastní přechody, CSRF |
+| `/longline/novy` | `app_longline_new` | `ROLE_USER` — přidat longline přechod |
+| `/longline/{id}/upravit` | `app_longline_edit` | `ROLE_USER` — vlastní longline přechody |
+| `/longline/{id}/smazat` | `app_longline_delete` | `ROLE_USER` — vlastní, CSRF |
 | `/admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` — fronta pending proposals + diff tabulky |
 | `/admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` |
 | `/admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` |
 | `/data-report` | `app_data_report` | ✓ veřejná, ale odkaz v menu jen adminovi — proklik na legacy detail (`HighlineController::PRODUCTION_URL`) |
-| `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele |
+| `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele (taby Highline / Longline, deep-link `#highline`/`#longline`) |
 | `/o-projektu` | `app_about` | ✓ |
 | `/profile` | `app_profile` | login required |
 | `/login`, `/register`, `/logout` | auth | ✓ |
@@ -233,7 +237,8 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossing CRUD** — `CrossingController` + `HighlineCrossingForm`. „Přidat přechod" na detailu lajny (logged-in), edit/delete vlastních přechodů z deníku (`show_actions` flag v `_recent_crossings.html.twig`).
 - ✅ **Highline import** — 254 / 254 lajn z legacy MySQL do Postgres (re-runnable s `--truncate`, GPS fallback přes `gps` table). Detaily v `docs/migration.md`.
 - ✅ **User import** — 441 unique-email userů (440 nových + 1 obohacený dev účet), 6 dropped legacy řádků mergováno. MD5 hesla 1:1 zachována, `migrate_from: legacy_md5` přehashuje na bcrypt při prvním přihlášení. Crossings remap přes merge mapu.
-- ✅ **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datu). Style enum (`App\Enum\HighlineCrossingStyle`, 9 hodnot, viz `docs/crossing-styles.md`), neznámé legacy hodnoty se reportují jako warning.
+- ✅ **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datu). Style enum (`App\Enum\CrossingStyle`, 9 hodnot, viz `docs/crossing-styles.md`), neznámé legacy hodnoty se reportují jako warning.
+- ✅ **Longline deník** (session 2026-06-13) — druhý tab na `/denik/{id}` vedle highline obsahu. `LonglineCrossing` entita (bez lajny/GPS — longline se nezapisuje k highline, `place` je volný text), `LonglineCrossingController` (plný CRUD, owner-gated + CSRF, vzor `CrossingController`). Import `app:import:longline-crossings` z legacy `longline` (414 / 435, 21 skipů kvůli `0000-00-00`), idempotentní přes `legacyId`. **Styl** sdílí stejný enum jako highline — proto `HighlineCrossingStyle` přejmenován na `App\Enum\CrossingStyle`; longline picker filtruje leash-only styly (`swami`/`solo`/`kotník`) přes `CrossingStyle::appliesToLongline()`. Vznikly u toho dvě **obecné UI komponenty**: Stimulus `tabs` controller + page-agnostic CSS (`.tabs`/`.tab`/`.tab-panel`, `.tabs-pills` varianta, deep-link přes URL hash; `/tv` na ni převedeno, `tv-tabs` smazán) a generická **`.table`** (+ `.table-wrap`/`.table-num`/`.table-actions`/`.table-subtext`), kterou používá longline tabulka.
 - ✅ **Highline mapa** s 254 lajnami (Leaflet, OSM + Esri ortofoto přepínač, fullscreen, linka mezi body od zoom ≥ 14, popup linkuje na detail)
 - ✅ **Highline detail** `/highline/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
 - ✅ **Index page** (single-column rework): sloučený panel **Mapa** (`hp_map_controller.js`, identifier `hp-map`) = levý scrollovatelný sidebar posledních 10 přechodů + mapa, která ukazuje **jen aktivní přechod** (na load první). Aktivní přechod vykreslí reálnou linku (polyline point1↔point2), zazoomuje na ni a animuje ikonku (emoji walker) po posledním úseku lajny (`WALK_FRACTION`/`WALK_DURATION`, do budoucna chování dle typu přechodu). Po dojití se na ikonce spustí náhodná oslavná animace (`CELEBRATIONS` → CSS `hp-cel-*`: bounce/flip/spin/pop/wobble, respektuje `prefers-reduced-motion`). Má-li přechod komentář (`data-comment`), po dokončení chůze se nad ikonou objeví decentní „thought" bublina (`showThought()` injektuje `.hp-thought` do DOM markeru až na konci, ne během walku; clamp 3 řádky, fade-in, `textContent` = auto-escape). Stejná geometrie po sobě (víc přechodů na téže lajně) let přeskočí (`lastGeoKey`), aby mapa necukala; jiná lajna `flyToBounds` glide. Úvodní zobrazení po načtení je **instantní** (`activate(0, {animate:false})` + mapa se rovnou seedne u prvního přechodu) — jinak by velký z7→z17 fly-through nafoukl vrstvy a rozmazal tiles. Homepage běží jako **auto-showcase**: po dokončení přechodu se počká `DWELL` (7 s) a `scheduleAdvance()` přepne na další přechod dokola (cyklus ≈ fly 1,6 s + walk 5 s + dwell 7 s ≈ 14 s). Timer je vázaný na generaci (`gen`) a maže se v `activate`, takže manuální klik cyklus jen převezme z nového místa. Geometrie se čte ze `data-*` na `<li>` (server-render, žádný extra endpoint). Pod tím panel „Z galerie" a na konci horizontální slackTV strip.

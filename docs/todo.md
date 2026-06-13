@@ -5,7 +5,7 @@ Otevřené úkoly napříč projektem. Aktualizuj kdykoli zmizí / přibude.
 ## Deník uživatele
 
 - [ ] **Veřejný rozcestník deníčků `/denicky`** — stránka, kde si kdokoliv prohlídne kdo / kde / kdy chodil (přehled všech uživatelů s prolinkem na jednotlivé `/denik/{id}`).
-- [ ] Longline deník (až bude longline import) — přidat tab nebo sekci na `/denik/{id}`
+- [x] Longline deník — tab na `/denik/{id}` (entita `LonglineCrossing` + import `app:import:longline-crossings` + plný CRUD + obecná Tab komponenta). Hotovo 2026-06-13.
 - [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
 
 ## Priorita teď — UX přechodů/lajn + obsah ze starého slack.cz
@@ -27,6 +27,7 @@ Nejvyšší priorita (sezení 2026-06-12). Cíl: ať je appka pro lajnery co nej
 
 ## Mapa highlines
 
+- [ ] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (ani ve fullscreenu) — týká se mapových controllerů (`map`, `user_denik_map`, `highline_detail_map`, …). **Odložené — řešit až bude longline deník hotový.**
 - [ ] Filtry na `/mapa` (typ, délka, výška)
 - [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
@@ -116,7 +117,7 @@ Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý 
   - hashtagy: `#czechslackline #slacklife #slackline #highlineSlackline #tricklineSlackline` (bare `#highline`/`#trickline` vrací balast — VW auta, Satta Matka — proto kvalifikované)
 - Datový zdroj: **YouTube Data API** (ne RSS) se **stránkováním** — „load more" reálně dotahuje další stránky, aby si user proklikal celý katalog „u nás". Kanály/playlisty `playlistItems.list` (1 unit/stránka, levné; `@handle` → uploads playlist přes `forHandle`). Hashtagy `search.list` (100 units/stránka — jediný drahý zdroj). První stránka server-side, další přes AJAX endpoint; každá stránka cachovaná (reuse last-known-good pattern z `CachedFeedFetcher`).
 - Tvar dat: flat `FeedFetcherInterface::fetch()` → strukturované `FeedGroup { title, kind, url, items[] }` po sekcích. Homepage flat feed může čerpat ze stejného cachovaného balíku (ušetří search).
-- Stimulus: `tv` (přehrávání) beze změny; `tv-more` (AJAX donačtení stránky); nový `tv-tabs` (hashtag taby).
+- Stimulus: `tv` (přehrávání) beze změny; `tv-more` (AJAX donačtení stránky); nový `tv-tabs` (hashtag taby) → později (2026-06-13) zobecněno na sdílený `tabs` controller.
 
 **Follow-up z code review (session 2026-06-11):**
 - [x] **`/tv/more` validovat `key` proti configu** — `TvFeedInterface::knownKeys()` (nakonfigurované zdroje); `CachedTvFeed::page()` odmítne neznámý klíč **před** cache i API voláním, `YoutubeTvFeed::page()` totéž jako defense-in-depth. Ověřeno: `hashtag:#cats` / `channel:@evilhandle` → prázdno bez API callu.

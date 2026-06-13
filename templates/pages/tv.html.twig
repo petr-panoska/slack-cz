@@ -35,22 +35,22 @@
         {% endif %}
 
         {% if sections.hashtags %}
-        <section class="tv-section" data-controller="tv-tabs">
+        <section class="tv-section tabs tabs-pills" data-controller="tabs">
             <h2 class="tv-section-title">Hashtagy</h2>
-            <div class="tv-tabs" role="tablist">
+            <div class="tabs-list" role="tablist">
                 {% for group in sections.hashtags %}
                 <button
                     type="button"
-                    class="tv-tab"
+                    class="tab"
                     role="tab"
-                    data-tv-tabs-target="tab"
-                    data-action="tv-tabs#select"
+                    data-tabs-target="tab"
+                    data-action="tabs#select"
                     aria-selected="{{ loop.first ? 'true' : 'false' }}"
                 >{{ group.title }}</button>
                 {% endfor %}
             </div>
             {% for group in sections.hashtags %}
-            <div class="tv-tab-panel" data-tv-tabs-target="panel"{{ not loop.first ? ' hidden' }}>
+            <div class="tab-panel" role="tabpanel" data-tabs-target="panel"{{ not loop.first ? ' hidden' }}>
                 {{ include('pages/_tv_slider.html.twig', { group: group, headless: true }) }}
             </div>
             {% endfor %}

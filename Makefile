@@ -37,7 +37,8 @@ loadLegacyDump:
 legacyImport:
 	docker compose exec -T php bin/console app:import:highlines --truncate
 	docker compose exec -T php bin/console app:import:users --truncate
-	docker compose exec -T php bin/console app:import:crossings --truncate
+	docker compose exec -T php bin/console app:import:highline-crossings --truncate
+	docker compose exec -T php bin/console app:import:longline-crossings --truncate
 
 # Push current local Postgres data to beta production (beta.slack.cz).
 # DESTRUCTIVE: drops + recreates all app tables on beta. Use until proper

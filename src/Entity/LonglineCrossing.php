@@ -3,23 +3,24 @@
 namespace App\Entity;
 
 use App\Enum\CrossingStyle;
-use App\Repository\HighlineCrossingRepository;
+use App\Repository\LonglineCrossingRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: HighlineCrossingRepository::class)]
-#[ORM\Table(name: 'highline_crossing')]
-#[ORM\Index(columns: ['crossed_at'], name: 'idx_crossing_crossed_at')]
-class HighlineCrossing
+/**
+ * A longline entry in a user's deník. Unlike HighlineCrossing these are not tied
+ * to a Highline (longlines have no anchor/GPS data) — the place is just free
+ * text. Mirrors the legacy `longline` table (uzivatel/delka/misto/styl/datum).
+ */
+#[ORM\Entity(repositoryClass: LonglineCrossingRepository::class)]
+#[ORM\Table(name: 'longline_crossing')]
+#[ORM\Index(columns: ['crossed_at'], name: 'idx_longline_crossed_at')]
+class LonglineCrossing
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\ManyToOne(targetEntity: Highline::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Highline $highline;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -28,12 +29,19 @@ class HighlineCrossing
     #[ORM\Column(type: 'date_immutable')]
     private \DateTimeImmutable $crossedAt;
 
+    #[ORM\Column]
+    #[Assert\Positive]
+    private int $length;
+
+    #[ORM\Column(length: 120)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 120)]
+    private string $place;
+
+    // Shared with HighlineCrossing — the longline form only offers the styles
+    // where CrossingStyle::appliesToLongline() is true (no leash styles).
     #[ORM\Column(length: 20, nullable: true, enumType: CrossingStyle::class)]
     private ?CrossingStyle $style = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Assert\Range(min: 1, max: 5)]
-    private ?int $rating = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
@@ -52,17 +60,6 @@ class HighlineCrossing
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getHighline(): Highline
-    {
-        return $this->highline;
-    }
-
-    public function setHighline(Highline $highline): static
-    {
-        $this->highline = $highline;
-        return $this;
     }
 
     public function getUser(): User
@@ -87,6 +84,28 @@ class HighlineCrossing
         return $this;
     }
 
+    public function getLength(): int
+    {
+        return $this->length;
+    }
+
+    public function setLength(int $length): static
+    {
+        $this->length = $length;
+        return $this;
+    }
+
+    public function getPlace(): string
+    {
+        return $this->place;
+    }
+
+    public function setPlace(string $place): static
+    {
+        $this->place = $place;
+        return $this;
+    }
+
     public function getStyle(): ?CrossingStyle
     {
         return $this->style;
@@ -95,17 +114,6 @@ class HighlineCrossing
     public function setStyle(?CrossingStyle $style): static
     {
         $this->style = $style;
-        return $this;
-    }
-
-    public function getRating(): ?int
-    {
-        return $this->rating;
-    }
-
-    public function setRating(?int $rating): static
-    {
-        $this->rating = $rating;
         return $this;
     }
 

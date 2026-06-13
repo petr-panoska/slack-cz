@@ -143,7 +143,8 @@ docker compose exec -T php bin/console doctrine:migrations:migrate -n
 # 2) Importy v tomhle pořadí (kvůli FK):
 docker compose exec -T php bin/console app:import:highlines --truncate
 docker compose exec -T php bin/console app:import:users --truncate
-docker compose exec -T php bin/console app:import:crossings --truncate
+docker compose exec -T php bin/console app:import:highline-crossings --truncate
+docker compose exec -T php bin/console app:import:longline-crossings --truncate
 ```
 
 Krok 2 (jen importy) je zabalený v `make legacyImport`. Pro zopakování celého: dropni novou DB (krok 1), nahraj legacy dump (krok 0), pak `make legacyImport`.
