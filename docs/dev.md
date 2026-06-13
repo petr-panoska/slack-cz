@@ -230,6 +230,7 @@ Prezentace: teaser panel na `/` + dedikovaná stránka `/tv` (`app_tv`). `/tv` m
 docker compose exec -T php bin/console cache:pool:clear cache.app
 
 # změnit channels/queries: edituj config/packages/feed.yaml + cache:clear
+# řadit zdroj od nejstarších: místo holého id dej `{ id: '@@x', sort: asc }` (default desc)
 # přidat / vyměnit YOUTUBE_API_KEY: edituj .env.local + cache:pool:clear cache.app
 ```
 

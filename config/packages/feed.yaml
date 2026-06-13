@@ -19,18 +19,24 @@ parameters:
     # quota unit). Playlists by id. Hashtags go through search (100 units each —
     # the only expensive source). Adding a source here is one line; the page +
     # load-more endpoint are generic over it.
+    #
+    # An entry is either a bare id or a map { id, sort } where sort is asc
+    # (oldest → newest) or desc (newest → oldest, the default). YouTube's
+    # playlistItems has no reverse order, so an asc source is pulled in full and
+    # flipped (see YoutubeTvFeed) — fine for our channels, keep it for small ones.
+    #
     # NB: leading @ must be escaped as @@ in Symfony YAML (a single @ means a
-    # service reference). The resolved parameter value is the literal "@handle".
+    # service reference). The resolved value is the literal "@handle".
     feed.tv.channels:
-        - '@@kolouchrecetam'
+        - { id: '@@kolouchrecetam', sort: asc }   # oldest → newest
         - '@@HIGHLIFEfilm'
         - '@@PhilipBitnar'
         - '@@slackshow4092'
-        - '@@EQBcz'
+        - { id: '@@EQBcz', sort: asc }
 
     feed.tv.playlists:
         - 'PLzcHMTZU7KFpKEg-PVTgRloM4BF__EEmx'
-        - 'PLoxabYJhgiYDSZr1c694xILPE_endi7FP'
+        - { id: 'PLoxabYJhgiYDSZr1c694xILPE_endi7FP', sort: asc }   # SLACKHOVOR, oldest → newest
 
     # NB: bare #highline / #trickline return junk (VW Highline cars, Satta Matka
     # charts) — qualified with "Slackline" to stay on-topic.

@@ -119,6 +119,32 @@ final class YoutubeClient
         return new PagedItems($items, $data['nextPageToken'] ?? null);
     }
 
+    /**
+     * Every item of a playlist, walked page by page (50 at a time, the API max)
+     * and flattened. Needed for the oldest-first sliders: playlistItems has no
+     * "reverse" order and the oldest videos sit on the *last* page, so the whole
+     * listing has to be pulled to start at the oldest. The walk ends when YouTube
+     * stops handing out a nextPageToken — which it also does on an API error
+     * (call() returns [] → null token), so a transient failure ends it early
+     * rather than looping. Cost is one quota unit per 50 items.
+     *
+     * @return list<FeedItem>
+     */
+    public function allPlaylistItems(string $playlistId): array
+    {
+        $items = [];
+        $pageToken = null;
+        do {
+            $page = $this->playlistItems($playlistId, $pageToken, 50);
+            foreach ($page->items as $item) {
+                $items[] = $item;
+            }
+            $pageToken = $page->nextPageToken;
+        } while ($pageToken !== null && $pageToken !== '');
+
+        return $items;
+    }
+
     public function search(string $query, ?string $pageToken, int $max): PagedItems
     {
         $params = [
