@@ -8,6 +8,7 @@
     {% set route = app.current_route|default('') %}
     <nav class="site-nav">
         <a href="{{ path('app_highline_map') }}" class="{{ (route starts with 'app_highline_map' or route == 'app_highline_detail') ? 'is-active' : '' }}">Mapa</a>
+        <a href="{{ path('app_user_directory') }}" class="{{ route starts with 'app_user_' ? 'is-active' : '' }}">Deníčky</a>
         <a href="{{ path('app_tv') }}" class="{{ route == 'app_tv' ? 'is-active' : '' }}">slackTV</a>
         <a href="{{ path('app_about') }}" class="{{ route == 'app_about' ? 'is-active' : '' }}">O projektu</a>
         <a href="{{ path('app_wiki_index') }}" class="{{ route starts with 'app_wiki_' ? 'is-active' : '' }}">Wiki</a>

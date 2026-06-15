@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Deníčky – kdo, kde a kdy chodil – slack.cz{% endblock %}
+
+{% block body %}
+<div class="page-grid">
+    <header class="dr-header">
+        <h1>Deníčky</h1>
+        <p class="dr-sub">Kdo, kde a kdy chodil. Klikni na nick pro celý deník, řaď přes hlavičky sloupců.</p>
+    </header>
+
+    <section class="panel" data-controller="data-table">
+        <header class="panel-header">
+            <div class="panel-title">
+                <span class="panel-dot panel-dot-crossings"></span>
+                <h2>Lajneři <span class="dr-count" data-data-table-target="count">{{ rows|length }}</span></h2>
+            </div>
+        </header>
+
+        <div class="denicky-toolbar">
+            <input
+                type="search"
+                class="denicky-search"
+                placeholder="Hledat podle nicku nebo jména…"
+                autocomplete="off"
+                spellcheck="false"
+                data-data-table-target="filter"
+                data-action="input->data-table#filter"
+            >
+        </div>
+
+        <div class="table-wrap">
+            <table class="table denicky-table">
+                <thead>
+                    <tr>
+                        <th scope="col" data-sort-type="text" data-action="click->data-table#sort">Nick</th>
+                        <th scope="col" data-sort-type="text" data-action="click->data-table#sort">Jméno</th>
+                        <th scope="col" class="table-num" data-sort-type="num" data-sort-default="desc" data-action="click->data-table#sort">Highline</th>
+                        <th scope="col" class="table-num" data-sort-type="num" data-sort-default="desc" data-action="click->data-table#sort">Longline</th>
+                        <th scope="col" class="table-num" data-sort-type="date" data-sort-default="desc" data-action="click->data-table#sort" aria-sort="descending">Poslední aktivita</th>
+                    </tr>
+                </thead>
+                <tbody data-data-table-target="body">
+                    {% for row in rows %}
+                        {% set name = [row.firstName, row.lastName]|filter(v => v)|join(' ') %}
+                        <tr data-filter="{{ (row.nick ~ ' ' ~ name)|trim }}">
+                            <td>
+                                <a href="{{ path('app_user_denik', { id: row.id }) }}">
+                                    {{ row.nick ?: 'uživatel #' ~ row.id }}
+                                </a>
+                            </td>
+                            <td>{{ name ?: '–' }}</td>
+                            <td class="table-num">{{ row.highlineCount }}</td>
+                            <td class="table-num">{{ row.longlineCount }}</td>
+                            <td class="table-num" data-sort-value="{{ row.lastActivity ? row.lastActivity|date('Y-m-d') : '' }}">
+                                {% if row.lastActivity %}
+                                    <time datetime="{{ row.lastActivity|date('Y-m-d') }}">{{ row.lastActivity|date('j. n. Y') }}</time>
+                                {% else %}–{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="denicky-empty" data-data-table-target="empty" hidden>Nikdo nenalezen.</p>
+    </section>
+</div>
+{% endblock %}

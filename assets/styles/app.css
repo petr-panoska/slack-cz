@@ -988,6 +988,82 @@ a.crossings-line:hover {
     color: var(--color-muted);
 }
 
+/* Sortable header affordance for tables driven by the `data-table` controller.
+   Page-agnostic — any `.table` with `data-sort-type` headers gets it. */
+.table th[data-sort-type] {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.table th[data-sort-type]:hover {
+    color: var(--color-fg);
+}
+
+.table th[data-sort-type]::after {
+    content: '↕';
+    margin-left: 4px;
+    opacity: 0.35;
+    font-size: 0.85em;
+}
+
+.table th[aria-sort="ascending"]::after {
+    content: '↑';
+    opacity: 1;
+    color: var(--color-accent);
+}
+
+.table th[aria-sort="descending"]::after {
+    content: '↓';
+    opacity: 1;
+    color: var(--color-accent);
+}
+
+/* ── Deníčky (public diary directory) ──────────────────────────────────────── */
+.denicky-toolbar {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.denicky-search {
+    width: 100%;
+    max-width: 360px;
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 0.9rem;
+    background: var(--color-bg);
+    color: var(--color-fg);
+}
+
+.denicky-search::placeholder {
+    color: var(--color-muted);
+}
+
+.denicky-search:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.denicky-table a {
+    color: var(--color-fg);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.denicky-table a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.denicky-empty {
+    padding: 16px 14px;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}
+
 @media (max-width: 640px) {
     .tv-slider-track .tv-card {
         flex-basis: 220px;

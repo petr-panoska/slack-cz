@@ -4,7 +4,7 @@ Otevřené úkoly napříč projektem. Aktualizuj kdykoli zmizí / přibude.
 
 ## Deník uživatele
 
-- [ ] **Veřejný rozcestník deníčků `/denicky`** — stránka, kde si kdokoliv prohlídne kdo / kde / kdy chodil (přehled všech uživatelů s prolinkem na jednotlivé `/denik/{id}`).
+- [x] **Veřejný rozcestník deníčků `/denicky`** — stránka, kde si kdokoliv prohlídne kdo / kde / kdy chodil (přehled všech aktivních uživatelů s prolinkem na jednotlivé `/denik/{id}`). Jedna tabulka (nick, jméno, # highline přechodů, # longline přechodů, poslední aktivita), fulltext filtr podle nicku/jména + sort přes všechny sloupce. Vlastní generický Stimulus `data-table` controller (žádná knihovna, reuse `.table`). Hotovo 2026-06-15.
 - [x] Longline deník — tab na `/denik/{id}` (entita `LonglineCrossing` + import `app:import:longline-crossings` + plný CRUD + obecná Tab komponenta). Hotovo 2026-06-13.
 - [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy
 
