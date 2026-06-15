@@ -60,6 +60,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $phone = null;
 
+    /**
+     * When the account signed up. Null for legacy-imported users — the old DB
+     * never tracked a registration date for the slackline community
+     * (see memory: two-legacy-user-tables-registerdate). Set only on real
+     * sign-ups in RegistrationController, NOT in the constructor, so imports
+     * stay null.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $registeredAt = null;
+
     #[ORM\Column(nullable: true)]
     private ?int $legacyId = null;
 
@@ -241,6 +251,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
+        return $this;
+    }
+
+    public function getRegisteredAt(): ?\DateTimeImmutable
+    {
+        return $this->registeredAt;
+    }
+
+    public function setRegisteredAt(?\DateTimeImmutable $registeredAt): static
+    {
+        $this->registeredAt = $registeredAt;
         return $this;
     }
 
