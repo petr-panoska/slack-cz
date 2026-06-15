@@ -34,6 +34,14 @@ parameters:
         - '@@slackshow4092'
         - { id: '@@EQBcz', sort: asc }
 
+    # Zahraniční kanály — stejná mechanika jako feed.tv.channels (řeší se přes
+    # channelGroup, klíč 'channel:@handle'), jen se renderují jako samostatná
+    # sekce "Zahraniční kanály" na /tv. Newest-first (bez sort).
+    feed.tv.foreign_channels:
+        - '@@TricklineCollective'
+        - '@@SlacktivityCh'
+        - '@@HowNOT2'
+
     feed.tv.playlists:
         - 'PLzcHMTZU7KFpKEg-PVTgRloM4BF__EEmx'
         - { id: 'PLoxabYJhgiYDSZr1c694xILPE_endi7FP', sort: asc }   # SLACKHOVOR, oldest → newest

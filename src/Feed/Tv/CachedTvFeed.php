@@ -102,23 +102,24 @@ final class CachedTvFeed implements TvFeedInterface
     }
 
     /**
-     * @param array{channels: list<FeedGroup>, playlists: list<FeedGroup>, hashtags: list<FeedGroup>} $sections
+     * @param array{channels: list<FeedGroup>, foreignChannels: list<FeedGroup>, playlists: list<FeedGroup>, hashtags: list<FeedGroup>} $sections
      */
     private function isEmpty(array $sections): bool
     {
         return ($sections['channels'] ?? []) === []
+            && ($sections['foreignChannels'] ?? []) === []
             && ($sections['playlists'] ?? []) === []
             && ($sections['hashtags'] ?? []) === [];
     }
 
     /**
-     * @return array{channels: list<FeedGroup>, playlists: list<FeedGroup>, hashtags: list<FeedGroup>}
+     * @return array{channels: list<FeedGroup>, foreignChannels: list<FeedGroup>, playlists: list<FeedGroup>, hashtags: list<FeedGroup>}
      */
     private function mockSections(): array
     {
         $items = $this->mock->fetch(12);
         if ($items === []) {
-            return ['channels' => [], 'playlists' => [], 'hashtags' => []];
+            return ['channels' => [], 'foreignChannels' => [], 'playlists' => [], 'hashtags' => []];
         }
 
         $group = new FeedGroup(
@@ -130,6 +131,6 @@ final class CachedTvFeed implements TvFeedInterface
             nextPageToken: null,
         );
 
-        return ['channels' => [], 'playlists' => [$group], 'hashtags' => []];
+        return ['channels' => [], 'foreignChannels' => [], 'playlists' => [$group], 'hashtags' => []];
     }
 }

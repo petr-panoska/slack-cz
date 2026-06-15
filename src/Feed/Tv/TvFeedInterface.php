@@ -10,7 +10,7 @@ interface TvFeedInterface
      * First page of every configured section. Each FeedGroup carries its first
      * batch of items plus a nextPageToken for load-more.
      *
-     * @return array{channels: list<FeedGroup>, playlists: list<FeedGroup>, hashtags: list<FeedGroup>}
+     * @return array{channels: list<FeedGroup>, foreignChannels: list<FeedGroup>, playlists: list<FeedGroup>, hashtags: list<FeedGroup>}
      */
     public function sections(): array;
 

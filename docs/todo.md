@@ -113,6 +113,7 @@ Stránka rozdělena na sekce: **Kanály**, **Playlisty**, **Hashtagy**. Každý 
 
 - Zdroje (zatím v `feed.yaml`):
   - kanály: `@kolouchrecetam`, `@HIGHLIFEfilm`, `@PhilipBitnar`, `@slackshow4092`, `@EQBcz` (všech 5)
+  - zahraniční kanály (sekce „Zahraniční kanály", `feed.tv.foreign_channels`): `@TricklineCollective`, `@SlacktivityCh`, `@HowNOT2`
   - playlisty: `PLzcHMTZU7KFpKEg-PVTgRloM4BF__EEmx`, `PLoxabYJhgiYDSZr1c694xILPE_endi7FP` (SLACKHOVOR — oba)
   - hashtagy: `#czechslackline #slacklife #slackline #highlineSlackline #tricklineSlackline` (bare `#highline`/`#trickline` vrací balast — VW auta, Satta Matka — proto kvalifikované)
 - Datový zdroj: **YouTube Data API** (ne RSS) se **stránkováním** — „load more" reálně dotahuje další stránky, aby si user proklikal celý katalog „u nás". Kanály/playlisty `playlistItems.list` (1 unit/stránka, levné; `@handle` → uploads playlist přes `forHandle`). Hashtagy `search.list` (100 units/stránka — jediný drahý zdroj). První stránka server-side, další přes AJAX endpoint; každá stránka cachovaná (reuse last-known-good pattern z `CachedFeedFetcher`).

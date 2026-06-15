@@ -20,34 +20,42 @@ final class YoutubeTvFeed implements TvFeedInterface
     private readonly array $channels;
 
     /** @var list<TvSource> */
+    private readonly array $foreignChannels;
+
+    /** @var list<TvSource> */
     private readonly array $playlists;
 
     /**
-     * @param list<string|array{id?: string, sort?: string}> $channels  @handle / UC… id, or {id, sort}
-     * @param list<string|array{id?: string, sort?: string}> $playlists PL… id, or {id, sort}
-     * @param list<string>                                    $hashtags  e.g. "#czechslackline"
+     * @param list<string|array{id?: string, sort?: string}> $channels        @handle / UC… id, or {id, sort}
+     * @param list<string|array{id?: string, sort?: string}> $foreignChannels same shape — rendered as a separate section
+     * @param list<string|array{id?: string, sort?: string}> $playlists       PL… id, or {id, sort}
+     * @param list<string>                                    $hashtags        e.g. "#czechslackline"
      */
     public function __construct(
         private readonly YoutubeClient $client,
         #[Autowire('%feed.tv.channels%')]
         array $channels,
+        #[Autowire('%feed.tv.foreign_channels%')]
+        array $foreignChannels,
         #[Autowire('%feed.tv.playlists%')]
         array $playlists,
         #[Autowire('%feed.tv.hashtags%')]
         private readonly array $hashtags,
     ) {
         $this->channels = array_map(TvSource::fromConfig(...), $channels);
+        $this->foreignChannels = array_map(TvSource::fromConfig(...), $foreignChannels);
         $this->playlists = array_map(TvSource::fromConfig(...), $playlists);
     }
 
     public function sections(): array
     {
         if (!$this->client->isConfigured()) {
-            return ['channels' => [], 'playlists' => [], 'hashtags' => []];
+            return ['channels' => [], 'foreignChannels' => [], 'playlists' => [], 'hashtags' => []];
         }
 
         return [
             'channels' => $this->buildGroups($this->channels, fn (TvSource $s) => $this->channelGroup($s, null)),
+            'foreignChannels' => $this->buildGroups($this->foreignChannels, fn (TvSource $s) => $this->channelGroup($s, null)),
             'playlists' => $this->buildGroups($this->playlists, fn (TvSource $s) => $this->playlistGroup($s, null)),
             'hashtags' => $this->buildGroups($this->hashtags, fn (string $tag) => $this->hashtagGroup($tag, null)),
         ];
@@ -64,7 +72,9 @@ final class YoutubeTvFeed implements TvFeedInterface
         [$kind, $ref] = array_pad(explode(':', $key, 2), 2, '');
 
         return match ($kind) {
-            'channel' => $this->channelGroup($this->source($this->channels, $ref), $pageToken),
+            // Domestic + foreign channels share the 'channel:' key space (handles
+            // are unique), so resolve against both lists.
+            'channel' => $this->channelGroup($this->source([...$this->channels, ...$this->foreignChannels], $ref), $pageToken),
             'playlist' => $this->playlistGroup($this->source($this->playlists, $ref), $pageToken),
             'hashtag' => $this->hashtagGroup($ref, $pageToken),
             default => null,
@@ -75,6 +85,7 @@ final class YoutubeTvFeed implements TvFeedInterface
     {
         return [
             ...array_map(static fn (TvSource $s) => 'channel:' . $s->id, $this->channels),
+            ...array_map(static fn (TvSource $s) => 'channel:' . $s->id, $this->foreignChannels),
             ...array_map(static fn (TvSource $s) => 'playlist:' . $s->id, $this->playlists),
             ...array_map(static fn (string $tag) => 'hashtag:' . $tag, $this->hashtags),
         ];

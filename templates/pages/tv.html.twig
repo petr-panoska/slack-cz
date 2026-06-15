@@ -12,7 +12,7 @@
         <p class="tv-page-sub">Slacklinová videa z české scény. Klikni na náhled a pusť si je rovnou tady.</p>
     </header>
 
-    {% if not (sections.channels or sections.playlists or sections.hashtags) %}
+    {% if not (sections.channels or sections.foreignChannels or sections.playlists or sections.hashtags) %}
         <p class="tv-empty">Zatím tu nic neběží. Brzy přibydou videa.</p>
     {% else %}
 
@@ -20,6 +20,15 @@
         <section class="tv-section">
             <h2 class="tv-section-title">Kanály</h2>
             {% for group in sections.channels %}
+                {{ include('pages/_tv_slider.html.twig', { group: group }) }}
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        {% if sections.foreignChannels %}
+        <section class="tv-section">
+            <h2 class="tv-section-title">Zahraniční kanály</h2>
+            {% for group in sections.foreignChannels %}
                 {{ include('pages/_tv_slider.html.twig', { group: group }) }}
             {% endfor %}
         </section>
