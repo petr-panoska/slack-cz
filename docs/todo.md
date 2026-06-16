@@ -14,7 +14,7 @@ Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (
 - [x] **Cover fotka highline** (2026-06-16) — self-hostovaná přes `Highline.coverPhoto` (FK), legacy hotlink zrušen (bez fallbacku).
 - [ ] **`highline_media`** — externí odkazy (foto/video/clanek na youtube / rajce / lezec), **ne lokální fotky** → potřebuje vlastní entitu + UI sekci na detailu. Deferred, viz `migration.md` § Mimo scope.
 - [ ] **Non-highline fotky (FotoLIVE)** — legacy tabulka `fotolive` jsou fotky nepatřící ke konkrétní lajně. Rozhodnout, jestli pro ně udělat zvlášť kategorii / galerii.
-- [ ] **Fotky na betu** — `public/uploads/highline/*` jsou soubory mimo git **i mimo `pg_dump`**. `make syncBetaFromLocal` veze jen DB → po lokálním importu se musí ještě **rsync `public/uploads/highline/` na betu**, jinak budou `highline_photo` řádky ukazovat na neexistující soubory. (cutover krok, viz `deploy.md`)
+- [ ] **Fotky na betu** — `public/uploads/highline/*` jsou soubory mimo git **i mimo `pg_dump`**. `make syncBetaFromLocal` veze jen DB → po lokálním importu ještě **`make syncBetaPhotos`** (rsync masterů na betu), jinak budou `highline_photo` řádky ukazovat na neexistující soubory. (cutover krok, viz `deploy.md`)
 - [ ] **Nasadit `@photos` cache blok** z `infra/Caddyfile` na betu (`make deployCaddy`) — teď drift, `make checkCaddy` upozorňuje a `make deploy` je kvůli tomu blokovaný.
 
 ### 2. Homepage rework (probíhá)

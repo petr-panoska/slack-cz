@@ -74,6 +74,7 @@ docker compose exec -T php bin/console <cmd>
 | `make deployCaddy` | Push `infra/Caddyfile` na server: scp → `caddy validate` → atomic cp → `systemctl restart caddy` + smoke test. Spusť kdykoliv změníš `infra/Caddyfile`. |
 | `make deploy` | Závisí na `checkServerEnv` + `checkCaddy`. Po úspěšných preflightech: `ssh deploy@HOST 'bash -s' < scripts/deploy.sh` + post-deploy smoke test. |
 | `make syncBetaFromLocal` | pg_dump lokál → scp → psql restore + cache:clear na `beta.slack.cz` (destruktivní, viz `deploy.md`) |
+| `make syncBetaPhotos` | rsync WebP masterů `public/uploads/highline/` na betu (mimo `pg_dump` → samostatně). Páruje se se `syncBetaFromLocal`. |
 
 Detail flow + script ecosystem v `deploy.md` sekce „Infrastruktura na první pohled".
 

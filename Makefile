@@ -75,6 +75,24 @@ syncBetaFromLocal:
 	@rm /tmp/slack-cz.sql
 	@echo "✓ Beta data synced from local."
 
+# Push lokálních WebP masterů fotek (public/uploads/highline/) na betu. Tyhle soubory
+# jsou mimo git i mimo pg_dump, takže je syncBetaFromLocal nedostane — doplní je rsync.
+# Páruje se se syncBetaFromLocal (ten veze highline_photo řádky + cover_photo_id).
+# Push-only (BEZ --delete), ať nesmaže fotky nahrané přímo na betě.
+# `public/uploads/highline/` na betě vlastní www-data (tvoří ho PHP-FPM), deploy tam
+# nemá write → remote rsync běží přes `sudo` (deploy má NOPASSWD sudo z provisioningu),
+# a --chown sjednotí ownership na www-data:www-data. --chmod normalizuje perms (Caddy
+# servíruje staticky, 644/755). Liip cache (public/media/cache/) NEsyncujem — vygeneruje se on-demand.
+#   make syncBetaPhotos
+syncBetaPhotos:
+	@test -d public/uploads/highline || { echo "✗ public/uploads/highline neexistuje — spusť nejdřív 'make importLegacyPhotos'"; exit 1; }
+	@echo "→ rsync WebP masterů na betu (přes sudo rsync)..."
+	rsync -avz --human-readable --chmod=D755,F644 --chown=www-data:www-data \
+		--rsync-path="sudo rsync" -e "ssh -i ~/.ssh/slack_cz_prod" \
+		public/uploads/highline/ \
+		deploy@178.105.81.158:/var/www/slack-cz/public/uploads/highline/
+	@echo "✓ Foto mastery synced. (Liip cache se na betě vygeneruje při prvním requestu.)"
+
 # Provisioning serveru (idempotentní). Update-za-chodu mode — pustí
 # `scripts/setup-server.sh` na betač jako deploy uživatel. Doinstaluje nové
 # apt packages / vytvoří chybějící adresáře + ACL. Pro fresh louku z root
