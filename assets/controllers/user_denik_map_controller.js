@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
+import { enableCtrlScrollZoom } from '../map_scroll_zoom.js';
 
 export default class extends Controller {
     static values = {
@@ -31,6 +32,8 @@ export default class extends Controller {
 
         addBasemapPicker(this.map);
         addFullscreenToggle(this.map);
+        // Plain wheel scrolls the deník page; Ctrl/⌘ + wheel zooms the map.
+        enableCtrlScrollZoom(this.map);
 
         if (points.length === 0) return;
 

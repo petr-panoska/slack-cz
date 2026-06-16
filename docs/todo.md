@@ -21,7 +21,7 @@ Sociální vrstva galerie (likes / komentáře / cover rotace) hotová — viz a
 - [ ] Responzivita celé homepage (necháno na konec).
 
 ### 3. Mapa highlines
-- [ ] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (ani ve fullscreenu) — týká se mapových controllerů (`map`, `user_denik_map`, `highline_detail_map`, …). ~~Odložené až bude longline deník hotový~~ → **longline deník hotový (2026-06-13), blokátor padl — můžeš řešit.**
+- [x] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (2026-06-16) — sdílený helper `assets/map_scroll_zoom.js` (`enableCtrlScrollZoom`): inline mapa = plain kolečko scrolluje stránku, **Ctrl/⌘ + kolečko zoomuje** (mirror Leafletího debounce/zoom-to-cursor) + hint overlay „podrž Ctrl"; **ve fullscreenu zoomuje plain kolečko bez modifikátoru** (není co scrollovat). Nasazeno na vložené mapy: `hp_map`, `user_denik_map`, `highline_detail_map`, `highline_form_map`. Dedikovaná `/mapa` (`map_controller`) **záměrně ponechána** se zoomem samotným kolečkem (na celostránkové mapě očekávané).
 - [ ] Filtry na `/mapa` (typ, délka, výška)
 - [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)

@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
+import { enableCtrlScrollZoom } from '../map_scroll_zoom.js';
 
 // Homepage hero map. Unlike the full /mapa (which shows every highline at once),
 // this shows ONE crossing at a time: the sidebar list drives which one is active.
@@ -65,6 +66,8 @@ export default class extends Controller {
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
         addBasemapPicker(this.map, { ortho: true });
         addFullscreenToggle(this.map);
+        // Plain wheel scrolls the homepage; Ctrl/⌘ + wheel zooms the map.
+        enableCtrlScrollZoom(this.map);
 
         this.activeLayer = L.layerGroup().addTo(this.map);
         this.rafHandle = null;

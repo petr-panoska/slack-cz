@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { addBasemapPicker } from '../basemap.js';
+import { enableCtrlScrollZoom } from '../map_scroll_zoom.js';
 
 /**
  * Two-endpoint + parking GPS picker for the highline form.
@@ -47,6 +48,8 @@ export default class extends Controller {
         this.map = L.map(this.canvasTarget).setView(center, zoom);
         // top-left (under the zoom control); the top-right corner holds the point buttons.
         addBasemapPicker(this.map, { position: 'topleft' });
+        // Plain wheel scrolls the form page; Ctrl/⌘ + wheel zooms the map.
+        enableCtrlScrollZoom(this.map);
 
         this.markers = [null, null];
         this.parkingMarkerRef = null;

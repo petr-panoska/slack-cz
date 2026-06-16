@@ -2253,6 +2253,33 @@ a.crossings-line:hover {
     top: 44px;
 }
 
+/* "Podrž Ctrl a otoč kolečkem" hint — shown by enableCtrlScrollZoom when the user
+   wheels over an embedded map without the modifier (the wheel scrolled the page).
+   Centered, non-interactive, fades in/out. */
+.map-zoom-hint {
+    position: absolute;
+    inset: 0;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.32);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+}
+
+.map-zoom-hint.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
 /* Fullscreen: let the map target (and the Leaflet canvas inside it) fill the screen
    without leftover rounded corners. addFullscreenToggle tags its target .map-fs-target. */
 .map-fs-target:fullscreen,
