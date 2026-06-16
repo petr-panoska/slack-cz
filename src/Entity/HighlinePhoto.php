@@ -34,15 +34,33 @@ class HighlinePhoto
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $caption = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    /** Capture GPS, extracted from EXIF at upload (mostly phone photos). NULL when absent. */
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    private ?string $gpsLat = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    private ?string $gpsLng = null;
+
+    /** Legacy `highline_foto.id` for gallery photos; NULL for covers and user uploads. */
+    #[ORM\Column(nullable: true)]
+    private ?int $legacyId = null;
+
+    /**
+     * Photo date. New uploads: real upload time (set in constructor). Legacy imports:
+     * the line's first-tensioning date, or NULL when that's unknown (legacy stored no
+     * per-photo date and the files carry no EXIF capture date).
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $createdAt;
+
+    // Raw upload limits — phones send big files; we downscale + re-encode to WebP on
+    // upload (see App\Service\PhotoNormalizer), so this only guards the incoming file.
     #[Vich\UploadableField(mapping: 'highline_photo', fileNameProperty: 'filename')]
     #[Assert\NotNull(groups: ['upload'])]
     #[Assert\File(
-        maxSize: '4M',
-        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-        mimeTypesMessage: 'Nahraj prosím JPG, PNG nebo WebP.',
+        maxSize: '30M',
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+        mimeTypesMessage: 'Nahraj prosím JPG, PNG, WebP nebo HEIC.',
         groups: ['upload'],
     )]
     private ?File $file = null;
@@ -101,9 +119,48 @@ class HighlinePhoto
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getGpsLat(): ?string
+    {
+        return $this->gpsLat;
+    }
+
+    public function getGpsLng(): ?string
+    {
+        return $this->gpsLng;
+    }
+
+    public function setGps(?string $lat, ?string $lng): static
+    {
+        $this->gpsLat = $lat;
+        $this->gpsLng = $lng;
+        return $this;
+    }
+
+    public function hasGps(): bool
+    {
+        return $this->gpsLat !== null && $this->gpsLng !== null;
+    }
+
+    public function getLegacyId(): ?int
+    {
+        return $this->legacyId;
+    }
+
+    public function setLegacyId(?int $legacyId): static
+    {
+        $this->legacyId = $legacyId;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
     }
 
     public function getFile(): ?File

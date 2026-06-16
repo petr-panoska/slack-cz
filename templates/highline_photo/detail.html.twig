@@ -39,7 +39,8 @@
             {% else %}
                 <span>?</span>
             {% endif %}
-            · <time datetime="{{ photo.createdAt|date('Y-m-d') }}">{{ photo.createdAt|date('j. n. Y') }}</time>
+            {% if photo.createdAt %}· <time datetime="{{ photo.createdAt|date('Y-m-d') }}">{{ photo.createdAt|date('j. n. Y') }}</time>{% endif %}
+            {% if photo.hasGps %}· <a class="hl-photo-gps" href="https://www.openstreetmap.org/?mlat={{ photo.gpsLat }}&mlon={{ photo.gpsLng }}#map=16/{{ photo.gpsLat }}/{{ photo.gpsLng }}" target="_blank" rel="noopener" title="Místo pořízení fotky">📍 poloha</a>{% endif %}
         </p>
 
         <div class="hl-photo-actions">

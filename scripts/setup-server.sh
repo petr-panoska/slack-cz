@@ -88,9 +88,53 @@ PKGS=(
     postgresql postgresql-contrib
     caddy
     git acl unzip openssl sudo
+    imagemagick libimage-exiftool-perl libheif1
 )
 $SUDO apt install -y "${PKGS[@]}"
 ok "apt packages installed/updated"
+
+# ===========================================================================
+log "ImageMagick HEIC + WebP delegáty (foto upload — App\\Service\\PhotoNormalizer)"
+# ===========================================================================
+# Ubuntu 24.04 má ImageMagick 6 → binárka je `convert` (ne `magick` jako Alpine IM7).
+IM_BIN="$(command -v magick || command -v convert || true)"
+[[ -n "$IM_BIN" ]] || die "imagemagick se nenainstaloval (magick/convert chybí)"
+
+if "$IM_BIN" -list format 2>/dev/null | grep -qiE '^[[:space:]]*HEIC'; then
+    skip "HEIC delegate present"
+else
+    # HEIC coder je v -extra variantě libmagickcore; název kvůli t64 transition
+    # není stabilní napříč release → hledáme dynamicky, ať PKGS nepadnou na názvu.
+    EXTRA="$(apt-cache --names-only search 'libmagickcore.*extra' 2>/dev/null | awk '{print $1}' | head -1 || true)"
+    [[ -n "$EXTRA" ]] && $SUDO apt install -y "$EXTRA" || true
+    if "$IM_BIN" -list format 2>/dev/null | grep -qiE '^[[:space:]]*HEIC'; then
+        ok "HEIC delegate installed${EXTRA:+ ($EXTRA)}"
+    else
+        note "HEIC delegate CHYBÍ — iPhone HEIC uploady spadnou. Dořeš ručně (libheif + imagemagick heic delegate)."
+    fi
+fi
+
+# WebP write je formát masteru — bez něj se fotky neuloží vůbec.
+if "$IM_BIN" -list format 2>/dev/null | grep -qiE 'WEBP'; then
+    ok "WebP supported"
+else
+    note "WebP CHYBÍ — fotky se neuloží. Dořeš (libwebp + imagemagick webp delegate)."
+fi
+
+# ===========================================================================
+log "PHP-FPM upload limity (mobil fotky 3–12 MB; default je 2M)"
+# ===========================================================================
+# Drž v sync s Assert\File maxSize v HighlinePhoto (30M) + docker/php/Dockerfile.
+PHP_UP_INI="/etc/php/8.3/fpm/conf.d/90-slack-uploads.ini"
+PHP_UP_CONTENT=$'upload_max_filesize = 32M\npost_max_size = 40M'
+if [[ -f "$PHP_UP_INI" ]] && [[ "$($SUDO cat "$PHP_UP_INI" 2>/dev/null)" == "$PHP_UP_CONTENT" ]]; then
+    skip "$PHP_UP_INI up-to-date"
+else
+    printf '%s\n' "$PHP_UP_CONTENT" | $SUDO tee "$PHP_UP_INI" >/dev/null
+    # fpm nemusí ještě běžet (fresh louka) — pak ho nastartuje sekce Systemd s ini už na místě.
+    $SUDO systemctl reload php8.3-fpm 2>/dev/null || true
+    ok "wrote $PHP_UP_INI (upload 32M / post 40M)"
+fi
 
 # ===========================================================================
 log "Deploy user + sudoers"

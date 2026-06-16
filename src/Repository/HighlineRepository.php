@@ -19,18 +19,18 @@ class HighlineRepository extends ServiceEntityRepository
     }
 
     /**
-     * Highlines with a first anchor but no second one (point2 null) — these can't draw
-     * the line on the map. Triage list for back-filling the missing endpoint, sorted by
-     * crossing count DESC (most-crossed = most worth fixing first).
+     * All highlines with crossing count + whether a cover photo is set, for the
+     * /data-report quality table. `hasCover` is read off the FK id via IDENTITY()
+     * (no N+1 on the lazy coverPhoto relation); "missing second point" (point2 null)
+     * is read off the entity in twig. Sorted by crossing count DESC.
      *
-     * @return list<array{highline:Highline, crossingCount:int}>
+     * @return list<array{highline:Highline, crossingCount:int, hasCover:bool}>
      */
-    public function findMissingSecondPoint(): array
+    public function findForDataReport(): array
     {
         $rows = $this->createQueryBuilder('h')
-            ->select('h AS highline', 'COUNT(c.id) AS crossingCount')
+            ->select('h AS highline', 'COUNT(c.id) AS crossingCount', 'IDENTITY(h.coverPhoto) AS coverPhotoId')
             ->leftJoin(HighlineCrossing::class, 'c', Join::WITH, 'c.highline = h')
-            ->where('h.point2Latitude IS NULL OR h.point2Longitude IS NULL')
             ->groupBy('h.id')
             ->orderBy('crossingCount', 'DESC')
             ->addOrderBy('h.name', 'ASC')
@@ -40,6 +40,7 @@ class HighlineRepository extends ServiceEntityRepository
         return array_map(static fn (array $r): array => [
             'highline' => $r['highline'],
             'crossingCount' => (int) $r['crossingCount'],
+            'hasCover' => $r['coverPhotoId'] !== null,
         ], $rows);
     }
 

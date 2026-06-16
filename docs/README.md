@@ -27,6 +27,7 @@ Je míněn primárně pro vývojáře projektu (CAS).
 | Pochopit verifikační / proposal flow highline editů (trust model, audit log) | `highline-edits.md` |
 | Rozhodnout se o upgradu na Symfony 8.x (cesta, cena, deprecations) | `roadmap.md` |
 | Ladit YouTube feed / quota / cache | `architecture.md` § *Feed* |
+| Pochopit foto upload (WebP/HEIC, datum+GPS) nebo legacy foto import | `architecture.md` § *Foto galerie* + `migration.md` § *Highline photos* |
 | Cokoli kolem `slackvibes` audio playeru | `audio-player.md` |
 | Pochopit `App\Markdown\Section\*` (jak `/docs` a `/wiki` jedou ze stejného kódu) | `architecture.md` § *Markdown sections* |
 | Deployovat (`make deploy`, GH Actions) | `deploy.md` § *Deploy* |

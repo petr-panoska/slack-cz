@@ -1195,6 +1195,8 @@ a.crossings-line:hover {
 .dr-num { text-align: right; font-variant-numeric: tabular-nums; }
 .dr-id { color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .dr-muted { color: var(--color-muted); }
+.dr-bool { text-align: center; color: var(--color-muted); }
+.dr-warn { color: #f5a300; font-weight: 700; }
 
 .dr-line {
     color: var(--color-fg);
@@ -1203,12 +1205,6 @@ a.crossings-line:hover {
 }
 
 .dr-line:hover { color: var(--color-accent); text-decoration: underline; }
-
-.dr-unverified {
-    color: #f5a300;
-    font-size: 0.7rem;
-    margin-left: 4px;
-}
 
 .dr-go a {
     color: var(--color-muted);

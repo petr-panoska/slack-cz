@@ -117,6 +117,19 @@ Emoji paleta lajnerů je **jen živí tvorové** (žádné stromy/objekty — la
 
 Pro time-travel režim je separátní `findForFeedInRange(from, to)` (sidebar volá `/mapa/feed?date=YYYY-MM-DD&days=7`).
 
+## Foto galerie — upload pipeline
+
+Fotky lajn (`HighlinePhoto`, Vich storage `public/uploads/highline/<id>/`, gitignored). Uploady jsou z 99 % z mobilu včetně iPhonů (HEIC). Každý upload — user i legacy import — projde **`App\Service\PhotoNormalizer`** (volá `magick` + `exiftool`, viz `docker/php/Dockerfile`):
+
+1. **Vytáhne metadata** přes exiftool: `DateTimeOriginal` → `HighlinePhoto.createdAt`, GPS → `gpsLat`/`gpsLng`. Nic víc (ISO/model foťáku = balast).
+2. **Normalizuje soubor**: HEIC/JPG/PNG → **WebP master**, auto-orientace, zmenšení na ≤ 2560 px delší hrana, q85, strip všech metadat.
+
+Důvod modelu „metadata do DB sloupců + čistý soubor": embedovaná metadata v souborech jsou pro web nepraktická a reencode (nutný kvůli HEIC/velikosti) je stejně zahodí. Tak vytáhneme ty 2 užitečné věci (datum + GPS) do DB a ukážeme je na detailu fotky; soubor je čistý.
+
+`LiipImagine` (GD driver, WebP in/out) pak z WebP masteru generuje thumb/medium/full (cachované v `public/media/cache/`). Disk-conscious schválně — běžíme na nejlevnějším Hetzner VPS (40 GB sdílených). Ladicí knoby (`MAX_EDGE`, `QUALITY`) jsou konstanty v `PhotoNormalizer`. Originály nedržíme (jsou v mobilech lidí).
+
+`Assert\File` na uploadu povoluje `jpeg/png/webp/heic/heif` do 30 MB (syrový vstup; downscale řeší velikost). HEIC detekuje `finfo` jako `image/heic` (libmagic v Alpine).
+
 ## Feed (slackTV)
 
 Dvě paralelní vrstvy nad stejným YouTube Data API v3 (`googleapis.com/youtube/v3`). API key v `.env.local` jako `YOUTUBE_API_KEY` (gitignored); `.env` ji deklaruje prázdnou (dokumentace).

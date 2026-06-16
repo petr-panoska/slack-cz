@@ -36,6 +36,8 @@ chmod 777 public/uploads public/media/cache
 
 Oba adresáře jsou v `.gitignore`, takže permisivní mód nikoho neuráží. Symptom při chybějícím write: `Warning: mkdir(): Permission denied` při uploadu fotky.
 
+**Upload pipeline** (user uploady i legacy import): každá fotka projde `App\Service\PhotoNormalizer` → vytáhne datum+GPS přes `exiftool`, převede přes ImageMagick (`magick`) na **WebP master** (auto-orient, ≤ 2560 px, q85, strip metadat), HEIC z iPhonů včetně. Oboje je v `php` containeru (`docker/php/Dockerfile`: `imagemagick imagemagick-heic imagemagick-webp exiftool`) — **po editaci Dockerfile nezapomeň `docker compose build php`**, jinak `magick`/`exiftool` chybí a upload spadne. Upload limit je v `conf.d/uploads.ini` (32M) kvůli mobil fotkám — default `php.ini-development` má jen 2M. Detail pipeline v `architecture.md` § *Foto galerie — upload pipeline*.
+
 ## Symfony console
 
 Vždy přes `php` container:
@@ -59,6 +61,8 @@ docker compose exec -T php bin/console <cmd>
 | `make dcClearCacheProd` | cache:clear s vynuceným `APP_ENV=prod` (i kdyby `.env.local` měl `APP_ENV=dev`) |
 | `make loadLegacyDump` | jednorázový load `slackcz_44953.sql` po fresh `docker compose down -v` |
 | `make legacyImport` | jednorázový import do čerstvého schématu (highlines/users/crossings `--truncate`); předpokládá nahraný legacy dump |
+| `make stageLegacyPhotos` | rsync legacy foto stromu z `../old-slack-cz` do `var/legacy-import/` (mountnuté do `php` containeru, gitignored) |
+| `make importLegacyPhotos` | stage + `app:import:highline-photos --truncate` — cover + galerie do WebP masterů. Orphany / fotky smazaných lajn → `var/legacy-orphan-photos/`. Až **po** `legacyImport` (potřebuje highlines). |
 
 **Produkce (SSH na `beta.slack.cz`):**
 
@@ -148,6 +152,14 @@ docker compose exec -T php bin/console app:import:longline-crossings --truncate
 ```
 
 Krok 2 (jen importy) je zabalený v `make legacyImport`. Pro zopakování celého: dropni novou DB (krok 1), nahraj legacy dump (krok 0), pak `make legacyImport`.
+
+**Fotky jsou separátní krok** (potřebují legacy *soubory* z `../old-slack-cz`, ne jen DB dump):
+
+```bash
+make importLegacyPhotos   # rsync ../old-slack-cz → var/legacy-import + app:import:highline-photos --truncate
+```
+
+Importuje cover (`foto.jpg`) + galerii (`highline_foto`) jako **WebP mastery** do `public/uploads/highline/<id>/`. Orphany (soubory na disku bez DB řádku) a fotky smazaných lajn se neimportují — vyexpedují se do `var/legacy-orphan-photos/` a reportnou. Detail modelu (cover, datum, GPS, normalizace) v `migration.md` § *Highline photos* a `architecture.md` § *Foto galerie — upload pipeline*. Běž až **po** `make legacyImport` (fotka se váže na highline přes `legacyId`).
 
 ## Účty / správa uživatelů
 

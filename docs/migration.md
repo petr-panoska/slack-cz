@@ -61,9 +61,10 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 - Mapování `typ` (int) → `HighlineType` enum přes `HighlineType::fromLegacyId()`: legacy `1` (Highline), `2` (Top Highline) i `4` (Urban Line) → `Highline`; `3` → `Midline`; cokoli jiného → `Unsorted`. Enum má 5 hodnot — `Unsorted`, `Highline`, `Midline`, `Longline`, `Waterline` — poslední dvě legacy import neprodukuje (jsou připravené pro budoucí ruční zadávání; per-typ ikony viz `todo.md`). Migrace `Version20260608120000` navíc slila už naimportované legacy stringy `top_highline`/`urban_line` do `highline` (úklid dvou nadbytečných typů).
 - **Verifikační flag — POZOR, no-op:** migrace `Version20260510113004` sice obsahuje `UPDATE highline SET is_verified = TRUE WHERE legacy_id IS NOT NULL`, ale **neflagne nic** — migrace běží nad prázdnou DB **před** importem (`make migrate` → `make legacyImport`), takže UPDATE potká 0 řádků; import pak lajny vytvoří s defaultem `is_verified = false`. **Všech 254 legacy lajn je tedy `unverified`** a je to tak ponecháno schválně (nutí admina data postupně pročistit = verifikovat). Migraci needitujeme (už aplikovaná + staví celé `highline_edit`/`is_verified` schéma; ten UPDATE je jen neškodný no-op). Detail a důsledky v `docs/highline-edits.md`.
 
-#### Co se ZTRATILO při importu
+#### Foto galerie + cover
 
-- **Foto galerie** (`highline_foto`, `highline_media`) — celé skipnuté. Cover photo se zatím tahá z legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`. Plán: PR2 = own foto galerie + likes/komentáře, viz `todo.md`.
+- **Naimportováno** — viz sekce „Highline photos" níž. Cover už se netahá z legacy URL, je self-hostovaný.
+- `highline_media` (externí odkazy foto/video/článek) zatím **neimportováno** — viz „Highline media" v sekci Mimo scope.
 
 #### Vypnutá legacy pole (lokalita + kotvení)
 
@@ -311,6 +312,32 @@ Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS
 
 ---
 
+### ✅ Highline photos (cover + galerie) — DONE (2026-06-16)
+
+- Command: `app:import:highline-photos` (`make importLegacyPhotos` = staging + run)
+- Sources (dva, reconciled):
+  - **Galerie** = `highline_foto` (`file` + `text`=popisek) v old MySQL. Soubory na disku `line/high/<id>/foto/<file>`.
+  - **Cover** = jen souborová konvence `line/high/<id>/foto.jpg`, **není v žádné DB tabulce**. Importuje se jako normální `HighlinePhoto` + napojí přes `Highline.cover_photo_id` (self-host; legacy hotlink zrušen, bez fallbacku).
+- Cílová entita: `App\Entity\HighlinePhoto` (`legacyId` = `highline_foto.id` u galerie, NULL u coveru/orphanů), `Highline.coverPhoto`.
+- Soubory: normalizace přes `App\Service\PhotoNormalizer` (stejná pipeline jako user uploady) → **WebP master** ve Vich storage `public/uploads/highline/<id>/` (gitignored). Legacy originály v `../old-slack-cz` se nesahají. Legacy soubory nemají žádné EXIF (ověřeno: 0 GPS / 0 orientace / 0 capture-date), takže se z nich GPS/datum netáhne.
+- Výsledek (ověřeno disk × old DB × **živý slack.cz**, všech 254 lajn): **151 galerie + 225 coverů = 376 fotek, 0 ztraceno.** 228/254 lajn má aspoň fotku, 26 nemá žádnou.
+- **Datum fotky** (`HighlinePhoto.createdAt`, nullable): legacy = datum 1. napnutí lajny (`firstAscentDate`), nebo **NULL** když lajna datum nemá (legacy neměl per-foto datum a soubory nemají EXIF). Nové uploady = reálný čas nahrání. Vidět v detailu i galerii (NULL → datum se nezobrazí). Galerie řadí NULL data naposled.
+
+#### Legacy nekonzistence (ověřené, ošetřené — ne ztráta stažení)
+
+- **Oříznuté názvy** (`highline_foto.file` je `varchar(45)`) — 5 řádků ztratilo příponu, byly **rozbité i na živém legacy webu** (404). Dohledány z disku přes prefix → import je opraví.
+- **1 duplicitní DB řádek** (h228 `#66`/`#67` stejný soubor) → md5 dedup, import 1×.
+- **Orphany** (soubor na disku, žádný DB řádek): neimportují se, **exportují** do `var/legacy-orphan-photos/<id>/` + report. 6 z nich byly byte-duplikáty importovaných (přeskočeny), 7 unikátních vyexpedováno.
+- **Stale dirs** (209/252/260) — covery lajn smazaných z legacy DB. Není kam napojit → export do `var/legacy-orphan-photos/_deleted_highline_<id>/` + report.
+
+#### Staging (proč ne přímo z ../old-slack-cz)
+
+php kontejner mountuje jen projekt, takže legacy fotky z hostu nevidí. `make stageLegacyPhotos` je rsyncne do `var/legacy-import/` (mountováno + gitignored).
+
+**Import běží jen lokálně**, ne na betě — potřebuje legacy MySQL (`highline_foto`) i soubory z `../old-slack-cz`, ani jedno na prod není (prod = „žádný MySQL", viz `deploy.md`). Na betu se výsledné WebP mastery dostanou **rsyncem `public/uploads/highline/`** (mimo `pg_dump`), viz `deploy.md` § Cutover. Nové user uploady na betě se normalizují přímo tam (ImageMagick + exiftool jsou součást provisioningu).
+
+---
+
 ### ❌ First ascents (`prvni_prechody_hl`) — NEIMPORTUJEME (rozhodnuto 2026-06-12)
 
 124 záznamů „prvních přechodů" highline. **Tabulku importovat nebudeme.**
@@ -331,6 +358,8 @@ Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS
 ### ⏭️ Mimo scope
 
 - ~~**Longline crossings**~~ — **HOTOVO 2026-06-13**, viz sekce „Longline crossings" výš
+- ~~**Highline photos**~~ — **HOTOVO 2026-06-16**, viz sekce „Highline photos" výš
+- **`highline_media`** — TODO, zatím neimportováno. **Nejsou to lokální soubory** — jsou to externí odkazy (`typ` ∈ `foto`/`video`/`clanek`) na youtube / rajce.idnes.cz / slacklive.cz / lezec.cz atd. Sloupce: `highline_id`, `typ`, `popis`, `adresa` (URL), `nick`. Potřeboval by vlastní entitu (něco jako `HighlineMedia` / „externí odkazy") + UI sekci na detailu lajny. Surová data zůstávají v legacy DB. Až se na to dostane řada, je to logicky další krok po fotkách.
 - **`highline_prechody_n`** — 0 řádků v legacy, ignorujeme
 - **`bany`, `forum`, `kalendar`, `clanky`, `clanky_koment`, `eshopBanners`, `event`, `kategorie_rs`, `krouzky`, `media_o_nas`, `novinky`, `objednavky`, `products`, `videa`, `fotolive`, `slack_*`** — všechny ostatní legacy tabulky zatím mimo plán importu
 
@@ -342,6 +371,10 @@ Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS
 # Legacy import = jednorázová lokální věc na čisté schéma.
 # Předpoklad: legacy MySQL má nahraný dump (`make loadLegacyDump` jednorázově po prvním `up`).
 make legacyImport
+
+# Fotky jsou separátní krok (potřebují legacy soubory z ../old-slack-cz, ne jen DB dump):
+# nastaguje soubory do var/legacy-import/ a naimportuje cover + galerii.
+make importLegacyPhotos
 ```
 
 `make legacyImport` spustí jen importy v pořadí daném FK závislostmi — na čistém schématu, takže žádný `DELETE FROM highline_crossing` workaround není potřeba:

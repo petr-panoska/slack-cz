@@ -9,22 +9,23 @@
         <p class="dr-sub">Kontrola a retuš dat naimportovaných z původní slack.cz. Prokliky vedou na legacy detail na produkci.</p>
     </header>
 
-    {# ---- Sekce: lajny bez druhého bodu ---- #}
+    {# ---- Sekce: lajny — kontrola dat ---- #}
     <section class="panel">
         <header class="panel-header">
             <div class="panel-title">
                 <span class="panel-dot panel-dot-crossings"></span>
-                <h2>Lajny bez druhého bodu <span class="dr-count">{{ lines_missing_point|length }}</span></h2>
+                <h2>Lajny <span class="dr-count">{{ lines|length }}</span></h2>
             </div>
         </header>
 
         <p class="dr-intro">
-            Mají jen <code>point1</code> (chybí <code>point2</code>), takže na mapě nejde vykreslit linka —
-            zobrazí se jen jako bod. Proklik: <code>{{ production_url }}/highlines/detail/{id}</code>.
+            <strong>Druhý bod</strong> = bez něj jde na mapě vykreslit jen bod, ne linka.
+            <br>
+            <strong>Cover fotka</strong> = titulní fotka lajny. Proklik: <code>{{ production_url }}/highlines/detail/{id}</code>.
         </p>
 
-        {% if lines_missing_point is empty %}
-            <p class="dr-intro">Všechny lajny mají oba body. 🎉</p>
+        {% if lines is empty %}
+            <p class="dr-intro">Žádné lajny.</p>
         {% else %}
         <div class="dr-table-wrap">
             <table class="dr-table">
@@ -33,17 +34,16 @@
                         <th>ID</th>
                         <th>Název</th>
                         <th class="dr-num">Přechodů</th>
-                        <th>Oblast</th>
-                        <th>Kraj</th>
-                        <th class="dr-num">Délka</th>
-                        <th class="dr-num">Výška</th>
+                        <th class="dr-bool">Druhý bod</th>
+                        <th class="dr-bool">Cover fotka</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in lines_missing_point %}
+                    {% for row in lines %}
                     {% set line = row.highline %}
                     {% set prod_url = line.legacyId ? production_url ~ '/highlines/detail/' ~ line.legacyId : null %}
+                    {% set missing_second = line.point2Latitude is null or line.point2Longitude is null %}
                     <tr>
                         <td class="dr-id">{{ line.legacyId ?? line.id }}</td>
                         <td>
@@ -52,13 +52,10 @@
                             {% else %}
                                 <span class="dr-line">{{ line.name }}</span>
                             {% endif %}
-                            {% if not line.verified %}<span class="dr-unverified" title="Neověřená">●</span>{% endif %}
                         </td>
                         <td class="dr-num">{{ row.crossingCount }}</td>
-                        <td class="dr-muted">{{ line.area ?? '—' }}</td>
-                        <td class="dr-muted">{{ line.region ?? '—' }}</td>
-                        <td class="dr-num">{{ line.length }} m</td>
-                        <td class="dr-num">{{ line.height }} m</td>
+                        <td class="dr-bool{{ missing_second ? ' dr-warn' }}">{{ missing_second ? '✗' : '✓' }}</td>
+                        <td class="dr-bool{{ not row.hasCover ? ' dr-warn' }}">{{ row.hasCover ? '✓' : '✗' }}</td>
                         <td class="dr-go">
                             {% if prod_url %}
                                 <a href="{{ prod_url }}" target="_blank" rel="noopener" title="Otevřít na produkci">↗</a>

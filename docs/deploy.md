@@ -93,7 +93,9 @@ ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158
 | DB | PostgreSQL | 16.13 | `127.0.0.1:5432` (jen lokálně) |
 | Composer | apt package | 2.7.1 | — |
 
-PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `readline`, `mysql` (+ `mysqli`/`pdo_mysql` — Doctrine registruje `old` connection na boot, nevyužívá ji), `gd`, `exif` (foto galerie — origin EXIF strip + thumby přes liip_imagine).
+PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `readline`, `mysql` (+ `mysqli`/`pdo_mysql` — Doctrine registruje `old` connection na boot, nevyužívá ji), `gd` (liip_imagine WebP thumby), `exif`.
+
+**Systémové binárky pro foto upload** (ne PHP ext): `imagemagick` (na Ubuntu 24.04 IM6 → `convert`; dev Alpine IM7 → `magick`) + `libimage-exiftool-perl` (`exiftool`). Normalizace uploadů — HEIC dekód z iPhonů, WebP master, datum/GPS extrakce — viz `architecture.md` § *Foto galerie — upload pipeline*. Instaluje `setup-server.sh` (vč. HEIC delegate + php-fpm upload limitu 32M), ověřuje `check-server-env.sh` funkčně (HEIC read + WebP write).
 
 > **Žádný MySQL na prod.** Legacy MySQL je jen v dev pro import. Pro produkci se data převedou lokálně do Postgresu a pošlou jako `pg_dump` na server.
 
@@ -107,7 +109,7 @@ PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `read
 | Branch | `main` |
 | `.env.local` | mode `640`, owner `deploy:www-data` (PHP-FPM jako `www-data` musí číst) |
 | `var/cache`, `var/log` | ACL pro `www-data` (`rwX` recursive + default), plus `deploy` (kvůli composer scriptům) |
-| `public/uploads/`, `public/media/cache/` | ACL pro `www-data` (`rwX` recursive + default). Uploads = origin fotky (`vich/uploader`), cache = liip_imagine on-demand thumby. Caddy `file_server` je servíruje staticky. |
+| `public/uploads/`, `public/media/cache/` | ACL pro `www-data` (`rwX` recursive + default). Uploads = WebP mastery fotek (`vich/uploader`), cache = liip_imagine on-demand WebP thumby. Caddy `file_server` je servíruje staticky. Soubory jsou mimo git **i mimo `pg_dump`** — na betu se dostávají rsyncem (viz Cutover). |
 
 `.env.local` obsahuje (na serveru, nikde jinde):
 ```
@@ -334,6 +336,7 @@ sudo systemctl restart fail2ban
 Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
 
 1. **Doimport legacy dat** — lokálně dotáhnout MySQL → Postgres user/highline/crossing import (částečně hotovo dle `migration.md`), pak `pg_dump` z lokálu, `pg_restore` na produkci.
+   - **Fotky zvlášť:** legacy foto import (`make importLegacyPhotos`) běží **jen lokálně** (potřebuje legacy MySQL + soubory z `../old-slack-cz`, ani jedno na betě není). Výsledné WebP mastery v `public/uploads/highline/*` jsou mimo `pg_dump` → po importu **rsync `public/uploads/highline/` na `deploy@beta:/var/www/slack-cz/public/uploads/highline/`**, jinak `highline_photo` řádky (jdou přes `pg_dump`) ukazují na neexistující soubory. `make syncBetaFromLocal` veze jen DB. (Nové user uploady na betě se normalizují přímo tam — proto tam ImageMagick + exiftool.)
 2. **MAILER_DSN** — externí SMTP relay (Brevo / Mailgun / Postmark / ...), ne vlastní mailserver. Hetzner blokuje port 25 outbound default.
 3. **DNS swap pro `slack.cz`** v Cloudflare:
    - Změnit A z legacy IP na `178.105.81.158`
@@ -420,7 +423,7 @@ Skript běží na serveru přes SSH a verifikuje:
 
 - Git stav (server HEAD vs lokální HEAD, kolik commitů pozadu, jestli přibyly nové migrace / composer.lock změny)
 - PHP verze ≥ 8.3, všechny vyžadované extensions (`pgsql`, `gd`, `exif`, …) + GD má WebP support
-- Systémové binárky (`composer`, `caddy`, `psql`, `setfacl`)
+- Systémové binárky (`composer`, `caddy`, `psql`, `setfacl`) + foto upload: `imagemagick` (`magick`/`convert`) s funkčním HEIC read & WebP write + `exiftool` + php-fpm upload limit conf
 - Běžící služby (`caddy`, `php8.3-fpm`, `postgresql`)
 - FS perms pro PHP-FPM (`www-data` umí zapsat do `var/cache`, `var/log`, `public/uploads`, `public/media/cache`)
 - `.env.local` čitelná `www-data`em + obsahuje všechny očekávané klíče

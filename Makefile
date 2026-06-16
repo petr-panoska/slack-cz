@@ -33,12 +33,30 @@ loadLegacyDump:
 
 # One-time legacy import into a fresh local schema. Assumes the legacy MySQL dump
 # is already loaded (`make loadLegacyDump`). To repeat: drop the DB, reload the dump,
-# then run this again.
+# then run this again. Photos are a separate step (`make importLegacyPhotos`) because
+# they need the legacy photo files staged from ../old-slack-cz, not just the DB dump.
 legacyImport:
 	docker compose exec -T php bin/console app:import:highlines --truncate
 	docker compose exec -T php bin/console app:import:users --truncate
 	docker compose exec -T php bin/console app:import:highline-crossings --truncate
 	docker compose exec -T php bin/console app:import:longline-crossings --truncate
+
+# Stage the legacy photo tree (cover foto.jpg + foto/ galleries) from the sibling
+# ../old-slack-cz download into var/legacy-import (bind-mounted into the php container,
+# gitignored). Re-runnable; --delete keeps it in sync with the source.
+stageLegacyPhotos:
+	@test -d ../old-slack-cz/line/high || { echo "✗ Missing ../old-slack-cz/line/high (legacy photo download)"; exit 1; }
+	mkdir -p var/legacy-import
+	rsync -a --delete ../old-slack-cz/line var/legacy-import/
+	@echo "✓ Legacy photos staged in var/legacy-import/line/high"
+
+# Import legacy highline cover + gallery photos into the new schema. Prereqs:
+# highlines already imported (`make legacyImport`) + legacy MySQL dump loaded.
+# Stages the files, then runs the importer with --truncate (safe to re-run).
+# Files land in public/uploads/highline/<id>/; orphan + deleted-line photos are
+# exported to var/legacy-orphan-photos/ for manual review (reported on stdout).
+importLegacyPhotos: stageLegacyPhotos
+	docker compose exec -T php bin/console app:import:highline-photos --truncate
 
 # Push current local Postgres data to beta production (beta.slack.cz).
 # DESTRUCTIVE: drops + recreates all app tables on beta. Use until proper

@@ -49,7 +49,7 @@
                             {% else %}
                                 ?
                             {% endif %}
-                            · {{ photo.createdAt|date('j. n. Y') }}
+                            {% if photo.createdAt %}· {{ photo.createdAt|date('j. n. Y') }}{% endif %}
                         </span>
                     </div>
                 </li>

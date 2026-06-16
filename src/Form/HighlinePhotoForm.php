@@ -17,7 +17,7 @@ class HighlinePhotoForm extends AbstractType
             ->add('file', FileType::class, [
                 'label' => 'Fotka',
                 'required' => true,
-                'attr' => ['accept' => 'image/jpeg,image/png,image/webp'],
+                'attr' => ['accept' => 'image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif'],
             ])
             ->add('caption', TextType::class, [
                 'label' => 'Popisek',

@@ -129,6 +129,16 @@ else
     fail "gd: WebP support chybí (libwebp-dev při buildu php8.3-gd?)"
 fi
 
+# PHP-FPM upload limit — mobil fotky (3–12 MB) by default 2M odmítl dřív než Symfony.
+# Kontrolujeme FPM conf.d soubor (CLI ini, co vidí `php`, je jiné než FPM).
+FPM_UP_INI="/etc/php/8.3/fpm/conf.d/90-slack-uploads.ini"
+if [[ -f "$FPM_UP_INI" ]] && grep -q 'upload_max_filesize' "$FPM_UP_INI" 2>/dev/null; then
+    pass "php-fpm upload limit conf present ($FPM_UP_INI)"
+else
+    fail "php-fpm upload limit chybí → mobil fotky >2M se odmítnou"
+    info "fix: make setupServer (zapíše $FPM_UP_INI)"
+fi
+
 # Symfony requirements checker — pokud je nainstalovaný v projektu (jako dev
 # dep), zavolat. Symfony CLI to umí přes `symfony check:requirements`.
 if [[ -x "$APP_DIR/vendor/bin/requirements-checker" ]]; then
@@ -151,6 +161,36 @@ for bin in composer caddy psql setfacl sudo getfacl; do
         fail "$bin: není v PATH"
     fi
 done
+
+# ImageMagick (magick na IM7/Alpine, convert na IM6/Ubuntu) + exiftool — foto upload
+# normalizace (App\Service\PhotoNormalizer). Kontrolujeme funkčně (HEIC read + WebP
+# write), ne jen binárku — to je reálný požadavek pipeline.
+IM_BIN="$(command -v magick || command -v convert || true)"
+if [[ -n "$IM_BIN" ]]; then
+    pass "imagemagick: $IM_BIN"
+    IM_FORMATS=$("$IM_BIN" -list format 2>/dev/null)
+    if echo "$IM_FORMATS" | grep -qiE '^[[:space:]]*HEIC'; then
+        pass "imagemagick: HEIC read (iPhone uploady)"
+    else
+        fail "imagemagick: HEIC delegate chybí → iPhone HEIC uploady spadnou"
+        info "fix: re-run 'make setupServer' (doinstaluje libheif + heic delegate)"
+    fi
+    if echo "$IM_FORMATS" | grep -qiE 'WEBP'; then
+        pass "imagemagick: WebP write (master formát)"
+    else
+        fail "imagemagick: WebP chybí → fotky se neuloží"
+    fi
+else
+    fail "imagemagick (magick/convert): není v PATH → foto upload spadne"
+    info "fix: sudo apt install -y imagemagick  (nebo 'make setupServer')"
+fi
+
+if command -v exiftool >/dev/null; then
+    pass "exiftool: $(command -v exiftool)"
+else
+    fail "exiftool: není v PATH → datum/GPS z fotek se nevytáhne"
+    info "fix: sudo apt install -y libimage-exiftool-perl  (nebo 'make setupServer')"
+fi
 
 # ===========================================================================
 section "Services"

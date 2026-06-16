@@ -8,11 +8,13 @@ Severka teď: **dodělat rozjeté featury.** Obsah ze starého slacku, cutover n
 ## 🔥 Teď — dodělat rozjeté featury
 
 ### 1. Legacy import fotek ze slack.cz
-Sociální vrstva galerie (likes / komentáře / cover rotace) hotová — viz archiv „Galerie sociální vrstva". Chybí nasát staré fotky. **Vyžaduje SSH na slack.cz** pro stažení JPG (`/line/high/{id}/*.jpg`).
+Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (`make importLegacyPhotos`). Zbývají vedlejší věci níž.
 
-- [ ] **`app:import:legacy-photos`** — import command pro všechny legacy fotky z `highline_foto` + `highline_media`; každá fotka musí být navázaná na highline a mít datum.
-- [ ] **Cover fotka highline** — taky importovat a označit `is_cover: true` (teď je cover čistě legacy URL přes `highline.legacyCoverUrl`).
+- [x] **`app:import:highline-photos`** (2026-06-16) — cover (`foto.jpg`, filesystem-only konvence) + galerie (`highline_foto`) → WebP mastery, navázané na highline přes `legacyId`. Datum = 1. napnutí lajny / null. Ověřeno disk × legacy DB × živý web, **0 ztraceno**. Detail v `migration.md` § *Highline photos*.
+- [x] **Cover fotka highline** (2026-06-16) — self-hostovaná přes `Highline.coverPhoto` (FK), legacy hotlink zrušen (bez fallbacku).
+- [ ] **`highline_media`** — externí odkazy (foto/video/clanek na youtube / rajce / lezec), **ne lokální fotky** → potřebuje vlastní entitu + UI sekci na detailu. Deferred, viz `migration.md` § Mimo scope.
 - [ ] **Non-highline fotky (FotoLIVE)** — legacy tabulka `fotolive` jsou fotky nepatřící ke konkrétní lajně. Rozhodnout, jestli pro ně udělat zvlášť kategorii / galerii.
+- [ ] **Fotky na betu** — `public/uploads/highline/*` jsou soubory mimo git **i mimo `pg_dump`**. `make syncBetaFromLocal` veze jen DB → po lokálním importu se musí ještě **rsync `public/uploads/highline/` na betu**, jinak budou `highline_photo` řádky ukazovat na neexistující soubory. (cutover krok, viz `deploy.md`)
 - [ ] **Nasadit `@photos` cache blok** z `infra/Caddyfile` na betu (`make deployCaddy`) — teď drift, `make checkCaddy` upozorňuje a `make deploy` je kvůli tomu blokovaný.
 
 ### 2. Homepage rework (probíhá)
@@ -152,6 +154,8 @@ Detailně v `deploy.md`. Launch-blockery.
 
 ## Hotové (archiv)
 
+- [x] **WebP/HEIC upload pipeline** (2026-06-16) — `App\Service\PhotoNormalizer`: každý upload (user i legacy import) → WebP master (auto-orient, ≤ 2560 px, q85, strip metadat), datum + GPS z EXIF do DB (`HighlinePhoto.createdAt` nullable, `gpsLat`/`gpsLng`), HEIC z iPhonů. ImageMagick + exiftool v containeru i na prod (`setup-server.sh` + `check-server-env.sh` preflight). Nahradil GD `HighlinePhotoSanitizerSubscriber`. Disk-conscious (WebP, cap 2560) kvůli 40 GB VPS. Detail `architecture.md` § *Foto galerie — upload pipeline*.
+- [x] **Legacy foto import** (2026-06-16) — viz „🔥 Teď → Legacy import fotek" (cover + galerie → WebP, 0 ztraceno).
 - [x] **Veřejný rozcestník deníčků `/denicky`** (2026-06-15) — přehled všech aktivních uživatelů (nick, jméno, # highline/longline přechodů, poslední aktivita) s prolinkem na `/denik/{id}`, fulltext filtr + sort přes sloupce. Vlastní generický Stimulus `data-table` controller.
 - [x] **Longline deník** (2026-06-13) — tab na `/denik/{id}` (entita `LonglineCrossing` + import `app:import:longline-crossings` + plný CRUD + obecná Tab komponenta).
 - [x] **slackTV → `/tv` stránka + redesign na sekce** (2026-06-11) — feature přejmenována „Slack.cz TV" → **slackTV**, dedikovaná `/tv` (grid + click-to-play inline embed přes `tv_controller.js`). Rozděleno na sekce Kanály / Playlisty / Hashtagy (slidery + taby). Data přes YouTube Data API se stránkováním (`tv-more` AJAX), `FeedGroup` tvar, per-page cache. Zdroje v `feed.yaml`, detaily v `architecture.md` § *Feed (slackTV)*. Code-review fixy: `/tv/more` validace `key` proti configu; transient load-more chyba cachuje prázdno jen 60 s (ne 6 h).

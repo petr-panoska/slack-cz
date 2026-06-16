@@ -12,10 +12,12 @@ use App\Form\HighlinePhotoForm;
 use App\Repository\HighlinePhotoCommentRepository;
 use App\Repository\HighlinePhotoLikeRepository;
 use App\Repository\HighlinePhotoRepository;
+use App\Service\PhotoNormalizer;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +33,7 @@ final class HighlinePhotoController extends AbstractController
         #[MapEntity(mapping: ['slug' => 'slug'])]
         Highline $highline,
         EntityManagerInterface $em,
+        PhotoNormalizer $normalizer,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -43,6 +46,26 @@ final class HighlinePhotoController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Re-encode to a clean WebP master + pull date/GPS out before they're stripped.
+            /** @var UploadedFile $upload */
+            $upload = $photo->getFile();
+            try {
+                $normalized = $normalizer->normalize($upload->getPathname());
+            } catch (\Throwable) {
+                $this->addFlash('error', 'Fotku se nepodařilo zpracovat. Zkus jiný soubor (JPG, PNG, WebP, HEIC).');
+
+                return $this->render('highline_photo/form.html.twig', [
+                    'form' => $form,
+                    'highline' => $highline,
+                ]);
+            }
+
+            $photo->setFile(new UploadedFile($normalized->path, 'photo.webp', 'image/webp', null, true));
+            if ($normalized->takenAt !== null) {
+                $photo->setCreatedAt($normalized->takenAt);
+            }
+            $photo->setGps($normalized->gpsLat, $normalized->gpsLng);
+
             $em->persist($photo);
             $em->flush();
             $this->addFlash('success', 'Fotka nahraná.');

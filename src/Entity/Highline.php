@@ -103,6 +103,14 @@ class Highline
     #[ORM\Column(nullable: true)]
     private ?int $legacyId = null;
 
+    /**
+     * Designated cover photo. Self-hosted (imported from legacy `line/high/<id>/foto.jpg`),
+     * rendered via Vich/Imagine. NULL = no cover (line simply has none).
+     */
+    #[ORM\ManyToOne(targetEntity: HighlinePhoto::class)]
+    #[ORM\JoinColumn(name: 'cover_photo_id', nullable: true, onDelete: 'SET NULL')]
+    private ?HighlinePhoto $coverPhoto = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -434,16 +442,15 @@ class Highline
         return $this->createdAt;
     }
 
-    /**
-     * Legacy URL fallback used when no HighlinePhoto exists in DB.
-     * Caller composes the fallback chain in twig: first photo thumb → this → null.
-     */
-    public function getLegacyCoverUrl(): ?string
+    public function getCoverPhoto(): ?HighlinePhoto
     {
-        if ($this->legacyId === null) {
-            return null;
-        }
-        return sprintf('https://slack.cz/line/high/%d/foto.jpg', $this->legacyId);
+        return $this->coverPhoto;
+    }
+
+    public function setCoverPhoto(?HighlinePhoto $coverPhoto): static
+    {
+        $this->coverPhoto = $coverPhoto;
+        return $this;
     }
 
     public function isVerified(): bool

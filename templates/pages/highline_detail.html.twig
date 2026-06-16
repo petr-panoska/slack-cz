@@ -3,13 +3,13 @@
 {% block title %}{{ highline.name }} – slack.cz{% endblock %}
 
 {% block body %}
-{% set cover = highline.legacyCoverUrl %}
+{% set cover = highline.coverPhoto %}
 <article class="hl-detail{% if cover %} hl-detail-has-cover{% endif %}">
     <header class="hl-cover">
         {% if cover %}
             <img
                 class="hl-cover-img"
-                src="{{ cover }}"
+                src="{{ vich_uploader_asset(cover, 'file') | imagine_filter('highline_full') }}"
                 alt="{{ highline.name }}"
                 loading="eager"
                 decoding="async"

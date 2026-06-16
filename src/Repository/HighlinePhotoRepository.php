@@ -23,7 +23,11 @@ class HighlinePhotoRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->andWhere('p.highline = :h')
             ->setParameter('h', $highline)
-            ->orderBy('p.createdAt', 'DESC')
+            // Newest first; undated legacy photos (NULL createdAt) sort last, then by id.
+            ->addSelect('CASE WHEN p.createdAt IS NULL THEN 1 ELSE 0 END AS HIDDEN createdNull')
+            ->orderBy('createdNull', 'ASC')
+            ->addOrderBy('p.createdAt', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
             ->getQuery()
             ->getResult();
     }

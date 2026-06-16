@@ -33,7 +33,7 @@ final class HighlineController extends AbstractController
     public function dataReport(HighlineRepository $highlines): Response
     {
         return $this->render('pages/data_report.html.twig', [
-            'lines_missing_point' => $highlines->findMissingSecondPoint(),
+            'lines' => $highlines->findForDataReport(),
             'production_url' => self::PRODUCTION_URL,
         ]);
     }
