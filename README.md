@@ -1,5 +1,23 @@
 # slack-cz
 
+## TL;DR — rozjetí lokální appky s legacy daty
+
+```bash
+docker compose up -d
+make dcSetup
+make dcInitDb
+
+# download *.sql export and save in project root
+make loadLegacyDump
+make legacyImport
+
+# download legacy photos and save in ../old-slack-cz/line/high
+make importLegacyPhotos
+```
+App běží na [localhost:8000](http://localhost:8000)
+
+---
+
 ## Docker development
 
 ### Install
@@ -37,7 +55,21 @@ docker compose run php symfony check:requirements
 - alternatively import it by hand via [adminer](http://localhost:8080/?server=mysql&username=root&db=old)
 
 ### Run import to Postgres
-- `make legacyImport`
+```
+make legacyImport
+```
+
+### Import legacy photos (cover + galerie)alpkew6NUnHF147U
+
+Fotky nejsou v MySQL dumpu — jsou to soubory na disku. Potřebuješ stažené legacy soubory v `../old-slack-cz/line/high/`.
+
+- nastaguje soubory do `var/legacy-import/` a spustí importer:
+  ```
+  make importLegacyPhotos
+  ```
+- interně volá `make stageLegacyPhotos` (rsync z `../old-slack-cz`) + `app:import:highline-photos --truncate`
+- výsledné WebP mastery skončí v `public/uploads/highline/` (gitignored)
+- orphan fotky (bez záznamu v DB) se exportují do `var/legacy-orphan-photos/` pro ruční revizi
 
 ## Documentation
 
