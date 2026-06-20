@@ -1,5 +1,6 @@
 dcSetup:
 	docker compose run php composer install
+	docker compose run php sh -c "mkdir -p /var/www/html/public/media/cache && chmod 777 /var/www/html/public/media /var/www/html/public/media/cache"
 
 dcInitDb:
 	docker compose run php bin/console doctrine:database:create --if-not-exists
