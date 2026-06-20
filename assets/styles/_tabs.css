@@ -1,0 +1,66 @@
+.tabs-list {
+    display: flex;
+    gap: 4px;
+    margin: 0 0 18px;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.tab {
+    padding: 9px 16px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: transparent;
+    color: var(--color-muted);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover {
+    color: var(--color-fg);
+}
+
+.tab[aria-selected="true"] {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
+.tab-panel[hidden] {
+    display: none;
+}
+
+/* Pill variant — chips that wrap, no underline bar (e.g. /tv hashtags). */
+.tabs-pills .tabs-list {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 0;
+    border-bottom: 0;
+}
+
+.tabs-pills .tab {
+    padding: 5px 13px;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    margin-bottom: 0;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.tabs-pills .tab:hover {
+    color: var(--color-fg);
+    border-color: var(--color-fg);
+}
+
+.tabs-pills .tab[aria-selected="true"] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+}
+
+.tab-panel .tv-slider-group {
+    margin-top: 14px;
+}

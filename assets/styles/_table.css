@@ -1,0 +1,88 @@
+.table-wrap {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.table th,
+.table td {
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.table th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: #fafafa;
+}
+
+.table-num {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+}
+
+.table-muted {
+    color: var(--color-muted);
+}
+
+.table-actions {
+    white-space: nowrap;
+    text-align: right;
+}
+
+.table-actions form {
+    display: inline;
+}
+
+.table-subtext {
+    display: block;
+    margin-top: 3px;
+    color: var(--color-muted);
+}
+
+/* Sortable header affordance — driven by `data-table` Stimulus controller. */
+.table th[data-sort-type] {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.table th[data-sort-type]:hover {
+    color: var(--color-fg);
+}
+
+.table th[data-sort-type]::after {
+    content: '↕';
+    margin-left: 4px;
+    opacity: 0.35;
+    font-size: 0.85em;
+}
+
+.table th[aria-sort="ascending"]::after {
+    content: '↑';
+    opacity: 1;
+    color: var(--color-accent);
+}
+
+.table th[aria-sort="descending"]::after {
+    content: '↓';
+    opacity: 1;
+    color: var(--color-accent);
+}

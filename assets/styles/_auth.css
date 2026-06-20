@@ -1,0 +1,134 @@
+.auth-page {
+    max-width: 420px;
+    margin: 48px auto 64px;
+    padding: 0 24px;
+}
+
+.auth-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    padding: 32px 28px;
+}
+
+.auth-card h1 {
+    margin: 0 0 24px;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.auth-card .form-group {
+    margin-bottom: 16px;
+}
+
+.auth-card label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--color-fg);
+}
+
+.auth-card input[type="email"],
+.auth-card input[type="password"],
+.auth-card input[type="text"],
+.auth-card input[type="number"],
+.auth-card input[type="tel"],
+.auth-card select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--color-fg);
+    background: var(--color-bg);
+    transition: border-color 0.15s;
+}
+
+.auth-card input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.auth-card input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+.auth-card .checkbox-row label {
+    display: inline;
+    font-weight: 400;
+    font-size: 0.95em;
+    color: var(--color-muted);
+}
+
+.auth-alert {
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    background: #fdecea;
+    color: #842029;
+    font-size: 0.9em;
+}
+
+.auth-card ul,
+.auth-card .form-error-message {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    color: #c0143c;
+    font-size: 0.85em;
+}
+
+.auth-links {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-line);
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+}
+
+.auth-links a {
+    color: var(--color-muted);
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    color: var(--color-accent);
+}
+
+.auth-current-user {
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: #f5f5f5;
+    color: var(--color-muted);
+    font-size: 0.9em;
+}
+
+.auth-card p {
+    margin: 0 0 12px;
+    color: var(--color-fg);
+    line-height: 1.55;
+}
+
+.auth-card p:last-child {
+    margin-bottom: 0;
+}
+
+.auth-help {
+    display: block;
+    margin: -8px 0 16px;
+    color: var(--color-muted);
+    font-size: 0.85em;
+    line-height: 1.45;
+}
+
+.auth-card a:not(.btn) {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.auth-card a:not(.btn):hover {
+    text-decoration: underline;
+}

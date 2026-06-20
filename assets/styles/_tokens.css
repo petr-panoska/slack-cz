@@ -1,0 +1,41 @@
+/* Breakpoints — jediný zdroj pravdy:
+   mobile  max-width: 640px
+   tablet  max-width: 768px
+   desktop max-width: 900px   */
+
+:root {
+    --color-bg: #ffffff;
+    --color-fg: #1a1a1a;
+    --color-muted: #6b6b6b;
+    --color-line: #e5e5e5;
+    --color-accent: #e1005b;
+    --color-accent-hover: #b8004a;
+    --color-accent-muted: #fce4ef;
+    --color-header-bg: #ffffff;
+    --color-header-fg: #1a1a1a;
+    --header-height: 72px;
+}
+
+[data-theme="weaver"] {
+    --color-accent:       #1a6fc4;
+    --color-accent-hover: #14569a;
+    --color-accent-muted: #deeaf8;
+}
+
+[data-theme="slackline-tools"] {
+    --color-accent:       #d32f2f;
+    --color-accent-hover: #b71c1c;
+    --color-accent-muted: #fde8e8;
+}
+
+[data-theme="gibbon"] {
+    --color-accent:       #f5a623;
+    --color-accent-hover: #c8851a;
+    --color-accent-muted: #fef5e0;
+}
+
+[data-theme="landcruising"] {
+    --color-accent:       #2e7d32;
+    --color-accent-hover: #1b5e20;
+    --color-accent-muted: #e8f5e9;
+}

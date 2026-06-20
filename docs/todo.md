@@ -6,6 +6,9 @@ Otevřené úkoly napříč projektem. **Seřazeno podle priority** (revize 2026
 ### 🔥 Teď
 
 - [ ] Responzivita celého webu
+  - [x] **CSS refaktoring** (2026-06-20) — `app.css` 5000 řádků → 17 komponentních souborů v `assets/styles/`. Sjednoceny breakpointy na 640/768/900px (bylo 600/640/700/720/760/800/900px). Přidán theme system v `_tokens.css` (4 webbing-color varianty: weaver/slackline-tools/gibbon/landcruising) přes CSS custom properties a `data-theme` atribut.
+  - [ ] **Chybějící mobile styly** — nav na malých obrazovkách (hamburger / skrytí nav odkazů), forms, panel layout na mobilu
+  - [ ] webbing themes picker
 
 ### Obsah ze starého slack.cz (nasát + archivovat)
 - [ ] **Archiv článků** — nasosat texty/články z původního slack.cz a udělat z nich archiv v nové appce.
