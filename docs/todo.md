@@ -1,13 +1,27 @@
 # TODO
 
-Otevřené úkoly napříč projektem. **Seřazeno podle priority** (revize 2026-06-15).
-Severka teď: **dodělat rozjeté featury.** Obsah ze starého slacku, cutover na produkci a PWA jdou níž. Aktualizuj kdykoli něco zmizí / přibude.
-
+Otevřené úkoly napříč projektem. **Seřazeno podle priority** (revize 2026-06-20).
 ---
 
-## 🔥 Teď — dodělat rozjeté featury
+### 🔥 Teď
 
-### 1. Legacy import fotek ze slack.cz
+- [ ] Responzivita celého webu
+
+### Obsah ze starého slack.cz (nasát + archivovat)
+- [ ] **Archiv článků** — nasosat texty/články z původního slack.cz a udělat z nich archiv v nové appce.
+- [ ] **slackTV — content z old slack.cz** — nasát videa/odkazy ze starého webu do slackTV.
+- [ ] **Nové fotky** — z původního slack.cz máme hodně low-quality fotek, potřebujeme nové. Hlavní výzva pro Intro stránku.
+
+### Intro
+- Intro: stránka `/intro` hotová (`app_intro` + `templates/pages/intro.html.twig`, seed citáty „deníček" + „co po nás zbyde"), ale **zatím nelinkovaná z nav.**
+  - [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).
+
+### UX — co nejjednodušší pro lajnery
+Cíl (sezení 2026-06-12): ať je appka pro lajnery co nejjednodušší na používání.
+- [ ] **Smooth highline edit flow** — když user aktualizuje info o lajně, ať je to co nejjednodušší (minimum kroků, žádné tření). Projít celý edit flow a vyhladit.
+- [ ] **Smooth zadávání přechodu** — stejný princip pro přidání přechodu: co nejmíň klikání, rychlé zapsání zážitku.
+
+### Legacy import fotek ze slack.cz
 Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (`make importLegacyPhotos`). Zbývají vedlejší věci níž.
 
 - [x] **`app:import:highline-photos`** (2026-06-16) — cover (`foto.jpg`, filesystem-only konvence) + galerie (`highline_foto`) → WebP mastery, navázané na highline přes `legacyId`. Datum = 1. napnutí lajny / null. Ověřeno disk × legacy DB × živý web, **0 ztraceno**. Detail v `migration.md` § *Highline photos*.
@@ -17,36 +31,16 @@ Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (
 - [ ] **Fotky na betu** — `public/uploads/highline/*` jsou soubory mimo git **i mimo `pg_dump`**. `make syncBetaFromLocal` veze jen DB → po lokálním importu ještě **`make syncBetaPhotos`** (rsync masterů na betu), jinak budou `highline_photo` řádky ukazovat na neexistující soubory. (cutover krok, viz `deploy.md`)
 - [ ] **Nasadit `@photos` cache blok** z `infra/Caddyfile` na betu (`make deployCaddy`) — teď drift, `make checkCaddy` upozorňuje a `make deploy` je kvůli tomu blokovaný.
 
-### 2. Homepage rework (probíhá)
-- [ ] Chování walkera dle typu/stylu přechodu (běh/lezení/…); zatím jednotná emoji animace posledního úseku.
-- [ ] Doladit horní část homepage dál dle záměru (rozložení mapa/galerie/další boxy).
-- [ ] Responzivita celé homepage (necháno na konec).
 
-### 3. Mapa highlines
+### Mapa
 - [x] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (2026-06-16) — sdílený helper `assets/map_scroll_zoom.js` (`enableCtrlScrollZoom`): inline mapa = plain kolečko scrolluje stránku, **Ctrl/⌘ + kolečko zoomuje** (mirror Leafletího debounce/zoom-to-cursor) + hint overlay „podrž Ctrl"; **ve fullscreenu zoomuje plain kolečko bez modifikátoru** (není co scrollovat). Nasazeno na vložené mapy: `hp_map`, `user_denik_map`, `highline_detail_map`, `highline_form_map`. Dedikovaná `/mapa` (`map_controller`) **záměrně ponechána** se zoomem samotným kolečkem (na celostránkové mapě očekávané).
 - [ ] Filtry na `/mapa` (typ, délka, výška)
 - [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
 - [ ] „Přidat lajnu" CTA klikem na mapu — z `/mapa` klik na prázdné místo předvyplní Bod 1 (teď jen v hlavičce + ručně nastavené GPS)
 
-### 4. Profil — avatar / bio / odkazy
+### Profil — avatar / bio / odkazy
 - [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy.
-
----
-
-## Dál v řadě
-
-### UX — co nejjednodušší pro lajnery
-Cíl (sezení 2026-06-12): ať je appka pro lajnery co nejjednodušší na používání.
-- [ ] **Smooth highline edit flow** — když user aktualizuje info o lajně, ať je to co nejjednodušší (minimum kroků, žádné tření). Projít celý edit flow a vyhladit.
-- [ ] **Smooth zadávání přechodu** — stejný princip pro přidání přechodu: co nejmíň klikání, rychlé zapsání zážitku.
-
-### Obsah ze starého slack.cz (nasát + archivovat)
-- [ ] **Archiv článků** — nasosat texty/články z původního slack.cz a udělat z nich archiv v nové appce.
-- [ ] **slackTV — content z old slack.cz** — nasát videa/odkazy ze starého webu do slackTV.
-- [ ] **Nové fotky** — z původního slack.cz máme hodně low-quality fotek, potřebujeme nové. Hlavní výzva pro Intro stránku.
-- Intro: stránka `/intro` hotová (`app_intro` + `templates/pages/intro.html.twig`, seed citáty „deníček" + „co po nás zbyde"), ale **zatím nelinkovaná z nav.**
-  - [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).
 
 ### Highline edit / verification — follow-upy
 Trust model + proposal queue v `docs/highline-edits.md`.
