@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Repository\HighlineCrossingRepository;
+use App\Repository\LineCrossingRepository;
 use App\Repository\LonglineCrossingRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,14 +23,14 @@ final class UserController extends AbstractController
     #[Route('/denik/{id}', name: 'app_user_denik', requirements: ['id' => '\d+'])]
     public function denik(
         User $user,
-        HighlineCrossingRepository $crossings,
+        LineCrossingRepository $crossings,
         LonglineCrossingRepository $longlines,
     ): Response {
         return $this->render('pages/user_denik.html.twig', [
             'profile' => $user,
             'crossings' => $crossings->findForUser($user),
             'firstCrossingDate' => $crossings->findFirstCrossingDate($user),
-            'mapHighlines' => $crossings->findUserHighlinesForMap($user),
+            'mapLines' => $crossings->findUserLinesForMap($user),
             'longlineCrossings' => $longlines->findForUser($user),
         ]);
     }

@@ -7,14 +7,14 @@
        na Domů, druhá položka v navu by byla redundantní. #}
     {% set route = app.current_route|default('') %}
     <nav class="site-nav">
-        <a href="{{ path('app_highline_map') }}" class="{{ (route starts with 'app_highline_map' or route == 'app_highline_detail') ? 'is-active' : '' }}">Mapa</a>
+        <a href="{{ path('app_line_map') }}" class="{{ (route starts with 'app_line_map' or route == 'app_line_detail') ? 'is-active' : '' }}">Mapa</a>
         <a href="{{ path('app_user_directory') }}" class="{{ route starts with 'app_user_' ? 'is-active' : '' }}">Deníčky</a>
         <a href="{{ path('app_tv') }}" class="{{ route == 'app_tv' ? 'is-active' : '' }}">slackTV</a>
         <a href="{{ path('app_about') }}" class="{{ route == 'app_about' ? 'is-active' : '' }}">O projektu</a>
         <a href="{{ path('app_wiki_index') }}" class="{{ route starts with 'app_wiki_' ? 'is-active' : '' }}">Wiki</a>
         <a href="{{ path('app_docs_index') }}" class="{{ route starts with 'app_docs_' ? 'is-active' : '' }}">Docs</a>
         {% if app.user %}
-            <a href="{{ path('app_highline_new') }}" class="{{ route == 'app_highline_new' ? 'is-active' : '' }}">+ Lajna</a>
+            <a href="{{ path('app_line_new') }}" class="{{ route == 'app_line_new' ? 'is-active' : '' }}">+ Lajna</a>
         {% endif %}
         {% if is_granted('ROLE_ADMIN') %}
             <a href="{{ path('app_admin_proposals') }}" class="site-nav-admin {{ route == 'app_admin_proposals' ? 'is-active' : '' }}">Návrhy</a>
@@ -26,7 +26,7 @@
         <div
             class="site-search"
             data-controller="search"
-            data-search-data-url-value="{{ path('app_highline_map_data') }}"
+            data-search-data-url-value="{{ path('app_line_map_data') }}"
         >
             <button
                 type="button"

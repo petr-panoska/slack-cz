@@ -1,0 +1,95 @@
+.intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at center, #1a0010 0%, #050005 75%);
+    color: #fff;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.intro-dismissing {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.05);
+    visibility: hidden;
+    transition: opacity 0.7s ease, transform 0.7s ease, visibility 0s linear 0.7s;
+}
+
+.intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    text-align: center;
+}
+
+.intro-logo {
+    width: clamp(240px, 42vw, 440px);
+    height: auto;
+    display: block;
+    filter:
+        drop-shadow(0 0 18px rgba(225, 0, 91, 0.85))
+        drop-shadow(0 0 48px rgba(225, 0, 91, 0.55))
+        drop-shadow(0 0 96px rgba(225, 0, 91, 0.35));
+}
+
+.intro-button {
+    background: transparent;
+    border: 2px solid var(--color-accent);
+    color: var(--color-accent);
+    padding: 14px 44px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+    text-shadow: 0 0 18px rgba(225, 0, 91, 0.7);
+    box-shadow:
+        0 0 24px rgba(225, 0, 91, 0.4),
+        inset 0 0 16px rgba(225, 0, 91, 0.1);
+}
+
+.intro-button--small {
+    padding: 8px 20px;
+    font-size: 0.7rem;
+}
+
+.intro-button:hover,
+.intro-button:focus-visible {
+    background: var(--color-accent);
+    color: #0a0005;
+    text-shadow: none;
+    box-shadow:
+        0 0 60px rgba(225, 0, 91, 0.8),
+        inset 0 0 12px rgba(255, 255, 255, 0.3);
+    outline: none;
+}
+
+.intro-button:active {
+    transform: scale(0.97);
+}
+
+.intro-button-slackvibes {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% -150%;
+}
+
+/* The wrapper is in the header — display: contents makes its children
+ * (overlay, music-panel) participate in the .site-user flex layout directly. */
+.intro-wrapper {
+    display: contents;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intro-overlay {
+        transition: opacity 0.2s ease;
+    }
+}

@@ -1,0 +1,140 @@
+.crossings-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.crossings-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "date    style"
+        "user    rating"
+        "line    line"
+        "comment comment"
+        "actions actions";
+    gap: 2px 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 0.85rem;
+}
+
+.crossings-list-panel .crossings-item:last-child {
+    border-bottom: none;
+}
+
+.crossings-date {
+    grid-area: date;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.crossings-user {
+    grid-area: user;
+    font-weight: 600;
+    color: var(--color-fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+a.crossings-user:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.crossings-line {
+    grid-area: line;
+    color: var(--color-fg);
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+a.crossings-line:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.crossings-rating {
+    grid-area: rating;
+    font-size: 0.7rem;
+    letter-spacing: -0.05em;
+    color: var(--color-line);
+    white-space: nowrap;
+}
+
+.crossings-star.on {
+    color: var(--color-accent);
+}
+
+.crossings-rating-none {
+    color: var(--color-line);
+}
+
+.crossings-style {
+    grid-area: style;
+    align-self: center;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--color-accent);
+    background: rgba(225, 0, 91, 0.08);
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    justify-self: end;
+}
+
+.crossings-comment {
+    grid-area: comment;
+    margin: 6px 0 0;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--color-fg);
+    font-style: italic;
+    background: #fafafa;
+    border-left: 2px solid var(--color-accent);
+    border-radius: 0 3px 3px 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* Varianta bez autora — na uživatelově vlastním deníku */
+.crossings-item-nouser {
+    grid-template-areas:
+        "date    style"
+        "rating  rating"
+        "line    line"
+        "comment comment"
+        "actions actions";
+}
+
+/* Varianta bez sloupce lajny — na detailu highline (lajna je zřejmá z kontextu) */
+.crossings-item-noline {
+    grid-template-areas:
+        "date    style"
+        "user    rating"
+        "comment comment";
+}
+
+.crossings-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.crossings-delete-form {
+    display: inline;
+    margin: 0;
+}

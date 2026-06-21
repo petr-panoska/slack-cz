@@ -17,7 +17,7 @@
                     <span class="panel-dot panel-dot-map"></span>
                     <h2>Mapa</h2>
                 </div>
-                <a href="{{ path('app_highline_map') }}" class="panel-link">Otevřít →</a>
+                <a href="{{ path('app_line_map') }}" class="panel-link">Otevřít →</a>
             </header>
             <div class="hp-map-body">
                 <aside class="hp-crossings" aria-label="Poslední přechody">
@@ -28,13 +28,13 @@
                             class="crossings-item hp-crossing{{ loop.first ? ' is-active' : '' }}"
                             data-hp-map-target="item"
                             data-action="click->hp-map#select"
-                            data-name="{{ c.highline.name }}"
-                            data-lat="{{ c.highline.latitude }}"
-                            data-lng="{{ c.highline.longitude }}"
-                            data-p1-lat="{{ c.highline.point1Latitude }}"
-                            data-p1-lng="{{ c.highline.point1Longitude }}"
-                            data-p2-lat="{{ c.highline.point2Latitude }}"
-                            data-p2-lng="{{ c.highline.point2Longitude }}"
+                            data-name="{{ c.line.name }}"
+                            data-lat="{{ c.line.latitude }}"
+                            data-lng="{{ c.line.longitude }}"
+                            data-p1-lat="{{ c.line.point1Latitude }}"
+                            data-p1-lng="{{ c.line.point1Longitude }}"
+                            data-p2-lat="{{ c.line.point2Latitude }}"
+                            data-p2-lng="{{ c.line.point2Longitude }}"
                             data-user-id="{{ c.user.id }}"
                             data-comment="{{ c.comment }}"
                         >
@@ -52,7 +52,7 @@
                                     <span class="crossings-rating-none">–</span>
                                 {% endif %}
                             </span>
-                            <a class="crossings-line" href="{{ path('app_highline_detail', { slug: c.highline.slug }) }}">{{ c.highline.name }}</a>
+                            <a class="crossings-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
                         </li>
                         {% endfor %}
                     </ul>
@@ -77,17 +77,17 @@
             <ul class="hp-photos-grid">
                 {% for photo in recent_photos %}
                     <li class="hp-photo">
-                        <a href="{{ path('app_highline_photo_detail', { slug: photo.highline.slug, id: photo.id }) }}" class="hp-photo-link">
+                        <a href="{{ path('app_line_photo_detail', { slug: photo.line.slug, id: photo.id }) }}" class="hp-photo-link">
                             <img
-                                src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('highline_thumb') }}"
-                                alt="{{ photo.caption ?? photo.highline.name }}"
+                                src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('line_thumb') }}"
+                                alt="{{ photo.caption ?? photo.line.name }}"
                                 loading="lazy"
                                 decoding="async"
                                 width="320"
                                 height="240"
                             >
                             <span class="hp-photo-overlay">
-                                <span class="hp-photo-line">{{ photo.highline.name }}</span>
+                                <span class="hp-photo-line">{{ photo.line.name }}</span>
                                 {% if photo.uploadedBy %}
                                     <span class="hp-photo-author">{{ photo.uploadedBy.displayName }}</span>
                                 {% endif %}

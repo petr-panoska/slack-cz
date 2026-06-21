@@ -336,7 +336,7 @@ sudo systemctl restart fail2ban
 Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
 
 1. **Doimport legacy dat** — lokálně dotáhnout MySQL → Postgres user/highline/crossing import (částečně hotovo dle `migration.md`), pak `pg_dump` z lokálu, `pg_restore` na produkci.
-   - **Fotky zvlášť:** legacy foto import (`make importLegacyPhotos`) běží **jen lokálně** (potřebuje legacy MySQL + soubory z `../old-slack-cz`, ani jedno na betě není). Výsledné WebP mastery v `public/uploads/highline/*` jsou mimo `pg_dump` → po importu **`make syncBetaPhotos`** (rsync masterů na betu), jinak `highline_photo` řádky (jdou přes `make syncBetaFromLocal`) ukazují na neexistující soubory. `syncBetaFromLocal` veze jen DB, `syncBetaPhotos` soubory — páruj je. (Nové user uploady na betě se normalizují přímo tam — proto tam ImageMagick + exiftool.)
+   - **Fotky zvlášť:** legacy foto import (`make importLegacyPhotos`) běží **jen lokálně** (potřebuje legacy MySQL + soubory z `../old-slack-cz`, ani jedno na betě není). Výsledné WebP mastery v `public/uploads/line/*` jsou mimo `pg_dump` → po importu **`make syncBetaPhotos`** (rsync masterů na betu), jinak `line_photo` řádky (jdou přes `make syncBetaFromLocal`) ukazují na neexistující soubory. `syncBetaFromLocal` veze jen DB, `syncBetaPhotos` soubory — páruj je. (Nové user uploady na betě se normalizují přímo tam — proto tam ImageMagick + exiftool.)
 2. **MAILER_DSN** — externí SMTP relay (Brevo / Mailgun / Postmark / ...), ne vlastní mailserver. Hetzner blokuje port 25 outbound default.
 3. **DNS swap pro `slack.cz`** v Cloudflare:
    - Změnit A z legacy IP na `178.105.81.158`

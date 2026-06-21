@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Fotka – {{ line.name }} – slack.cz{% endblock %}
+
+{% block body %}
+{% set isAdmin = is_granted('ROLE_ADMIN') %}
+{% set canDeletePhoto = isAdmin or photo.isOwnedBy(app.user) %}
+
+<article class="hl-photo-detail">
+    <header class="hl-photo-detail-header">
+        <a href="{{ path('app_line_detail', { slug: line.slug }) }}" class="hl-back">← {{ line.name }}</a>
+        <div class="hl-photo-nav">
+            {% if prev %}
+                <a class="btn btn-secondary btn-sm" href="{{ path('app_line_photo_detail', { slug: line.slug, id: prev.id }) }}">← Předchozí</a>
+            {% endif %}
+            {% if next %}
+                <a class="btn btn-secondary btn-sm" href="{{ path('app_line_photo_detail', { slug: line.slug, id: next.id }) }}">Další →</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <section class="panel hl-photo-frame">
+        <a class="hl-photo-original-link" href="{{ vich_uploader_asset(photo, 'file') | imagine_filter('line_full') }}" target="_blank" rel="noopener" title="Otevřít v plné velikosti">
+            <img
+                class="hl-photo-main"
+                src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('line_medium') }}"
+                alt="{{ photo.caption ?? line.name }}"
+                loading="eager"
+                decoding="async"
+            >
+        </a>
+    </section>
+
+    <section class="panel hl-photo-meta-panel">
+        {% if photo.caption %}<p class="hl-photo-caption">{{ photo.caption }}</p>{% endif %}
+        <p class="hl-photo-byline">
+            {% if photo.uploadedBy %}
+                <a href="{{ path('app_user_denik', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
+            {% else %}
+                <span>?</span>
+            {% endif %}
+            {% if photo.createdAt %}· <time datetime="{{ photo.createdAt|date('Y-m-d') }}">{{ photo.createdAt|date('j. n. Y') }}</time>{% endif %}
+            {% if photo.hasGps %}· <a class="hl-photo-gps" href="https://www.openstreetmap.org/?mlat={{ photo.gpsLat }}&mlon={{ photo.gpsLng }}#map=16/{{ photo.gpsLat }}/{{ photo.gpsLng }}" target="_blank" rel="noopener" title="Místo pořízení fotky">📍 poloha</a>{% endif %}
+        </p>
+
+        <div class="hl-photo-actions">
+            {% if app.user %}
+                <form
+                    method="post"
+                    action="{{ path('app_line_photo_like', { id: photo.id }) }}"
+                    data-turbo="false"
+                    class="hl-photo-like-form"
+                    data-controller="photo-like"
+                    data-action="submit->photo-like#toggle"
+                >
+                    <input type="hidden" name="_token" value="{{ csrf_token('like-photo-' ~ photo.id) }}">
+                    <button
+                        type="submit"
+                        class="hl-photo-like-btn {% if userHasLiked %}is-liked{% endif %}"
+                        aria-pressed="{{ userHasLiked ? 'true' : 'false' }}"
+                        data-photo-like-target="button"
+                    >
+                        <span data-photo-like-target="icon">{{ userHasLiked ? '❤' : '♡' }}</span>
+                        <span class="hl-photo-like-count" data-photo-like-target="count">{{ likeCount }}</span>
+                    </button>
+                </form>
+            {% else %}
+                <span class="hl-photo-like-btn is-disabled" title="Přihlas se pro lajknutí">♡ <span class="hl-photo-like-count">{{ likeCount }}</span></span>
+            {% endif %}
+
+            {% if canDeletePhoto %}
+                <form
+                    method="post"
+                    action="{{ path('app_line_photo_delete', { id: photo.id }) }}"
+                    data-turbo="false"
+                    onsubmit="return confirm('Opravdu smazat fotku?');"
+                >
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete-photo-' ~ photo.id) }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Smazat fotku</button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="panel hl-photo-comments-panel">
+        <header class="panel-header">
+            <div class="panel-title">
+                <span class="panel-dot panel-dot-crossings"></span>
+                <h2>Komentáře <span class="hl-crossings-count">{{ comments|length }}</span></h2>
+            </div>
+        </header>
+
+        {% if comments|length > 0 %}
+            <ul class="hl-comments">
+                {% for c in comments %}
+                    {% set canDeleteComment = isAdmin or c.isOwnedBy(app.user) %}
+                    <li class="hl-comment">
+                        <div class="hl-comment-head">
+                            <span class="hl-comment-author">
+                                {% if c.author %}
+                                    <a href="{{ path('app_user_denik', { id: c.author.id }) }}">{{ c.author.displayName }}</a>
+                                {% else %}
+                                    ?
+                                {% endif %}
+                            </span>
+                            <time class="hl-comment-time" datetime="{{ c.createdAt|date('Y-m-d H:i') }}">{{ c.createdAt|date('j. n. Y H:i') }}</time>
+                            {% if canDeleteComment %}
+                                <form
+                                    method="post"
+                                    action="{{ path('app_line_photo_comment_delete', { id: c.id }) }}"
+                                    class="hl-comment-delete"
+                                    data-turbo="false"
+                                    onsubmit="return confirm('Smazat komentář?');"
+                                >
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-comment-' ~ c.id) }}">
+                                    <button type="submit" aria-label="Smazat komentář">×</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <p class="hl-comment-text">{{ c.text|nl2br }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="hl-empty">Zatím žádný komentář.</p>
+        {% endif %}
+
+        {% if app.user %}
+            <div class="hl-comment-form">
+                {{ form_start(commentForm, { attr: { novalidate: 'novalidate' } }) }}
+                {{ form_row(commentForm.text) }}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">Odeslat</button>
+                </div>
+                {{ form_end(commentForm) }}
+            </div>
+        {% else %}
+            <p class="hl-empty"><a href="{{ path('app_login') }}">Přihlas se</a> pro přidání komentáře.</p>
+        {% endif %}
+    </section>
+</article>
+{% endblock %}

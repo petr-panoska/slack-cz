@@ -8,8 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * A longline entry in a user's deník. Unlike HighlineCrossing these are not tied
- * to a Highline (longlines have no anchor/GPS data) — the place is just free
+ * A longline entry in a user's deník. Unlike LineCrossing these are not tied
+ * to a Line (longlines have no anchor/GPS data) — the place is just free
  * text. Mirrors the legacy `longline` table (uzivatel/delka/misto/styl/datum).
  */
 #[ORM\Entity(repositoryClass: LonglineCrossingRepository::class)]
@@ -38,7 +38,7 @@ class LonglineCrossing
     #[Assert\Length(max: 120)]
     private string $place;
 
-    // Shared with HighlineCrossing — the longline form only offers the styles
+    // Shared with LineCrossing — the longline form only offers the styles
     // where CrossingStyle::appliesToLongline() is true (no leash styles).
     #[ORM\Column(length: 20, nullable: true, enumType: CrossingStyle::class)]
     private ?CrossingStyle $style = null;

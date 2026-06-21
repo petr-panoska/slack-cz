@@ -1,12 +1,11 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import '../styles/_map-types.css';
 import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 
-// Mirrors App\Enum\HighlineType (legacy "Top Highline"/"Urban Line" were collapsed
+// Mirrors App\Enum\LineType (legacy "Top Highline"/"Urban Line" were collapsed
 // into Highline at import — they don't exist as live values anymore).
 const TYPE_LABELS = {
     highline: 'Highline',
@@ -33,10 +32,10 @@ function typeColor(type) {
     return TYPE_COLORS[type] ?? TYPE_COLORS.unsorted;
 }
 
-function highlineIcon(type) {
+function lineIcon(type) {
     return L.divIcon({
-        className: 'highline-marker',
-        html: `<span class="highline-dot" style="background:${typeColor(type)}"></span>`,
+        className: 'line-marker',
+        html: `<span class="line-dot" style="background:${typeColor(type)}"></span>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9],
     });
@@ -190,7 +189,7 @@ export default class extends Controller {
         this._onFeedFilter = (e) => this._handleFeedFilter(e.detail);
         document.addEventListener('slack:feed-filter', this._onFeedFilter);
 
-        await this.loadHighlines();
+        await this.loadLines();
         await this.loadUsers();
 
         this._publishMode();
@@ -215,7 +214,7 @@ export default class extends Controller {
 
     // ---------- Static markers (default mode) ----------
 
-    async loadHighlines() {
+    async loadLines() {
         const response = await fetch(this.dataUrlValue, { headers: { Accept: 'application/json' } });
         if (!response.ok) {
             console.error('Failed to load highlines', response.status);
@@ -235,7 +234,7 @@ export default class extends Controller {
             const hasLine = !p2.some(Number.isNaN);
             presentTypes.add(h.type);
 
-            const marker = L.marker(p1, { icon: highlineIcon(h.type) }).bindPopup(this.popupHtml(h));
+            const marker = L.marker(p1, { icon: lineIcon(h.type) }).bindPopup(this.popupHtml(h));
             marker.addTo(this.staticLayer);
             markers.push(marker);
 
@@ -257,8 +256,10 @@ export default class extends Controller {
         this._updateLinesVisibility();
     }
 
-    // Type legend, bottom-left. Renders only the types actually present in the data
-    // (in canonical LEGEND_ORDER), so it stays accurate as the line mix changes.
+    // Type legend as a collapsible top-right control: a "?" pill that toggles a panel
+    // listing the types actually present (in canonical LEGEND_ORDER). Top-right so it
+    // sits with the other map buttons instead of covering the bottom-left crossing feed,
+    // and it always starts collapsed so the legend stays hidden until asked for.
     _addLegend(presentTypes) {
         if (this._legend) {
             this._legend.remove();
@@ -267,16 +268,47 @@ export default class extends Controller {
         const rows = LEGEND_ORDER.filter((t) => presentTypes.has(t));
         if (rows.length === 0) return;
 
-        const control = L.control({ position: 'bottomleft' });
+        const control = L.control({ position: 'topright' });
         control.onAdd = () => {
-            const div = L.DomUtil.create('div', 'map-legend');
-            div.innerHTML = rows.map((t) => (
+            const root = L.DomUtil.create('div', 'map-legend-ctrl');
+
+            const btn = L.DomUtil.create('button', 'map-ctrl-btn map-legend-toggle', root);
+            btn.type = 'button';
+            btn.textContent = '?';
+            btn.setAttribute('aria-haspopup', 'true');
+            btn.setAttribute('aria-label', 'Legenda typů');
+            btn.title = 'Legenda typů';
+
+            const panel = L.DomUtil.create('div', 'map-legend', root);
+            panel.innerHTML = rows.map((t) => (
                 `<span class="map-legend-row">`
                 + `<span class="map-legend-dot" style="background:${typeColor(t)}"></span>`
                 + `${escapeHtml(TYPE_LABELS[t] ?? t)}</span>`
             )).join('');
-            L.DomEvent.disableClickPropagation(div);
-            return div;
+
+            const setOpen = (open) => {
+                panel.hidden = !open;
+                btn.classList.toggle('is-active', open);
+                btn.setAttribute('aria-expanded', String(open));
+            };
+            setOpen(false);
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                setOpen(panel.hidden);
+            });
+
+            // Don't let map drag/zoom/click fire through the control; close on map click.
+            L.DomEvent.disableClickPropagation(root);
+            L.DomEvent.disableScrollPropagation(root);
+            control._collapse = () => setOpen(false);
+            this.map.on('click', control._collapse);
+
+            return root;
+        };
+        // Drop the map-click listener when the control is removed (legend re-renders).
+        control.onRemove = () => {
+            if (control._collapse) this.map.off('click', control._collapse);
         };
         control.addTo(this.map);
         this._legend = control;
@@ -364,9 +396,9 @@ export default class extends Controller {
 
         // Reset playback state
         this.virtualTime = this.timelineStart;
-        this.timelineHighlineMarkers = new Map();
-        this.timelineCounters = { highlines: 0, crossings: 0 };
-        this.eventCursor = { highline: 0, crossing: 0 };
+        this.timelineLineMarkers = new Map();
+        this.timelineCounters = { lines: 0, crossings: 0 };
+        this.eventCursor = { line: 0, crossing: 0 };
         this.playing = false;
         this.lastFrameTime = 0;
 
@@ -400,15 +432,15 @@ export default class extends Controller {
             return false;
         }
         const data = await response.json();
-        this.timelineHighlines = data.highlines;
+        this.timelineLines = data.lines;
         this.timelineCrossings = data.crossings;
 
-        this.timelineHighlinesById = new Map();
-        for (const h of this.timelineHighlines) {
-            this.timelineHighlinesById.set(h.id, h);
+        this.timelineLinesById = new Map();
+        for (const h of this.timelineLines) {
+            this.timelineLinesById.set(h.id, h);
         }
 
-        const firstDate = this.timelineHighlines[0]?.appearanceDate;
+        const firstDate = this.timelineLines[0]?.appearanceDate;
         this.timelineStart = firstDate
             ? new Date(firstDate).getTime()
             : new Date('2010-01-01').getTime();
@@ -445,9 +477,9 @@ export default class extends Controller {
     seekToTime(target) {
         // Wipe everything and re-process from the very beginning, no animations.
         this.timelineLayer.clearLayers();
-        this.timelineHighlineMarkers = new Map();
-        this.timelineCounters = { highlines: 0, crossings: 0 };
-        this.eventCursor = { highline: 0, crossing: 0 };
+        this.timelineLineMarkers = new Map();
+        this.timelineCounters = { lines: 0, crossings: 0 };
+        this.eventCursor = { line: 0, crossing: 0 };
 
         this.virtualTime = this.timelineStart;
         this.processEventsTo(target, true);
@@ -490,11 +522,11 @@ export default class extends Controller {
 
     processEventsTo(targetTime, instant) {
         // Fire highlines first so subsequent crossings can anchor to them.
-        while (this.eventCursor.highline < this.timelineHighlines.length) {
-            const h = this.timelineHighlines[this.eventCursor.highline];
+        while (this.eventCursor.line < this.timelineLines.length) {
+            const h = this.timelineLines[this.eventCursor.line];
             if (new Date(h.appearanceDate).getTime() > targetTime) break;
-            this.appearHighline(h, instant);
-            this.eventCursor.highline++;
+            this.appearLine(h, instant);
+            this.eventCursor.line++;
         }
 
         while (this.eventCursor.crossing < this.timelineCrossings.length) {
@@ -505,24 +537,24 @@ export default class extends Controller {
         }
     }
 
-    appearHighline(h, instant) {
-        this.timelineCounters.highlines++;
+    appearLine(h, instant) {
+        this.timelineCounters.lines++;
 
         const lat = parseFloat(h.latitude);
         const lng = parseFloat(h.longitude);
         if (Number.isNaN(lat) || Number.isNaN(lng)) return;
 
-        const marker = L.marker([lat, lng], { icon: highlineIcon(h.type) }).bindPopup(this.popupHtml(h));
+        const marker = L.marker([lat, lng], { icon: lineIcon(h.type) }).bindPopup(this.popupHtml(h));
         marker.addTo(this.timelineLayer);
-        this.timelineHighlineMarkers.set(h.id, marker);
+        this.timelineLineMarkers.set(h.id, marker);
 
         if (!instant) this.bloomAt(lat, lng);
     }
 
     bloomAt(lat, lng) {
         const icon = L.divIcon({
-            className: 'highline-bloom-icon',
-            html: '<span class="highline-bloom"></span>',
+            className: 'line-bloom-icon',
+            html: '<span class="line-bloom"></span>',
             iconSize: [80, 80],
             iconAnchor: [40, 40],
         });
@@ -535,7 +567,7 @@ export default class extends Controller {
         this.timelineCounters.crossings++;
         if (instant) return;
 
-        const h = this.timelineHighlinesById.get(c.highlineId);
+        const h = this.timelineLinesById.get(c.lineId);
         if (!h) return;
         const lat = parseFloat(h.latitude);
         const lng = parseFloat(h.longitude);
@@ -565,7 +597,7 @@ export default class extends Controller {
         }
         if (this.hasTtCounterTarget) {
             const c = this.timelineCounters;
-            this.ttCounterTarget.textContent = `Highlines: ${c.highlines} · Přechody: ${c.crossings}`;
+            this.ttCounterTarget.textContent = `Highlines: ${c.lines} · Přechody: ${c.crossings}`;
         }
         if (this.hasTtPlayTarget) {
             this.ttPlayTarget.textContent = this.playing ? '⏸' : '▶';
@@ -581,10 +613,10 @@ export default class extends Controller {
         const typeLabel = h.type === 'unsorted' ? '' : (TYPE_LABELS[h.type] ?? h.type);
         const place = [h.area, h.region].filter(Boolean).join(', ');
         const title = h.slug
-            ? `<a href="/highline/${encodeURIComponent(h.slug)}">${escapeHtml(h.name)}</a>`
+            ? `<a href="/line/${encodeURIComponent(h.slug)}">${escapeHtml(h.name)}</a>`
             : `<strong>${escapeHtml(h.name)}</strong>`;
         return `
-            <div class="highline-popup">
+            <div class="line-popup">
                 <strong>${title}</strong>
                 ${typeLabel ? `<div>${escapeHtml(typeLabel)}</div>` : ''}
                 <div>${h.length} m &middot; ${h.height} m vysoko</div>
@@ -665,9 +697,9 @@ export default class extends Controller {
         const stars = u.rating
             ? '★'.repeat(u.rating) + '☆'.repeat(5 - u.rating)
             : '';
-        const lineLink = u.highlineSlug
-            ? `<a href="/highline/${encodeURIComponent(u.highlineSlug)}">${escapeHtml(u.highlineName)}</a>`
-            : escapeHtml(u.highlineName);
+        const lineLink = u.lineSlug
+            ? `<a href="/line/${encodeURIComponent(u.lineSlug)}">${escapeHtml(u.lineName)}</a>`
+            : escapeHtml(u.lineName);
         const userLink = u.userId
             ? `<a href="/denik/${u.userId}">${escapeHtml(u.userDisplayName)}</a>`
             : escapeHtml(u.userDisplayName);

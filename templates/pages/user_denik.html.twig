@@ -34,14 +34,14 @@
                     <header class="panel-header">
                         <div class="panel-title">
                             <span class="panel-dot panel-dot-map"></span>
-                            <h2>Mapa <span class="hl-crossings-count">{{ mapHighlines|length }}</span></h2>
+                            <h2>Mapa <span class="hl-crossings-count">{{ mapLines|length }}</span></h2>
                         </div>
                     </header>
-                    {% if mapHighlines|length > 0 %}
+                    {% if mapLines|length > 0 %}
                         <div
                             class="denik-map-wrapper"
                             data-controller="user-denik-map"
-                            data-user-denik-map-highlines-value="{{ mapHighlines|json_encode|e('html_attr') }}"
+                            data-user-denik-map-lines-value="{{ mapLines|json_encode|e('html_attr') }}"
                             data-user-denik-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
                             data-user-denik-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
                             data-user-denik-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"

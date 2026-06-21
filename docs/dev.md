@@ -62,7 +62,7 @@ docker compose exec -T php bin/console <cmd>
 | `make loadLegacyDump` | jednorázový load `slackcz_44953.sql` po fresh `docker compose down -v` |
 | `make legacyImport` | jednorázový import do čerstvého schématu (highlines/users/crossings `--truncate`); předpokládá nahraný legacy dump |
 | `make stageLegacyPhotos` | rsync legacy foto stromu z `../old-slack-cz` do `var/legacy-import/` (mountnuté do `php` containeru, gitignored) |
-| `make importLegacyPhotos` | stage + `app:import:highline-photos --truncate` — cover + galerie do WebP masterů. Orphany / fotky smazaných lajn → `var/legacy-orphan-photos/`. Až **po** `legacyImport` (potřebuje highlines). |
+| `make importLegacyPhotos` | stage + `app:import:line-photos --truncate` — cover + galerie do WebP masterů. Orphany / fotky smazaných lajn → `var/legacy-orphan-photos/`. Až **po** `legacyImport` (potřebuje highlines). |
 
 **Produkce (SSH na `beta.slack.cz`):**
 
@@ -74,7 +74,7 @@ docker compose exec -T php bin/console <cmd>
 | `make deployCaddy` | Push `infra/Caddyfile` na server: scp → `caddy validate` → atomic cp → `systemctl restart caddy` + smoke test. Spusť kdykoliv změníš `infra/Caddyfile`. |
 | `make deploy` | Závisí na `checkServerEnv` + `checkCaddy`. Po úspěšných preflightech: `ssh deploy@HOST 'bash -s' < scripts/deploy.sh` + post-deploy smoke test. |
 | `make syncBetaFromLocal` | pg_dump lokál → scp → psql restore + cache:clear na `beta.slack.cz` (destruktivní, viz `deploy.md`) |
-| `make syncBetaPhotos` | rsync WebP masterů `public/uploads/highline/` na betu (mimo `pg_dump` → samostatně). Páruje se se `syncBetaFromLocal`. |
+| `make syncBetaPhotos` | rsync WebP masterů `public/uploads/line/` na betu (mimo `pg_dump` → samostatně). Páruje se se `syncBetaFromLocal`. |
 
 Detail flow + script ecosystem v `deploy.md` sekce „Infrastruktura na první pohled".
 
@@ -106,7 +106,7 @@ docker compose exec -T php tail -n 30 var/log/dev.log | grep CRITICAL
 
 ```bash
 docker compose exec -T database psql -U app -d app -c "\dt"
-docker compose exec -T database psql -U app -d app -c "SELECT COUNT(*) FROM highline;"
+docker compose exec -T database psql -U app -d app -c "SELECT COUNT(*) FROM line;"
 ```
 
 V Adminer: <http://localhost:8080/?pgsql=database&username=app&db=app> (heslo `password`).
@@ -146,9 +146,9 @@ docker compose exec -T php bin/console doctrine:database:create
 docker compose exec -T php bin/console doctrine:migrations:migrate -n
 
 # 2) Importy v tomhle pořadí (kvůli FK):
-docker compose exec -T php bin/console app:import:highlines --truncate
+docker compose exec -T php bin/console app:import:lines --truncate
 docker compose exec -T php bin/console app:import:users --truncate
-docker compose exec -T php bin/console app:import:highline-crossings --truncate
+docker compose exec -T php bin/console app:import:line-crossings --truncate
 docker compose exec -T php bin/console app:import:longline-crossings --truncate
 ```
 
@@ -157,10 +157,10 @@ Krok 2 (jen importy) je zabalený v `make legacyImport`. Pro zopakování celéh
 **Fotky jsou separátní krok** (potřebují legacy *soubory* z `../old-slack-cz`, ne jen DB dump):
 
 ```bash
-make importLegacyPhotos   # rsync ../old-slack-cz → var/legacy-import + app:import:highline-photos --truncate
+make importLegacyPhotos   # rsync ../old-slack-cz → var/legacy-import + app:import:line-photos --truncate
 ```
 
-Importuje cover (`foto.jpg`) + galerii (`highline_foto`) jako **WebP mastery** do `public/uploads/highline/<id>/`. Orphany (soubory na disku bez DB řádku) a fotky smazaných lajn se neimportují — vyexpedují se do `var/legacy-orphan-photos/` a reportnou. Detail modelu (cover, datum, GPS, normalizace) v `migration.md` § *Highline photos* a `architecture.md` § *Foto galerie — upload pipeline*. Běž až **po** `make legacyImport` (fotka se váže na highline přes `legacyId`).
+Importuje cover (`foto.jpg`) + galerii (`highline_foto`) jako **WebP mastery** do `public/uploads/line/<id>/`. Orphany (soubory na disku bez DB řádku) a fotky smazaných lajn se neimportují — vyexpedují se do `var/legacy-orphan-photos/` a reportnou. Detail modelu (cover, datum, GPS, normalizace) v `migration.md` § *Line photos* a `architecture.md` § *Foto galerie — upload pipeline*. Běž až **po** `make legacyImport` (fotka se váže na highline přes `legacyId`).
 
 ## Účty / správa uživatelů
 
@@ -230,10 +230,10 @@ curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'asset
 - **Twig filtry, které NEjsou nainstalované** (a budou házet 500):
   - `format_datetime` (potřebuje `twig/intl-extra`) — místo toho použij `|date('j. n. Y')`
   - `|u.truncate(...)` (potřebuje `twig/string-extra`) — místo toho použij CSS `-webkit-line-clamp`
-- **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/mapa.html.twig`. Pro plnohodnotnou mapu se 254 lajnami + time-travel use `map_controller`; pro slim single-line view (např. detail) je `highline_detail_map_controller`.
+- **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/mapa.html.twig`. Pro plnohodnotnou mapu se 254 lajnami + time-travel use `map_controller`; pro slim single-line view (např. detail) je `line_detail_map_controller`.
 - **Legacy import je jednorázová lokální věc na čisté schéma.** Spouští se při nahazování projektu (`make legacyImport`), kdy je DB prázdná — proto FK z crossings → highline nevadí (žádné crossings ještě nejsou). Když to chceš zopakovat: dropni novou DB, znovu nahraj legacy dump (adminer / `make loadLegacyDump`), pak `make legacyImport`.
 - **Asset URL hashe** se mění při edit → curl test musí parsovat URL z HTML, ne hardcodovat.
-- **Limit posledních přechodů** je centralizovaný v `App\Repository\HighlineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i sidebar feed. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
+- **Limit posledních přechodů** je centralizovaný v `App\Repository\LineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i sidebar feed. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
 
 ## Feed (slackTV)
 
@@ -256,7 +256,7 @@ Quota math: každá search query = 100 units / fetch. Default cache TTL = **2160
 |---|---|
 | App | <http://localhost:8000/> |
 | Mapa | <http://localhost:8000/mapa> |
-| Detail lajny | <http://localhost:8000/highline/{slug}> (např. `cimburi-cimbuline`) |
+| Detail lajny | <http://localhost:8000/line/{slug}> (např. `cimburi-cimbuline`) |
 | Deník uživatele | <http://localhost:8000/denik/{id}> |
 | O projektu | <http://localhost:8000/o-projektu> |
 | Adminer (PG) | <http://localhost:8080/?pgsql=database&username=app&db=app> |

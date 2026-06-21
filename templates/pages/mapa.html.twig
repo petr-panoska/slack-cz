@@ -4,22 +4,22 @@
 
 {% block body %}
 <div
-    class="highline-map-wrapper"
+    class="line-map-wrapper"
     data-controller="map"
-    data-map-data-url-value="{{ path('app_highline_map_data') }}"
-    data-map-users-url-value="{{ path('app_highline_map_feed') }}"
-    data-map-timeline-url-value="{{ path('app_highline_map_timeline') }}"
+    data-map-data-url-value="{{ path('app_line_map_data') }}"
+    data-map-users-url-value="{{ path('app_line_map_feed') }}"
+    data-map-timeline-url-value="{{ path('app_line_map_timeline') }}"
     data-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
     data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
     data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
 >
-    <div class="highline-map" data-map-target="canvas"></div>
+    <div class="line-map" data-map-target="canvas"></div>
 
     <aside
         class="crossing-feed"
         aria-label="Přechody"
         data-controller="crossing-feed"
-        data-crossing-feed-url-value="{{ path('app_highline_map_feed') }}"
+        data-crossing-feed-url-value="{{ path('app_line_map_feed') }}"
     >
         <header class="crossing-feed-header">
             <span class="crossing-feed-dot" aria-hidden="true"></span>

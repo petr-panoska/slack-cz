@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 
 // Intercepts the like form submit and toggles via fetch — no page reload.
-// Markup contract (see templates/highline_photo/detail.html.twig):
+// Markup contract (see templates/line_photo/detail.html.twig):
 //   <form data-controller="photo-like" data-action="submit->photo-like#toggle"
 //         data-photo-like-url-value="..." action="..." method="post">
 //     <input type="hidden" name="_token" value="...">

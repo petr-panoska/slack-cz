@@ -1,0 +1,92 @@
+/* ============================================================
+   Buttons — single source of truth.
+   One base class `.btn` + variants (primary / secondary / danger) + size
+   modifiers (sm / lg) + `btn-block` for full-width form submits.
+   Nothing else should restyle button appearance; layout containers may
+   only position buttons (flex rows). Variants set their own color on both
+   rest and :hover so context link-color rules can never bleed through.
+   ============================================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn:disabled,
+.btn.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* `display: inline-flex` above out-specifies the UA [hidden] rule, so a .btn
+   with the hidden attribute would stay visible — make hiding actually work. */
+.btn[hidden] {
+    display: none;
+}
+
+/* Variants */
+.btn-primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: transparent;
+    border-color: var(--color-line);
+    color: var(--color-fg);
+}
+
+.btn-secondary:hover {
+    background: var(--color-line);
+    border-color: var(--color-line);
+    color: var(--color-fg);
+}
+
+.btn-danger {
+    background: transparent;
+    border-color: var(--color-line);
+    color: #c0143c;
+}
+
+.btn-danger:hover {
+    background: #c0143c;
+    border-color: #c0143c;
+    color: #fff;
+}
+
+/* Sizes */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.78rem;
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 1.05em;
+}
+
+/* Full-width — stacked single-action forms (login, register, password reset) */
+.btn-block {
+    display: flex;
+    width: 100%;
+}

@@ -1,0 +1,139 @@
+.site-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.site-search-btn {
+    background: #fafafa;
+    border: 1px solid var(--color-line);
+    color: var(--color-fg);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.site-search-btn:hover,
+.site-search-btn:focus-visible,
+.site-search.is-open .site-search-btn {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    outline: none;
+}
+
+.site-search-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 320px;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 1500;
+}
+
+.site-search.is-open .site-search-panel {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.site-search-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--color-line);
+    padding: 12px 16px;
+    font: inherit;
+    font-size: 0.95rem;
+    background: transparent;
+    color: var(--color-fg);
+}
+
+.site-search-input::placeholder {
+    color: var(--color-muted);
+}
+
+.site-search-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-accent);
+}
+
+.site-search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.site-search-results:not(.has-results) {
+    display: none;
+}
+
+.site-search-results li {
+    border-bottom: 1px solid var(--color-line);
+}
+
+.site-search-results li:last-child {
+    border-bottom: none;
+}
+
+.site-search-results a {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: var(--color-fg);
+    transition: background 0.12s, color 0.12s;
+}
+
+.site-search-results a:hover,
+.site-search-results a:focus-visible {
+    background: rgba(225, 0, 91, 0.08);
+    color: var(--color-accent);
+    outline: none;
+}
+
+.site-search-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.site-search-meta {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+.site-search-results a:hover .site-search-meta,
+.site-search-results a:focus-visible .site-search-meta {
+    color: var(--color-accent);
+}
+
+.site-search-empty {
+    padding: 16px;
+    color: var(--color-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .site-search-panel {
+        width: calc(100vw - 32px);
+        right: -16px;
+    }
+}

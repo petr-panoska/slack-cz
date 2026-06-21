@@ -1,0 +1,8 @@
+[class^="flash-"] {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.flash-success { background: #e8f5e9; }
+.flash-error   { background: #fdecea; }
+.flash-warning { background: #fff8e1; }

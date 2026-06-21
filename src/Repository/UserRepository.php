@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\HighlineCrossing;
+use App\Entity\LineCrossing;
 use App\Entity\LonglineCrossing;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -62,12 +62,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 'u.lastName AS lastName',
                 'COUNT(DISTINCT hc.id) AS highlineCount',
                 'COUNT(DISTINCT lc.id) AS longlineCount',
-                'MAX(hc.crossedAt) AS lastHighline',
+                'MAX(hc.crossedAt) AS lastLine',
                 'MAX(lc.crossedAt) AS lastLongline',
             )
             // Two collection LEFT JOINs fan out the rows — COUNT(DISTINCT) keeps the
             // counts honest, MAX is idempotent over the duplicates.
-            ->leftJoin(HighlineCrossing::class, 'hc', Join::WITH, 'hc.user = u')
+            ->leftJoin(LineCrossing::class, 'hc', Join::WITH, 'hc.user = u')
             ->leftJoin(LonglineCrossing::class, 'lc', Join::WITH, 'lc.user = u')
             ->where('u.isActive = true')
             ->groupBy('u.id') // u.id is PK → Postgres allows selecting nick/names without grouping them
@@ -81,7 +81,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
         $rows = array_map(static function (array $r) use ($toDate): array {
             $last = null;
-            foreach ([$toDate($r['lastHighline']), $toDate($r['lastLongline'])] as $d) {
+            foreach ([$toDate($r['lastLine']), $toDate($r['lastLongline'])] as $d) {
                 if ($d !== null && ($last === null || $d > $last)) {
                     $last = $d;
                 }

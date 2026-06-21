@@ -1,0 +1,545 @@
+/* ---------- Highline detail page ---------- */
+
+.hl-detail {
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Cover hero ---------- */
+
+.hl-cover {
+    position: relative;
+    width: 100%;
+    height: calc(100dvh - var(--header-height));
+    min-height: 360px;
+    overflow: hidden;
+    background: #1a0010;
+    color: #fff;
+}
+
+.hl-cover-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* When the page has no cover URL or the cover image 404s, collapse the hero. */
+.hl-detail:not(.hl-detail-has-cover) .hl-cover {
+    height: auto;
+    min-height: 0;
+    background: linear-gradient(135deg, #1a0010 0%, #3a0020 100%);
+}
+
+.hl-detail:not(.hl-detail-has-cover) .hl-cover-content {
+    position: static;
+    padding: 28px 24px 32px;
+}
+
+.hl-cover-shade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.0) 25%,
+            rgba(0, 0, 0, 0.0) 55%,
+            rgba(0, 0, 0, 0.75) 100%);
+}
+
+.hl-cover-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 32px 24px 56px;
+    max-width: 1100px;
+    margin: 0 auto;
+    z-index: 1;
+}
+
+.hl-cover-content .hl-back {
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hl-cover-content .hl-back:hover {
+    color: #fff;
+}
+
+.hl-cover-content h1 {
+    margin: 8px 0 14px;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
+    line-height: 1.05;
+}
+
+.hl-cover-content .hl-detail-meta {
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hl-cover-content .hl-loc,
+.hl-cover-content .hl-fa {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.hl-cover-content .hl-type-badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* Action buttons over dark cover — reskin with translucent scrim + light text. */
+.hl-cover-content .btn-secondary,
+.hl-cover-content .btn-danger {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.hl-cover-content .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.55);
+    border-color: #fff;
+    color: #fff;
+}
+
+.hl-cover-content .btn-danger:hover {
+    background: rgba(192, 20, 60, 0.6);
+    border-color: #fff;
+    color: #fff;
+}
+
+.hl-back {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    text-decoration: none;
+}
+
+.hl-back:hover {
+    color: var(--color-accent);
+}
+
+.hl-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--color-muted);
+}
+
+/* ---------- Content body below the cover ---------- */
+
+.hl-detail-body {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-bg) 80px);
+}
+
+.hl-detail:not(.hl-detail-has-cover) .hl-detail-body {
+    background: var(--color-bg);
+    padding-top: 32px;
+}
+
+.hl-type-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(225, 0, 91, 0.10);
+    color: var(--color-accent);
+}
+
+.hl-type-badge.hl-type-top_highline { background: rgba(225, 0, 91, 0.18); }
+.hl-type-badge.hl-type-midline       { background: rgba(46, 125, 50, 0.12); color: #2e7d32; }
+.hl-type-badge.hl-type-urban_line    { background: rgba(33, 33, 33, 0.10); color: #333; }
+.hl-type-badge.hl-type-unsorted      { background: rgba(0, 0, 0, 0.06); color: var(--color-muted); }
+
+.hl-loc, .hl-fa { color: var(--color-muted); }
+
+.hl-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
+    align-items: start;
+}
+
+.hl-stats {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    padding: 24px 20px;
+    text-align: center;
+    position: sticky;
+    top: 16px;
+}
+
+.hl-info        { grid-column: 1; grid-row: 1; }
+.hl-gallery-panel { grid-column: 1; grid-row: 2; }
+.hl-map-panel   { grid-column: 1; grid-row: 3; }
+.hl-crossings-panel { grid-column: 1; grid-row: 4; }
+
+@media (max-width: 900px) {
+    .hl-detail-grid {
+        grid-template-columns: 1fr;
+    }
+    .hl-stats,
+    .hl-info,
+    .hl-gallery-panel,
+    .hl-map-panel,
+    .hl-crossings-panel {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    .hl-stats {
+        position: static;
+    }
+}
+
+/* ---------- Highline gallery ---------- */
+
+.hl-gallery-grid {
+    list-style: none;
+    margin: 0;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.hl-gallery-item {
+    position: relative;
+    background: var(--color-panel-soft, #f4f4f6);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.hl-gallery-link {
+    display: block;
+    aspect-ratio: 4 / 3;
+    background: #000;
+    position: relative;
+}
+
+.hl-gallery-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 220ms ease;
+}
+
+.hl-gallery-link:hover img {
+    transform: scale(1.04);
+}
+
+.hl-gallery-meta {
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--color-muted, #6b6b73);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.hl-gallery-caption {
+    color: var(--color-text, #1c1c1f);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hl-gallery-author a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.hl-gallery-author a:hover {
+    color: var(--color-accent);
+}
+
+.hl-gallery-stats {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    display: flex;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.hl-gallery-stat {
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 10px;
+    backdrop-filter: blur(2px);
+}
+
+.hl-gallery-stat.is-liked {
+    background: var(--color-accent);
+}
+
+/* ---------- Stats sidebar ---------- */
+
+.hl-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 16px;
+}
+
+.hl-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.hl-stat-icon {
+    font-size: 1.8rem;
+    color: var(--color-accent);
+    line-height: 1;
+}
+
+.hl-stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.hl-stat-unit {
+    font-size: 0.55em;
+    font-weight: 500;
+    color: var(--color-muted);
+}
+
+.hl-stat-label {
+    font-size: 0.68rem;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.hl-rating-large {
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    color: var(--color-line);
+}
+
+.hl-rating-large .hl-star.on {
+    color: var(--color-accent);
+}
+
+/* ---------- Info section ---------- */
+
+.hl-info {
+    padding: 22px 24px;
+}
+
+.hl-info-block {
+    margin-bottom: 22px;
+}
+
+.hl-info-block h2,
+.hl-info > h2 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.hl-info p {
+    margin: 0 0 12px;
+    line-height: 1.65;
+    color: var(--color-fg);
+}
+
+.hl-info p:last-child {
+    margin-bottom: 0;
+}
+
+.hl-richtext p {
+    margin: 0 0 10px;
+    line-height: 1.6;
+}
+
+.hl-richtext p:last-child {
+    margin-bottom: 0;
+}
+
+.hl-richtext ul,
+.hl-richtext ol {
+    margin: 0 0 10px;
+    padding-left: 20px;
+    line-height: 1.55;
+}
+
+.hl-richtext a {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.hl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.hl-table tr {
+    border-bottom: 1px solid var(--color-line);
+}
+
+.hl-table tr:last-child {
+    border-bottom: none;
+}
+
+.hl-table th,
+.hl-table td {
+    padding: 10px 0;
+    vertical-align: top;
+    text-align: left;
+}
+
+.hl-table th {
+    width: 38%;
+    font-weight: 600;
+    color: var(--color-muted);
+    padding-right: 16px;
+}
+
+.hl-table td {
+    color: var(--color-fg);
+}
+
+.hl-table a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.hl-table a:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Embedded detail map ---------- */
+
+.hl-map-wrapper {
+    height: 380px;
+    width: 100%;
+}
+
+.hl-map-canvas {
+    height: 100%;
+    width: 100%;
+}
+
+/* Compound `.leaflet-marker-icon.<x>` selectors are deliberate: Leaflet's own
+   `.leaflet-marker-icon { display: block }` loads after app.css and would otherwise
+   beat a bare `.hl-parking-marker { display: flex }` on equal specificity, killing the
+   centering. The extra class wins the tie. */
+.leaflet-marker-icon.hl-parking-marker {
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
+    background: #1b6cf3;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+    text-align: center;
+}
+
+.leaflet-marker-icon.hl-point-marker {
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    background: #e1005b;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* Nudge the glyph down ~1px: flex centers the line-box, but digits/caps have no
+   descender so they read as slightly high. */
+.hl-parking-marker-glyph,
+.hl-point-marker > span {
+    display: block;
+    transform: translateY(1px);
+}
+
+.hl-crossings-count {
+    color: var(--color-muted);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
+.hl-empty {
+    padding: 22px 24px;
+    margin: 0;
+    color: var(--color-muted);
+    font-style: italic;
+}
+
+/* ---------- Verified / proposal badge on detail ---------- */
+
+.hl-proposal-badge {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 9px;
+    font-size: 0.55em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #c0143c;
+    background: #fff;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    vertical-align: middle;
+}
+
+.hl-detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.hl-action-form {
+    display: inline;
+    margin: 0;
+}

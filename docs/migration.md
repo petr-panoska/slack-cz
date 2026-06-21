@@ -20,9 +20,9 @@ Fresh import na čisté schéma — DB reset je ruční, samotné importy zabalu
 docker compose exec php bin/console doctrine:database:drop --force --if-exists
 docker compose exec php bin/console doctrine:database:create
 docker compose exec php bin/console doctrine:migrations:migrate --no-interaction
-docker compose exec php bin/console app:import:highlines --truncate
+docker compose exec php bin/console app:import:lines --truncate
 docker compose exec php bin/console app:import:users --truncate
-docker compose exec php bin/console app:import:highline-crossings --truncate
+docker compose exec php bin/console app:import:line-crossings --truncate
 docker compose exec php bin/console app:import:longline-crossings --truncate
 ```
 
@@ -50,20 +50,20 @@ Cíl: vývojář při každém runu okamžitě vidí, co se v datech děje. Žá
 
 ## Stav per entita
 
-### ✅ Highlines — DONE
+### ✅ Lines — DONE
 
-- Command: `app:import:highlines`
+- Command: `app:import:lines`
 - Source: `highline` + LEFT JOIN `gps` (přes `point1_id` jako fallback pro chybějící `lat`/`lng`, `parking_id` pro parkování)
-- Cílová entita: `App\Entity\Highline` (FK `legacyId` na původní `highline.id`)
+- Cílová entita: `App\Entity\Line` (FK `legacyId` na původní `highline.id`)
 - Importováno: **254 / 254** (před fallbackem to bylo 138, 116 mělo prázdné lat/lng — viz `gps` table fallback). 133 / 254 má parkování naimportované z `gps WHERE type='PARKING'`.
 - Skipy: 0
 - **Pozn. (2026-06-09):** cílové sloupce `latitude`/`longitude` byly později zahozené (migrace `Version20260609120000`) — lajna se lokalizuje výhradně dvěma kotvícími body (`point1`/`point2`). Import command proto už lat/lng neplní a skip-gate je na `point1` místo legacy `lat`/`lng`. Viz `docs/architecture.md` § Mapa.
-- Mapování `typ` (int) → `HighlineType` enum přes `HighlineType::fromLegacyId()`: legacy `1` (Highline), `2` (Top Highline) i `4` (Urban Line) → `Highline`; `3` → `Midline`; cokoli jiného → `Unsorted`. Enum má 5 hodnot — `Unsorted`, `Highline`, `Midline`, `Longline`, `Waterline` — poslední dvě legacy import neprodukuje (jsou připravené pro budoucí ruční zadávání; per-typ ikony viz `todo.md`). Migrace `Version20260608120000` navíc slila už naimportované legacy stringy `top_highline`/`urban_line` do `highline` (úklid dvou nadbytečných typů).
-- **Verifikační flag — POZOR, no-op:** migrace `Version20260510113004` sice obsahuje `UPDATE highline SET is_verified = TRUE WHERE legacy_id IS NOT NULL`, ale **neflagne nic** — migrace běží nad prázdnou DB **před** importem (`make migrate` → `make legacyImport`), takže UPDATE potká 0 řádků; import pak lajny vytvoří s defaultem `is_verified = false`. **Všech 254 legacy lajn je tedy `unverified`** a je to tak ponecháno schválně (nutí admina data postupně pročistit = verifikovat). Migraci needitujeme (už aplikovaná + staví celé `highline_edit`/`is_verified` schéma; ten UPDATE je jen neškodný no-op). Detail a důsledky v `docs/highline-edits.md`.
+- Mapování `typ` (int) → `LineType` enum přes `LineType::fromLegacyId()`: legacy `1` (Highline), `2` (Top Highline) i `4` (Urban Line) → `Highline`; `3` → `Midline`; cokoli jiného → `Unsorted`. Enum má 5 hodnot — `Unsorted`, `Highline`, `Midline`, `Longline`, `Waterline` — poslední dvě legacy import neprodukuje (jsou připravené pro budoucí ruční zadávání; per-typ ikony viz `todo.md`). Migrace `Version20260608120000` navíc slila už naimportované legacy stringy `top_highline`/`urban_line` do `highline` (úklid dvou nadbytečných typů).
+- **Verifikační flag — POZOR, no-op:** migrace `Version20260510113004` sice obsahuje `UPDATE highline SET is_verified = TRUE WHERE legacy_id IS NOT NULL`, ale **neflagne nic** — migrace běží nad prázdnou DB **před** importem (`make migrate` → `make legacyImport`), takže UPDATE potká 0 řádků; import pak lajny vytvoří s defaultem `is_verified = false`. **Všech 254 legacy lajn je tedy `unverified`** a je to tak ponecháno schválně (nutí admina data postupně pročistit = verifikovat). Migraci needitujeme (už aplikovaná + staví celé `highline_edit`/`is_verified` schéma; ten UPDATE je jen neškodný no-op). Detail a důsledky v `docs/line-edits.md`.
 
 #### Foto galerie + cover
 
-- **Naimportováno** — viz sekce „Highline photos" níž. Cover už se netahá z legacy URL, je self-hostovaný.
+- **Naimportováno** — viz sekce „Line photos" níž. Cover už se netahá z legacy URL, je self-hostovaný.
 - `highline_media` (externí odkazy foto/video/článek) zatím **neimportováno** — viz „Highline media" v sekci Mimo scope.
 
 #### Vypnutá legacy pole (lokalita + kotvení)
@@ -231,23 +231,23 @@ Jediný nositel: **Danny M.** (id 149, Praha, aktivní — 49 přechodů, 5 prvo
 
 ---
 
-### ✅ Highline crossings (přechody) — DONE
+### ✅ Line crossings (přechody) — DONE
 
-- Command: `app:import:highline-crossings`
+- Command: `app:import:line-crossings`
 - Source: `highline_prechody` (995 rows)
-- Cílová entita: `App\Entity\HighlineCrossing`
+- Cílová entita: `App\Entity\LineCrossing`
 - Výsledek: **993 / 995 přechodů importováno**, 2 skipy kvůli neplatnému `0000-00-00` datu
 - 82 unique uživatelů aktivních (přechody dělalo)
 - 472 přechodů s ratingem (1–5 hvězd)
 - 552 s komentářem
 
-Schema (implementováno v `App\Entity\HighlineCrossing`):
+Schema (implementováno v `App\Entity\LineCrossing`):
 
 ```php
-class HighlineCrossing
+class LineCrossing
 {
     private ?int $id = null;
-    private Highline $highline;     // ManyToOne, not nullable
+    private Line $line;             // ManyToOne, not nullable
     private User $user;             // ManyToOne, not nullable (po user merge → vždy canonical)
     private \DateTimeImmutable $crossedAt;             // date_immutable (jen datum, ne čas)
     private ?CrossingStyle $style = null;       // enum string col length 20, viz crossing-styles.md
@@ -265,7 +265,7 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 #### Závislosti
 
 - Vyžaduje, aby běžel **po** `app:import:users` (kvůli FK `User`)
-- Sdílí službu `App\Legacy\UserMergeMap` — singleton, kterou plní `app:import:users` (kept canonical + dropped → kept) a čte `app:import:highline-crossings` přes `userMergeMap->find($legacyUzivatelId)`. Tím se přechody pod dropped emailem automaticky napárují na canonical User.
+- Sdílí službu `App\Legacy\UserMergeMap` — singleton, kterou plní `app:import:users` (kept canonical + dropped → kept) a čte `app:import:line-crossings` přes `userMergeMap->find($legacyUzivatelId)`. Tím se přechody pod dropped emailem automaticky napárují na canonical User.
 
 #### Co NEbude v MVP
 
@@ -280,7 +280,7 @@ Index `idx_crossing_crossed_at` na `crossedAt` — repo často filtruje a řadí
 - Source: `longline` (435 rows)
 - Cílová entita: `App\Entity\LonglineCrossing`
 - Výsledek: **414 / 435 importováno**, 21 skipů kvůli neplatnému `0000-00-00` datu
-- **Žádná lajna / GPS** — longline se nezapisuje k highline, `place` (legacy `misto`) je volný text. Proto vlastní entita, ne `HighlineCrossing`.
+- **Žádná lajna / GPS** — longline se nezapisuje k highline, `place` (legacy `misto`) je volný text. Proto vlastní entita, ne `LineCrossing`.
 
 Schema (implementováno v `App\Entity\LonglineCrossing`):
 
@@ -312,16 +312,16 @@ Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS
 
 ---
 
-### ✅ Highline photos (cover + galerie) — DONE (2026-06-16)
+### ✅ Line photos (cover + galerie) — DONE (2026-06-16)
 
-- Command: `app:import:highline-photos` (`make importLegacyPhotos` = staging + run)
+- Command: `app:import:line-photos` (`make importLegacyPhotos` = staging + run)
 - Sources (dva, reconciled):
   - **Galerie** = `highline_foto` (`file` + `text`=popisek) v old MySQL. Soubory na disku `line/high/<id>/foto/<file>`.
-  - **Cover** = jen souborová konvence `line/high/<id>/foto.jpg`, **není v žádné DB tabulce**. Importuje se jako normální `HighlinePhoto` + napojí přes `Highline.cover_photo_id` (self-host; legacy hotlink zrušen, bez fallbacku).
-- Cílová entita: `App\Entity\HighlinePhoto` (`legacyId` = `highline_foto.id` u galerie, NULL u coveru/orphanů), `Highline.coverPhoto`.
-- Soubory: normalizace přes `App\Service\PhotoNormalizer` (stejná pipeline jako user uploady) → **WebP master** ve Vich storage `public/uploads/highline/<id>/` (gitignored). Legacy originály v `../old-slack-cz` se nesahají. Legacy soubory nemají žádné EXIF (ověřeno: 0 GPS / 0 orientace / 0 capture-date), takže se z nich GPS/datum netáhne.
+  - **Cover** = jen souborová konvence `line/high/<id>/foto.jpg`, **není v žádné DB tabulce**. Importuje se jako normální `LinePhoto` + napojí přes `Line.cover_photo_id` (self-host; legacy hotlink zrušen, bez fallbacku).
+- Cílová entita: `App\Entity\LinePhoto` (`legacyId` = `highline_foto.id` u galerie, NULL u coveru/orphanů), `Line.coverPhoto`.
+- Soubory: normalizace přes `App\Service\PhotoNormalizer` (stejná pipeline jako user uploady) → **WebP master** ve Vich storage `public/uploads/line/<id>/` (gitignored). Legacy originály v `../old-slack-cz` se nesahají. Legacy soubory nemají žádné EXIF (ověřeno: 0 GPS / 0 orientace / 0 capture-date), takže se z nich GPS/datum netáhne.
 - Výsledek (ověřeno disk × old DB × **živý slack.cz**, všech 254 lajn): **151 galerie + 225 coverů = 376 fotek, 0 ztraceno.** 228/254 lajn má aspoň fotku, 26 nemá žádnou.
-- **Datum fotky** (`HighlinePhoto.createdAt`, nullable): legacy = datum 1. napnutí lajny (`firstAscentDate`), nebo **NULL** když lajna datum nemá (legacy neměl per-foto datum a soubory nemají EXIF). Nové uploady = reálný čas nahrání. Vidět v detailu i galerii (NULL → datum se nezobrazí). Galerie řadí NULL data naposled.
+- **Datum fotky** (`LinePhoto.createdAt`, nullable): legacy = datum 1. napnutí lajny (`firstAscentDate`), nebo **NULL** když lajna datum nemá (legacy neměl per-foto datum a soubory nemají EXIF). Nové uploady = reálný čas nahrání. Vidět v detailu i galerii (NULL → datum se nezobrazí). Galerie řadí NULL data naposled.
 
 #### Legacy nekonzistence (ověřené, ošetřené — ne ztráta stažení)
 
@@ -334,7 +334,7 @@ Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS
 
 php kontejner mountuje jen projekt, takže legacy fotky z hostu nevidí. `make stageLegacyPhotos` je rsyncne do `var/legacy-import/` (mountováno + gitignored).
 
-**Import běží jen lokálně**, ne na betě — potřebuje legacy MySQL (`highline_foto`) i soubory z `../old-slack-cz`, ani jedno na prod není (prod = „žádný MySQL", viz `deploy.md`). Na betu se výsledné WebP mastery dostanou **rsyncem `public/uploads/highline/`** (mimo `pg_dump`), viz `deploy.md` § Cutover. Nové user uploady na betě se normalizují přímo tam (ImageMagick + exiftool jsou součást provisioningu).
+**Import běží jen lokálně**, ne na betě — potřebuje legacy MySQL (`highline_foto`) i soubory z `../old-slack-cz`, ani jedno na prod není (prod = „žádný MySQL", viz `deploy.md`). Na betu se výsledné WebP mastery dostanou **rsyncem `public/uploads/line/`** (mimo `pg_dump`), viz `deploy.md` § Cutover. Nové user uploady na betě se normalizují přímo tam (ImageMagick + exiftool jsou součást provisioningu).
 
 ---
 
@@ -344,22 +344,22 @@ php kontejner mountuje jen projekt, takže legacy fotky z hostu nevidí. `make s
 
 #### Proč ne
 
-- **Historie už je zachovaná na lajně.** `Highline.firstAscentBy` (z legacy `highline.autor`) + `Highline.firstAscentDate` (z `highline.datum`) se importují u každé lajny — naplněné **225/254 (autor)** a **241/254 (datum)**. To pokrývá „kdo lajnu postavil / poprvé přešel + kdy", což je pro zachování historie dost.
+- **Historie už je zachovaná na lajně.** `Line.firstAscentBy` (z legacy `highline.autor`) + `Line.firstAscentDate` (z `highline.datum`) se importují u každé lajny — naplněné **225/254 (autor)** a **241/254 (datum)**. To pokrývá „kdo lajnu postavil / poprvé přešel + kdy", což je pro zachování historie dost.
 - **Per-osobní tabulka je bordel a nestojí za vlastní entitu.** 63 lajn / 124 řádků, ~2 na lajnu = **týmové prvovýstupy** (jedna lajna až 8 lidí). Není to čisté „kdo přešel poprvé".
 - **Data jsou nekonzistentní:** 49 orphanů (NULL `uzivatel_id`, jen text); některé řádky mají v jednom `nick` poli **celý tým** (`„Halfi, Lukš, Mišo, Malaf"`, `„Kwjet, Anče, Danny, Luky"`, `„Danny,Saša,Alex,K. Uhlík,Pída"`); stejný člověk je jednou linkovaný, jindy ne (`Lukš` 179 vs 0, `Pida`/`Píďa`). Tabulka nemá ani datum (jen `id, nick, styl, uzivatel_id, highline_id`).
 - Do **deníčkové** appky (osobní zápisy přechodů) se týmový prvovýstup konceptuálně nehodí.
 
 #### Důsledek
 
-Žádný `app:import:first-ascents`, žádná entita `HighlineFirstAscent`. Kdyby se to někdy chtělo, surová data v legacy zůstávají. Prezentace historie = `firstAscentBy` / `firstAscentDate` na detailu lajny.
+Žádný `app:import:first-ascents`, žádná entita `LineFirstAscent`. Kdyby se to někdy chtělo, surová data v legacy zůstávají. Prezentace historie = `firstAscentBy` / `firstAscentDate` na detailu lajny.
 
 ---
 
 ### ⏭️ Mimo scope
 
 - ~~**Longline crossings**~~ — **HOTOVO 2026-06-13**, viz sekce „Longline crossings" výš
-- ~~**Highline photos**~~ — **HOTOVO 2026-06-16**, viz sekce „Highline photos" výš
-- **`highline_media`** — TODO, zatím neimportováno. **Nejsou to lokální soubory** — jsou to externí odkazy (`typ` ∈ `foto`/`video`/`clanek`) na youtube / rajce.idnes.cz / slacklive.cz / lezec.cz atd. Sloupce: `highline_id`, `typ`, `popis`, `adresa` (URL), `nick`. Potřeboval by vlastní entitu (něco jako `HighlineMedia` / „externí odkazy") + UI sekci na detailu lajny. Surová data zůstávají v legacy DB. Až se na to dostane řada, je to logicky další krok po fotkách.
+- ~~**Line photos**~~ — **HOTOVO 2026-06-16**, viz sekce „Line photos" výš
+- **`highline_media`** — TODO, zatím neimportováno. **Nejsou to lokální soubory** — jsou to externí odkazy (`typ` ∈ `foto`/`video`/`clanek`) na youtube / rajce.idnes.cz / slacklive.cz / lezec.cz atd. Sloupce: `highline_id`, `typ`, `popis`, `adresa` (URL), `nick`. Potřeboval by vlastní entitu (něco jako `LineMedia` / „externí odkazy") + UI sekci na detailu lajny. Surová data zůstávají v legacy DB. Až se na to dostane řada, je to logicky další krok po fotkách.
 - **`highline_prechody_n`** — 0 řádků v legacy, ignorujeme
 - **`bany`, `forum`, `kalendar`, `clanky`, `clanky_koment`, `eshopBanners`, `event`, `kategorie_rs`, `krouzky`, `media_o_nas`, `novinky`, `objednavky`, `products`, `videa`, `fotolive`, `slack_*`** — všechny ostatní legacy tabulky zatím mimo plán importu
 
@@ -377,12 +377,12 @@ make legacyImport
 make importLegacyPhotos
 ```
 
-`make legacyImport` spustí jen importy v pořadí daném FK závislostmi — na čistém schématu, takže žádný `DELETE FROM highline_crossing` workaround není potřeba:
+`make legacyImport` spustí jen importy v pořadí daném FK závislostmi — na čistém schématu, takže žádný `DELETE FROM line_crossing` workaround není potřeba:
 
 ```bash
-docker compose exec -T php bin/console app:import:highlines --truncate
+docker compose exec -T php bin/console app:import:lines --truncate
 docker compose exec -T php bin/console app:import:users --truncate
-docker compose exec -T php bin/console app:import:highline-crossings --truncate
+docker compose exec -T php bin/console app:import:line-crossings --truncate
 docker compose exec -T php bin/console app:import:longline-crossings --truncate
 ```
 

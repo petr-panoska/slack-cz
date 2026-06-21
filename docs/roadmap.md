@@ -60,7 +60,7 @@ Tyhle reálně potkáme; část jde uklidit hned na 7.4 jako bezriziková příp
       `app:edit:sync-from-history`) — `Command::getDefaultName()/getDefaultDescription()`
       pryč → `#[AsCommand]` attribute (ověřit, jestli už ho používají).
 - [ ] **`vich/uploader` `@Uploadable` annotation → attribute** (deprecation už vidět
-      na 7.4, viz `src/Entity/HighlinePhoto.php`).
+      na 7.4, viz `src/Entity/LinePhoto.php`).
 - [ ] **`liip_imagine.twig.mode: lazy`** v configu (umlčí Liip deprecation).
 - [ ] **security:** `hide_user_not_found` → `expose_security_errors` (`'none'`/`'all'`/
       `'account_status'`) — ověřit `config/packages/security.yaml`.
@@ -69,7 +69,7 @@ Tyhle reálně potkáme; část jde uklidit hned na 7.4 jako bezriziková příp
 - [ ] **Validator constraints: array options → named arguments** (`symfony/validator` 7.3
       deprecation) — **POTVRZENO** smoke testem: render `RegistrationForm` spouští 3 přímé
       deprecations (`IsTrue`, `NotBlank`, `Length`). Skoro jistě i v dalších formech
-      (`HighlineForm`, `HighlineCrossingForm`, …). Projít všechny `#[Assert\*([...])]`
+      (`LineForm`, `LineCrossingForm`, …). Projít všechny `#[Assert\*([...])]`
       s array syntaxí → přepsat na named args. Blokuje rozšíření smoke testů o form-routy.
 
 Detekce: `php bin/phpunit --display-deprecations`. Máme zatím jen **3 smoke testy**
