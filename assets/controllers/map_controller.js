@@ -256,8 +256,10 @@ export default class extends Controller {
         this._updateLinesVisibility();
     }
 
-    // Type legend, bottom-left. Renders only the types actually present in the data
-    // (in canonical LEGEND_ORDER), so it stays accurate as the line mix changes.
+    // Type legend as a collapsible top-right control: a "?" pill that toggles a panel
+    // listing the types actually present (in canonical LEGEND_ORDER). Top-right so it
+    // sits with the other map buttons instead of covering the bottom-left crossing feed,
+    // and it always starts collapsed so the legend stays hidden until asked for.
     _addLegend(presentTypes) {
         if (this._legend) {
             this._legend.remove();
@@ -266,16 +268,47 @@ export default class extends Controller {
         const rows = LEGEND_ORDER.filter((t) => presentTypes.has(t));
         if (rows.length === 0) return;
 
-        const control = L.control({ position: 'bottomleft' });
+        const control = L.control({ position: 'topright' });
         control.onAdd = () => {
-            const div = L.DomUtil.create('div', 'map-legend');
-            div.innerHTML = rows.map((t) => (
+            const root = L.DomUtil.create('div', 'map-legend-ctrl');
+
+            const btn = L.DomUtil.create('button', 'map-ctrl-btn map-legend-toggle', root);
+            btn.type = 'button';
+            btn.textContent = '?';
+            btn.setAttribute('aria-haspopup', 'true');
+            btn.setAttribute('aria-label', 'Legenda typů');
+            btn.title = 'Legenda typů';
+
+            const panel = L.DomUtil.create('div', 'map-legend', root);
+            panel.innerHTML = rows.map((t) => (
                 `<span class="map-legend-row">`
                 + `<span class="map-legend-dot" style="background:${typeColor(t)}"></span>`
                 + `${escapeHtml(TYPE_LABELS[t] ?? t)}</span>`
             )).join('');
-            L.DomEvent.disableClickPropagation(div);
-            return div;
+
+            const setOpen = (open) => {
+                panel.hidden = !open;
+                btn.classList.toggle('is-active', open);
+                btn.setAttribute('aria-expanded', String(open));
+            };
+            setOpen(false);
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                setOpen(panel.hidden);
+            });
+
+            // Don't let map drag/zoom/click fire through the control; close on map click.
+            L.DomEvent.disableClickPropagation(root);
+            L.DomEvent.disableScrollPropagation(root);
+            control._collapse = () => setOpen(false);
+            this.map.on('click', control._collapse);
+
+            return root;
+        };
+        // Drop the map-click listener when the control is removed (legend re-renders).
+        control.onRemove = () => {
+            if (control._collapse) this.map.off('click', control._collapse);
         };
         control.addTo(this.map);
         this._legend = control;

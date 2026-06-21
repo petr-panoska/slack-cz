@@ -109,8 +109,9 @@
     color: #fff;
 }
 
-/* Fullscreen toggle is icon-only → square button, slightly larger glyph. */
-.map-fullscreen-toggle {
+/* Icon-only pills (fullscreen ⛶, legend ?) → square buttons, slightly larger glyph. */
+.map-fullscreen-toggle,
+.map-legend-toggle {
     padding: 0;
     width: 34px;
     height: 34px;
@@ -800,17 +801,31 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
-/* Type legend (bottom-left Leaflet control). Lists only the types actually on the map. */
+/* Type legend: a popout that drops below the top-right "?" toggle (.map-legend-toggle).
+   Hidden by default; lists only the types actually on the map. Styled to match the
+   basemap picker's panel so the two top-right popouts look like a set. */
+.map-legend-ctrl {
+    position: relative;
+}
+
 .map-legend {
-    background: rgba(255, 255, 255, 0.95);
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 6px);
+    right: 0;
+    background: rgba(255, 255, 255, 0.97);
     border: 1px solid var(--color-line);
-    border-radius: 8px;
-    padding: 7px 10px;
-    margin: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     font-size: 12px;
     line-height: 1.55;
     color: var(--color-fg);
+    white-space: nowrap;
+}
+
+.map-legend[hidden] {
+    display: none;
 }
 
 .map-legend-row {
