@@ -122,7 +122,7 @@ else
     info "fix: sudo apt install -y $APT_PKGS && sudo systemctl reload php8.3-fpm"
 fi
 
-# GD WebP support — liip_imagine `highline_*` filtery thumbují i WebP originály.
+# GD WebP support — liip_imagine `line_*` filtery thumbují i WebP originály.
 if php -r '$i=function_exists("gd_info")?gd_info():[]; exit(($i["WebP Support"]??false)?0:1);' 2>/dev/null; then
     pass "gd: WebP support"
 else

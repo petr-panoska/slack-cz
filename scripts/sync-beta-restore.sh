@@ -27,8 +27,9 @@ sudo -u www-data bash -c \
 
 echo "→ Row counts:"
 psql "$DB_URL" -c "
-SELECT 'highline' AS t, count(*) FROM highline
-UNION ALL SELECT 'highline_crossing', count(*) FROM highline_crossing
+SELECT 'line' AS t, count(*) FROM line
+UNION ALL SELECT 'line_crossing', count(*) FROM line_crossing
+UNION ALL SELECT 'longline_crossing', count(*) FROM longline_crossing
 UNION ALL SELECT 'user', count(*) FROM \"user\"
 UNION ALL SELECT 'doctrine_migration_versions', count(*) FROM doctrine_migration_versions
 ORDER BY t;

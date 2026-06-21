@@ -13,7 +13,7 @@ beta.slack.cz {
 	root * /var/www/slack-cz/public
 	encode gzip zstd
 
-	# Foto galerie — originály v /uploads/highline/{id}/<uniqid>.ext, thumby
+	# Foto galerie — originály v /uploads/line/{id}/<uniqid>.ext, thumby
 	# v /media/cache/{filter}/... s hash v cestě. Obsah pod konkrétní URL je
 	# immutable, takže max-age 30 dní + immutable hint zachrání round-tripy.
 	@photos path /uploads/* /media/cache/*

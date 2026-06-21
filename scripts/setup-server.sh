@@ -124,7 +124,7 @@ fi
 # ===========================================================================
 log "PHP-FPM upload limity (mobil fotky 3–12 MB; default je 2M)"
 # ===========================================================================
-# Drž v sync s Assert\File maxSize v HighlinePhoto (30M) + docker/php/Dockerfile.
+# Drž v sync s Assert\File maxSize v LinePhoto (30M) + docker/php/Dockerfile.
 PHP_UP_INI="/etc/php/8.3/fpm/conf.d/90-slack-uploads.ini"
 PHP_UP_CONTENT=$'upload_max_filesize = 32M\npost_max_size = 40M'
 if [[ -f "$PHP_UP_INI" ]] && [[ "$($SUDO cat "$PHP_UP_INI" 2>/dev/null)" == "$PHP_UP_CONTENT" ]]; then
