@@ -1,7 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import '../styles/_map-types.css';
 import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
