@@ -1,0 +1,50 @@
+/* Highline type markers + type legend on /mapa.
+   Imported from map_controller.js (alongside leaflet.css), not from app.css — kept in
+   its own file so it stays clear of the app.css split (PR #13 refactor/css-split). */
+
+/* Coloured dot per HighlineType (map_controller TYPE_COLORS); the inline background
+   sets the type colour. White ring + shadow keep them legible on both the OSM and
+   ortho basemaps. */
+.highline-marker {
+    background: transparent;
+    border: none;
+}
+
+.highline-marker .highline-dot {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Type legend (bottom-left Leaflet control). Lists only the types actually on the map. */
+.map-legend {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    padding: 7px 10px;
+    margin: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--color-fg);
+}
+
+.map-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.map-legend-dot {
+    display: inline-block;
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1.5px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}

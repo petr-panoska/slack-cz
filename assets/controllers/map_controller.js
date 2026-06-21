@@ -1,17 +1,46 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '../styles/_map-types.css';
 import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 
+// Mirrors App\Enum\HighlineType (legacy "Top Highline"/"Urban Line" were collapsed
+// into Highline at import — they don't exist as live values anymore).
 const TYPE_LABELS = {
-    unsorted: 'Nezařazeno',
     highline: 'Highline',
-    top_highline: 'Top Highline',
     midline: 'Midline',
-    urban_line: 'Urban Line',
+    longline: 'Longline',
+    waterline: 'Waterline',
+    unsorted: 'Nezařazeno',
 };
+
+// One colour per type for markers + lines + legend. White-ringed so they read on
+// any basemap. Unsorted (the import default, still the majority) stays a neutral grey.
+const TYPE_COLORS = {
+    highline: '#e1005b',
+    midline: '#f57c00',
+    longline: '#2e7d32',
+    waterline: '#0277bd',
+    unsorted: '#78909c',
+};
+
+// Canonical legend order; the legend itself only renders the types actually on the map.
+const LEGEND_ORDER = ['highline', 'midline', 'longline', 'waterline', 'unsorted'];
+
+function typeColor(type) {
+    return TYPE_COLORS[type] ?? TYPE_COLORS.unsorted;
+}
+
+function highlineIcon(type) {
+    return L.divIcon({
+        className: 'highline-marker',
+        html: `<span class="highline-dot" style="background:${typeColor(type)}"></span>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+    });
+}
 
 const STYLE_LABELS = {
     os_fm: 'OS FM',
@@ -195,6 +224,7 @@ export default class extends Controller {
 
         const highlines = await response.json();
         const markers = [];
+        const presentTypes = new Set();
         for (const h of highlines) {
             // A line is anchored by point1; the marker sits exactly on it. point2 is
             // optional (legacy lines may have only the first anchor) — with both we
@@ -203,15 +233,16 @@ export default class extends Controller {
             if (p1.some(Number.isNaN)) continue;
             const p2 = [parseFloat(h.point2Latitude), parseFloat(h.point2Longitude)];
             const hasLine = !p2.some(Number.isNaN);
+            presentTypes.add(h.type);
 
-            const marker = L.marker(p1).bindPopup(this.popupHtml(h));
+            const marker = L.marker(p1, { icon: highlineIcon(h.type) }).bindPopup(this.popupHtml(h));
             marker.addTo(this.staticLayer);
             markers.push(marker);
 
             // The line rides in its own layer so we can hide it again at low zoom
             // (lines are meaningless from a country-wide view).
             if (hasLine) {
-                L.polyline([p1, p2], { color: '#e1005b', weight: 3, opacity: 0.85 })
+                L.polyline([p1, p2], { color: typeColor(h.type), weight: 3, opacity: 0.85 })
                     .bindPopup(this.popupHtml(h))
                     .addTo(this.linesLayer);
             }
@@ -222,7 +253,33 @@ export default class extends Controller {
             this.map.fitBounds(group.getBounds().pad(0.1));
         }
 
+        this._addLegend(presentTypes);
         this._updateLinesVisibility();
+    }
+
+    // Type legend, bottom-left. Renders only the types actually present in the data
+    // (in canonical LEGEND_ORDER), so it stays accurate as the line mix changes.
+    _addLegend(presentTypes) {
+        if (this._legend) {
+            this._legend.remove();
+            this._legend = null;
+        }
+        const rows = LEGEND_ORDER.filter((t) => presentTypes.has(t));
+        if (rows.length === 0) return;
+
+        const control = L.control({ position: 'bottomleft' });
+        control.onAdd = () => {
+            const div = L.DomUtil.create('div', 'map-legend');
+            div.innerHTML = rows.map((t) => (
+                `<span class="map-legend-row">`
+                + `<span class="map-legend-dot" style="background:${typeColor(t)}"></span>`
+                + `${escapeHtml(TYPE_LABELS[t] ?? t)}</span>`
+            )).join('');
+            L.DomEvent.disableClickPropagation(div);
+            return div;
+        };
+        control.addTo(this.map);
+        this._legend = control;
     }
 
     async loadUsers({ fit = false } = {}) {
@@ -455,7 +512,7 @@ export default class extends Controller {
         const lng = parseFloat(h.longitude);
         if (Number.isNaN(lat) || Number.isNaN(lng)) return;
 
-        const marker = L.marker([lat, lng]).bindPopup(this.popupHtml(h));
+        const marker = L.marker([lat, lng], { icon: highlineIcon(h.type) }).bindPopup(this.popupHtml(h));
         marker.addTo(this.timelineLayer);
         this.timelineHighlineMarkers.set(h.id, marker);
 
