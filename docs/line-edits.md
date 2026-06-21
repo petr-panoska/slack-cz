@@ -1,6 +1,6 @@
-# Highline edit / verification
+# Line edit / verification
 
-Trust model + proposal queue subsystém pro highline data. Otevřené pro autenticated usery, ale s curaation gate-em na verified lajny.
+Trust model + proposal queue subsystém pro editaci lajn (`LineEdit`). Otevřené pro autenticated usery, ale s curation gate-em na verified lajny.
 
 ## Trust model
 
@@ -19,30 +19,30 @@ Trust model + proposal queue subsystém pro highline data. Otevřené pro autent
 
 ## Entity
 
-### `Highline` (rozšířená, viz `src/Entity/Highline.php`)
+### `Line` (rozšířená, viz `src/Entity/Line.php`)
 
 ```
 + isVerified  bool      DEFAULT false   — gate flag
 + createdBy   ?User     ON DELETE SET NULL — autor submisse, NULL pro 254 legacy řádků
 ```
 
-Helper: `Highline::isOwnedBy(?User): bool` — null `createdBy` → vždy `false` (legacy nejsou ničí).
+Helper: `Line::isOwnedBy(?User): bool` — null `createdBy` → vždy `false` (legacy nejsou ničí).
 
-### `HighlineEdit` (`src/Entity/HighlineEdit.php`)
+### `LineEdit` (`src/Entity/LineEdit.php`)
 
 Unified record změn. Slouží zároveň jako audit log i jako pending queue.
 
 ```
-id, highline FK, proposedBy ?User, snapshot json, status enum, createdAt, reviewedBy ?User, reviewedAt ?datetime
+id, line FK, proposedBy ?User, snapshot json, status enum, createdAt, reviewedBy ?User, reviewedAt ?datetime
 ```
 
-`status` (enum `App\Enum\HighlineEditStatus`):
+`status` (enum `App\Enum\LineEditStatus`):
 
 - **`applied`** — změna už je na lajně. Vytváří se při direct edit (owner of unverified, admin) a při schválení proposalu.
 - **`pending`** — návrh ve frontě, čeká na admina.
 - **`rejected`** — admin návrh zamítl. Řádek se nemaže (audit).
 
-Index `idx_highline_edit_status` — admin queue často filtruje `WHERE status='pending'`.
+Index `idx_line_edit_status` — admin queue často filtruje `WHERE status='pending'`.
 
 `snapshot` = celá množina form-bound polí jako JSON. Pro `applied` rows = post-change stav, pro `pending`/`rejected` = navrhované hodnoty (které se ještě neaplikovaly). Derived sloupec `length` (haversine z point1/point2) je v snapshotu taky uložený. (Lajna nemá žádné separátní `latitude`/`longitude` — lokace = oba kotvící body; viz `docs/architecture.md` § Mapa.)
 
@@ -50,44 +50,44 @@ Index `idx_highline_edit_status` — admin queue často filtruje `WHERE status='
 
 | Path | Name | Auth | Co dělá |
 |---|---|---|---|
-| `GET\|POST /highline/nova` | `app_highline_new` | `ROLE_USER` | nová lajna; submit ⇒ `unverified` + `createdBy=user` + audit `APPLIED` |
-| `GET\|POST /highline/{slug}/upravit` | `app_highline_edit` | `ROLE_USER` | direct edit (owner of unverified / admin) NEBO proposal (verified + non-admin) |
-| `POST /highline/{slug}/smazat` | `app_highline_delete` | `ROLE_USER` | owner-of-unverified nebo admin |
-| `POST /highline/{slug}/verify` | `app_highline_verify` | `ROLE_ADMIN` | flag `isVerified = true` + sloučí dosavadní edity do jediné creation revize |
-| `GET /admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` | queue pending proposals + diff tabulky |
-| `POST /admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` | apply snapshot + flag `APPLIED` |
-| `POST /admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` | flag `REJECTED` |
-| `GET /highline/{slug}/historie` | `app_highline_history` | public | audit log (APPLIED + REJECTED) chronologicky |
-| `POST /highline/{slug}/historie/{editId}/smazat` | `app_highline_history_delete` | `ROLE_ADMIN` | smaže jeden záznam historie (kromě prvního, chronologicky); stav lajny se nemění |
+| `GET\|POST /line/new` | `app_line_new` | `ROLE_USER` | nová lajna; submit ⇒ `unverified` + `createdBy=user` + audit `APPLIED` |
+| `GET\|POST /line/{slug}/edit` | `app_line_edit` | `ROLE_USER` | direct edit (owner of unverified / admin) NEBO proposal (verified + non-admin) |
+| `POST /line/{slug}/delete` | `app_line_delete` | `ROLE_USER` | owner-of-unverified nebo admin |
+| `POST /line/{slug}/verify` | `app_line_verify` | `ROLE_ADMIN` | flag `isVerified = true` + sloučí dosavadní edity do jediné creation revize |
+| `GET /admin/proposals` | `app_admin_proposals` | `ROLE_ADMIN` | queue pending proposals + diff tabulky |
+| `POST /admin/proposals/{id}/approve` | `app_admin_proposal_approve` | `ROLE_ADMIN` | apply snapshot + flag `APPLIED` |
+| `POST /admin/proposals/{id}/reject` | `app_admin_proposal_reject` | `ROLE_ADMIN` | flag `REJECTED` |
+| `GET /line/{slug}/history` | `app_line_history` | public | audit log (APPLIED + REJECTED) chronologicky |
+| `POST /line/{slug}/history/{editId}/delete` | `app_line_history_delete` | `ROLE_ADMIN` | smaže jeden záznam historie (kromě prvního, chronologicky); stav lajny se nemění |
 
-`/highline/nova` má `priority: 10` aby se nepřevrstvila s `/highline/{slug}` (slug regex `[a-z0-9-]+` matchne i „nova").
+`/line/new` má `priority: 10` aby se nepřevrstvila s `/line/{slug}` (slug regex `[a-z0-9-]+` matchne i „new").
 
-## Form (`src/Form/HighlineForm.php`)
+## Form (`src/Form/LineForm.php`)
 
 18 polí. Required: name, type, height, point1Lat/Lng, point2Lat/Lng. Slug se generuje automaticky z `name` přes `AsciiSlugger` (collision = numerický suffix).
 
 **Verified lajny mají `name` zamčený** — `disabled: true` (server-side ignoruje POSTed value) + 🔒 ikonka u labelu s tooltipem ukazujícím URL a důvod. Slug se nikdy nepřegenerovává po vytvoření, takže zámek na názvu chrání URL stabilitu (existující odkazy / bookmarky / tisk nepřestanou fungovat). Nezamčené názvy jsou jen u unverified lajn (autor je ladí před verifikací).
 
-**Length NENÍ ve formu** — odvozuje se v `HighlineCrudController::deriveGeometry()` z point1/point2 přes haversine (v metrech, zaokrouhleno). Lajna nemá žádné separátní `latitude`/`longitude` (zahozené v migraci `Version20260609120000`) — lokace je daná výhradně dvěma kotvícími body; reprezentativní jeden bod = `point1`.
+**Length NENÍ ve formu** — odvozuje se v `LineCrudController::deriveGeometry()` z point1/point2 přes haversine (v metrech, zaokrouhleno). Lajna nemá žádné separátní `latitude`/`longitude` (zahozené v migraci `Version20260609120000`) — lokace je daná výhradně dvěma kotvícími body; reprezentativní jeden bod = `point1`.
 
-GPS picker je Stimulus `highline_form_map_controller.js` — 2 markery s alternujícím placement na klik (1 → 2 → 1 → …), oba draggable, polyline + live distance overlay. Sync se 4 inputs oboustranně.
+GPS picker je Stimulus `line_form_map_controller.js` — 2 markery s alternujícím placement na klik (1 → 2 → 1 → …), oba draggable, polyline + live distance overlay. Sync se 4 inputs oboustranně.
 
 ## Direct edit vs proposal — implementace
 
 ```php
-$queueProposal = !$isAdmin && $highline->isVerified();
+$queueProposal = !$isAdmin && $line->isVerified();
 
 if ($form->isValid()) {
-    $this->deriveGeometry($highline);
+    $this->deriveGeometry($line);
 
     if ($queueProposal) {
-        $snapshot = $this->snapshot($highline);
-        $em->refresh($highline);                 // discard in-memory changes
-        $proposal = new HighlineEdit(...PENDING, snapshot=$snapshot);
+        $snapshot = $this->snapshot($line);
+        $em->refresh($line);                     // discard in-memory changes
+        $proposal = new LineEdit(...PENDING, snapshot=$snapshot);
         $em->persist($proposal); $em->flush();
     } else {
         $em->flush();                            // direct apply
-        $audit = $this->buildEdit(...APPLIED, snapshot=$this->snapshot($highline));
+        $audit = $this->buildEdit(...APPLIED, snapshot=$this->snapshot($line));
         $em->persist($audit); $em->flush();
     }
 }
@@ -101,19 +101,19 @@ Pro každý pending edit se přepočítá `diff(currentSnapshot, proposedSnapsho
 
 ## Audit log
 
-Každá `APPLIED` row v `highline_edit` je trvalý záznam změny. Sjednoceno tak, aby:
+Každá `APPLIED` row v `line_edit` je trvalý záznam změny. Sjednoceno tak, aby:
 
 - direct edit (owner of unverified, admin) → 1 APPLIED row
 - approved proposal → 1 APPLIED row (původní PENDING se updatne na APPLIED, ne nová row)
 - rejected proposal → 1 REJECTED row (zachovaná pro historii)
 
-To dává uniform `findForHighline(Highline)` query která vrátí kompletní timeline změn bez ohledu na trasu jakou prošly.
+To dává uniform `findForLine(Line)` query která vrátí kompletní timeline změn bez ohledu na trasu jakou prošly.
 
-### History view (`/highline/{slug}/historie`)
+### History view (`/line/{slug}/history`)
 
 Veřejný read-only audit log + admin stack-pop kurátoring.
 
-Každý `HighlineEdit` row si u sebe nese **vlastní `beforeSnapshot`** (stav lajny PŘED tím, co tahle úprava udělala) i `snapshot` (po). Diff se počítá render-time přímo z těchto dvou polí, **ne** ze sousedního řádku, takže každá řádka přesně reflektuje *co tahle úprava změnila* nezávisle na tom, co s historií dělá admin.
+Každý `LineEdit` row si u sebe nese **vlastní `beforeSnapshot`** (stav lajny PŘED tím, co tahle úprava udělala) i `snapshot` (po). Diff se počítá render-time přímo z těchto dvou polí, **ne** ze sousedního řádku, takže každá řádka přesně reflektuje *co tahle úprava změnila* nezávisle na tom, co s historií dělá admin.
 
 - První APPLIED v pořadí má `beforeSnapshot = NULL` → render „Vytvořeno", bez diffu
 - Ostatní APPLIED rows mají vlastní before+after diff
@@ -142,4 +142,4 @@ Aktuální admin: `p***@***l.com` (ID 251).
 
 ## Naming gotcha — `isVerified`
 
-`User.isVerified` (email confirmation, dělá `symfonycasts/verify-email-bundle`) **vs** `Highline.isVerified` (admin-curated quality stamp) jsou dvě nesouvisející věci se stejným názvem v jiných entitách. Doctrine je nemíchá (jiný namespace), ale při review může mást — zejména pokud se v jednom souboru objeví `$user->isVerified()` i `$highline->isVerified()`. Při čtení kódu zkontroluj na čem se to volá.
+`User.isVerified` (email confirmation, dělá `symfonycasts/verify-email-bundle`) **vs** `Line.isVerified` (admin-curated quality stamp) jsou dvě nesouvisející věci se stejným názvem v jiných entitách. Doctrine je nemíchá (jiný namespace), ale při review může mást — zejména pokud se v jednom souboru objeví `$user->isVerified()` i `$line->isVerified()`. Při čtení kódu zkontroluj na čem se to volá.

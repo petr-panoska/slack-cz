@@ -65,7 +65,7 @@ enum CrossingStyle: string
 | `''` (empty) | `null` | jako výše |
 | jiné neočekávané | log warning + `null` | report v importu |
 
-V `HighlineCrossing.style` je sloupec **nullable** (`null` = neuvedeno).
+V `LineCrossing.style` je sloupec **nullable** (`null` = neuvedeno).
 
 ## Display labels (CS)
 

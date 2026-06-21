@@ -1,8 +1,8 @@
 {# Renders a list of recent highline crossings.
    Params:
-     crossings    – iterable of HighlineCrossing
+     crossings    – iterable of LineCrossing
      layout       – 'panel' (default, vertical list) or 'stripe' (horizontal scroll)
-     show_line    – include the highline name (default true). Set false on a highline detail page where it's redundant.
+     show_line    – include the line name (default true). Set false on a line detail page where it's redundant.
      show_user    – include the crossing author's name (default true). Set false on a user's own deník where it's redundant.
      show_actions – render edit/delete buttons next to crossings owned by the current user. Set true on the user's own deník. #}
 {% set layout = layout|default('panel') %}

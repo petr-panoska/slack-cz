@@ -39,7 +39,7 @@ loadLegacyDump:
 legacyImport:
 	docker compose exec -T php bin/console app:import:lines --truncate
 	docker compose exec -T php bin/console app:import:users --truncate
-	docker compose exec -T php bin/console app:import:highline-crossings --truncate
+	docker compose exec -T php bin/console app:import:line-crossings --truncate
 	docker compose exec -T php bin/console app:import:longline-crossings --truncate
 
 # Stage the legacy photo tree (cover foto.jpg + foto/ galleries) from the sibling

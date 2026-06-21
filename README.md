@@ -67,8 +67,8 @@ Fotky nejsou v MySQL dumpu — jsou to soubory na disku. Potřebuješ stažené 
   ```
   make importLegacyPhotos
   ```
-- interně volá `make stageLegacyPhotos` (rsync z `../old-slack-cz`) + `app:import:highline-photos --truncate`
-- výsledné WebP mastery skončí v `public/uploads/highline/` (gitignored)
+- interně volá `make stageLegacyPhotos` (rsync z `../old-slack-cz`) + `app:import:line-photos --truncate`
+- výsledné WebP mastery skončí v `public/uploads/line/` (gitignored)
 - orphan fotky (bez záznamu v DB) se exportují do `var/legacy-orphan-photos/` pro ruční revizi
 
 ## Documentation
@@ -77,7 +77,7 @@ Internal docs live in [`docs/`](docs/) (index: [`docs/README.md`](docs/README.md
 - [`architecture.md`](docs/architecture.md) — what is built, code structure, key decisions
 - [`migration.md`](docs/migration.md) — legacy data import strategy
 - [`crossing-styles.md`](docs/crossing-styles.md) — highline crossing styles taxonomy
-- [`highline-edits.md`](docs/highline-edits.md) — trust model + proposal queue for highline edits
+- [`line-edits.md`](docs/line-edits.md) — trust model + proposal queue for highline edits
 - [`audio-player.md`](docs/audio-player.md) — slackvibes 📻 player internals
 - [`dev.md`](docs/dev.md) — operational cheat sheet (Docker, console, DB, cache, smoke tests)
 - [`deploy.md`](docs/deploy.md) — production (Hetzner VPS, Caddy, `make deploy`, CI)

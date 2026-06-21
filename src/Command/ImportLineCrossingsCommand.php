@@ -18,10 +18,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
-    name: 'app:import:highline-crossings',
+    name: 'app:import:line-crossings',
     description: 'Imports highline crossings (deníček) from legacy MySQL into the new Postgres schema',
 )]
-final class ImportHighlineCrossingsCommand extends Command
+final class ImportLineCrossingsCommand extends Command
 {
     public function __construct(
         #[Autowire(service: 'doctrine.dbal.old_connection')]
