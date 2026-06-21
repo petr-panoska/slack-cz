@@ -22,6 +22,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 )]
 final class ImportHighlinesCommand extends Command
 {
+    public const HIGHLINE_HEIGHT_THRESHOLD = 10;
+
     public function __construct(
         #[Autowire(service: 'doctrine.dbal.old_connection')]
         private readonly Connection $oldConnection,
@@ -95,9 +97,12 @@ final class ImportHighlinesCommand extends Command
             $h->setLegacyId((int) $row['id']);
             $h->setName($row['jmeno']);
             $h->setSlug($this->makeUniqueSlug($row['jmeno'], $usedSlugs));
-            $h->setType(HighlineType::fromLegacyId((int) $row['typ']));
+            // A line rigged more than 10 m up is a highline by definition, so the height
+            // overrides the legacy type (typically "unsorted", occasionally a mis-tagged midline).
+            $height = (int) $row['vyska'];
+            $h->setType($height >= self::HIGHLINE_HEIGHT_THRESHOLD ? HighlineType::Highline : HighlineType::fromLegacyId((int) $row['typ']));
             $h->setLength((int) $row['delka']);
-            $h->setHeight((int) $row['vyska']);
+            $h->setHeight($height);
             $h->setPoint1Latitude($this->normalizeNullableCoord($row['point1_lat']));
             $h->setPoint1Longitude($this->normalizeNullableCoord($row['point1_lng']));
             $h->setPoint2Latitude($this->normalizeNullableCoord($row['point2_lat']));
