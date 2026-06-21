@@ -30,7 +30,7 @@
                 {% endif %}
             </span>
             {% if show_line %}
-                <a class="crossings-line" href="{{ path('app_highline_detail', { slug: c.highline.slug }) }}">{{ c.highline.name }}</a>
+                <a class="crossings-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
             {% endif %}
             {% if c.comment %}
                 <p class="crossings-comment">{{ c.comment }}</p>

@@ -1,0 +1,318 @@
+/* ---------- Highline form (new / edit) ---------- */
+
+/* The form page carries both .auth-page (420px, shared with login) and .hl-form-page on
+   the same element. Same specificity → @import order would decide, and _line-form.css
+   loads before _auth.css, so .auth-page's 420px was winning and squashing the form.
+   Bump specificity here so the wide form width wins regardless of import order. */
+.auth-page.hl-form-page {
+    max-width: 1320px;
+}
+
+.hl-form-card {
+    padding: 28px 28px 32px;
+}
+
+.hl-form-card .hl-back {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--color-muted);
+    font-size: 0.9em;
+    text-decoration: none;
+}
+
+.hl-form-card .hl-back:hover {
+    color: var(--color-accent);
+}
+
+.hl-form-help {
+    margin: -16px 0 24px;
+    color: var(--color-muted);
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.hl-form-notice {
+    margin: -8px 0 24px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--color-accent);
+    background: rgba(225, 0, 91, 0.06);
+    color: var(--color-fg);
+    font-size: 0.9em;
+    line-height: 1.5;
+    border-radius: 0 4px 4px 0;
+}
+
+.hl-form-section {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.hl-form-section:last-of-type {
+    border-bottom: none;
+}
+
+.hl-form-section h2 {
+    margin: 0 0 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+}
+
+.form-grid-2,
+.form-grid-3 {
+    display: grid;
+    gap: 12px;
+}
+
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+@media (max-width: 640px) {
+    .form-grid-2,
+    .form-grid-3 { grid-template-columns: 1fr; }
+}
+
+.hl-form-card input[type="text"],
+.hl-form-card input[type="number"],
+.hl-form-card input[type="date"],
+.hl-form-card select,
+.hl-form-card textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--color-fg);
+    background: var(--color-bg);
+    transition: border-color 0.15s;
+}
+
+.hl-form-card textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.hl-form-card input:focus,
+.hl-form-card select:focus,
+.hl-form-card textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.hl-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.hl-form-actions .btn {
+    min-width: 140px;
+}
+
+.hl-form-map {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.hl-form-map-canvas {
+    height: 320px;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.hl-form-help-tight {
+    margin: -6px 0 12px;
+}
+
+.hl-form-lock {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.85em;
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.hl-form-lock:hover,
+.hl-form-lock:focus {
+    opacity: 1;
+    outline: none;
+}
+
+.hl-form-url-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    background: rgba(233, 30, 99, 0.06);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.hl-form-url-label {
+    color: var(--color-muted);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hl-form-url {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--color-fg);
+    font-weight: 600;
+    background: transparent;
+    padding: 0;
+}
+
+.hl-form-url-hint {
+    flex-basis: 100%;
+    color: var(--color-muted);
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
+.hl-form-distance {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 500;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.hl-form-distance-label {
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hl-form-distance-value {
+    color: var(--color-fg);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.hl-form-distance-value.is-empty {
+    color: var(--color-muted);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.hl-form-map-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.hl-form-map-toggle {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+}
+
+.hl-form-map-toggle.is-active {
+    background: #e1005b;
+    color: #fff;
+    border-color: #e1005b;
+}
+
+.hl-form-map-toggle.hl-form-parking-toggle.is-active {
+    background: #1b6cf3;
+    border-color: #1b6cf3;
+}
+
+.hl-form-map-controls-bl {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.hl-form-map-btn {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+}
+
+.hl-form-fullscreen-toggle.is-active {
+    background: #1b1b1b;
+    color: #fff;
+    border-color: #1b1b1b;
+}
+
+.hl-form-map:fullscreen,
+.hl-form-map:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    background: var(--color-bg);
+}
+
+.hl-form-map:fullscreen .hl-form-map-canvas,
+.hl-form-map:-webkit-full-screen .hl-form-map-canvas {
+    height: 100%;
+    border: none;
+    border-radius: 0;
+}
+
+.hl-form-point-parking {
+    grid-column: 1 / -1;
+}
+
+.hl-form-optional {
+    color: var(--color-muted);
+    font-weight: 400;
+    font-size: 0.85em;
+}
+
+.hl-form-points {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
+    .hl-form-points { grid-template-columns: 1fr; }
+}
+
+.hl-form-point {
+    padding: 14px;
+    background: #fafafa;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+}
+
+.hl-form-point h3 {
+    margin: 0 0 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+}

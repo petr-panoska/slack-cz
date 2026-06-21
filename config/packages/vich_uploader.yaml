@@ -4,14 +4,14 @@ vich_uploader:
         type: attribute
 
     mappings:
-        highline_photo:
-            uri_prefix: /uploads/highline
-            upload_destination: '%kernel.project_dir%/public/uploads/highline'
+        line_photo:
+            uri_prefix: /uploads/line
+            upload_destination: '%kernel.project_dir%/public/uploads/line'
             namer:
                 service: Vich\UploaderBundle\Naming\UniqidNamer
             directory_namer:
                 service: Vich\UploaderBundle\Naming\PropertyDirectoryNamer
-                options: { property: 'highline.id' }
+                options: { property: 'line.id' }
             inject_on_load: false
             delete_on_update: true
             delete_on_remove: true

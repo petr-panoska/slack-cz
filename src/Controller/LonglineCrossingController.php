@@ -14,7 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class LonglineCrossingController extends AbstractController
 {
-    #[Route('/longline/novy', name: 'app_longline_new', methods: ['GET', 'POST'])]
+    #[Route('/longline/new', name: 'app_longline_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -43,7 +43,7 @@ final class LonglineCrossingController extends AbstractController
         ]);
     }
 
-    #[Route('/longline/{id}/upravit', name: 'app_longline_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[Route('/longline/{id}/edit', name: 'app_longline_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function edit(Request $request, LonglineCrossing $longline, EntityManagerInterface $em): Response
     {
@@ -66,7 +66,7 @@ final class LonglineCrossingController extends AbstractController
         ]);
     }
 
-    #[Route('/longline/{id}/smazat', name: 'app_longline_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/longline/{id}/delete', name: 'app_longline_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function delete(Request $request, LonglineCrossing $longline, EntityManagerInterface $em): Response
     {

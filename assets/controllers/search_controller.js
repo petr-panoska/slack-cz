@@ -2,18 +2,18 @@ import { Controller } from '@hotwired/stimulus';
 
 // Module-scope cache: 254 highlines max — fetched once per tab, reused across
 // every search-open. Survives Turbo navigations naturally (module is not reset).
-let cachedHighlines = null;
+let cachedLines = null;
 let inFlight = null;
 
-async function getHighlines(url) {
-    if (cachedHighlines) return cachedHighlines;
+async function getLines(url) {
+    if (cachedLines) return cachedLines;
     if (inFlight) return inFlight;
     inFlight = fetch(url, { headers: { Accept: 'application/json' } })
         .then((r) => (r.ok ? r.json() : []))
         .then((list) => {
-            cachedHighlines = Array.isArray(list) ? list : [];
+            cachedLines = Array.isArray(list) ? list : [];
             inFlight = null;
-            return cachedHighlines;
+            return cachedLines;
         })
         .catch(() => {
             inFlight = null;
@@ -70,7 +70,7 @@ export default class extends Controller {
     open() {
         this.element.classList.add('is-open');
         // Pre-warm cache so first keystroke is instant.
-        getHighlines(this.dataUrlValue).then(() => {
+        getLines(this.dataUrlValue).then(() => {
             if (this.isOpen()) this.render();
         });
         // focus after the panel transition begins
@@ -85,12 +85,12 @@ export default class extends Controller {
     }
 
     async input() {
-        const list = await getHighlines(this.dataUrlValue);
+        const list = await getLines(this.dataUrlValue);
         this.render(list);
     }
 
     render(list) {
-        const data = list ?? cachedHighlines ?? [];
+        const data = list ?? cachedLines ?? [];
         const q = fold(this.inputTarget.value).trim();
         const ul = this.resultsTarget;
 
@@ -116,7 +116,7 @@ export default class extends Controller {
                 const meta = [h.area, h.region].filter(Boolean).join(' · ');
                 return `
                     <li>
-                        <a href="/highline/${encodeURIComponent(h.slug)}" data-action="click->search#close">
+                        <a href="/line/${encodeURIComponent(h.slug)}" data-action="click->search#close">
                             <span class="site-search-name">${escapeHtml(h.name)}</span>
                             ${meta ? `<span class="site-search-meta">${escapeHtml(meta)}</span>` : ''}
                         </a>

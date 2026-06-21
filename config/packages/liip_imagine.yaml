@@ -8,7 +8,7 @@ liip_imagine:
 
     filter_sets:
         # Thumbnail v gridu (320×240, crop fill — uniformní mřížka)
-        highline_thumb:
+        line_thumb:
             quality: 82
             filters:
                 auto_rotate: ~
@@ -16,7 +16,7 @@ liip_imagine:
                 thumbnail: { size: [320, 240], mode: outbound }
 
         # Lightbox / preview (max 800×600, zachová poměr)
-        highline_medium:
+        line_medium:
             quality: 85
             filters:
                 auto_rotate: ~
@@ -24,7 +24,7 @@ liip_imagine:
                 thumbnail: { size: [800, 600], mode: inset }
 
         # Fullscreen (max 2400 px na delší stranu)
-        highline_full:
+        line_full:
             quality: 88
             filters:
                 auto_rotate: ~

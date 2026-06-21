@@ -2,11 +2,11 @@
 
 namespace App\Command;
 
-use App\Entity\HighlineCrossing;
+use App\Entity\LineCrossing;
 use App\Enum\CrossingStyle;
 use App\Legacy\UserMergeMap;
-use App\Repository\HighlineCrossingRepository;
-use App\Repository\HighlineRepository;
+use App\Repository\LineCrossingRepository;
+use App\Repository\LineRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -26,8 +26,8 @@ final class ImportHighlineCrossingsCommand extends Command
     public function __construct(
         #[Autowire(service: 'doctrine.dbal.old_connection')]
         private readonly Connection $oldConnection,
-        private readonly HighlineRepository $highlines,
-        private readonly HighlineCrossingRepository $crossings,
+        private readonly LineRepository $lines,
+        private readonly LineCrossingRepository $crossings,
         private readonly UserMergeMap $userMergeMap,
         private readonly EntityManagerInterface $em,
     ) {
@@ -48,7 +48,7 @@ final class ImportHighlineCrossingsCommand extends Command
 
         if ($input->getOption('truncate') && !$dryRun) {
             $io->warning('Truncating existing highline_crossing rows (legacy-imported only)');
-            $this->em->createQuery('DELETE FROM ' . HighlineCrossing::class . ' c WHERE c.legacyId IS NOT NULL')->execute();
+            $this->em->createQuery('DELETE FROM ' . LineCrossing::class . ' c WHERE c.legacyId IS NOT NULL')->execute();
             $this->userMergeMap->reset();
         }
 
@@ -66,10 +66,10 @@ final class ImportHighlineCrossingsCommand extends Command
         $i = 0;
 
         // Cache highlines by legacy id
-        $highlinesByLegacyId = [];
-        foreach ($this->highlines->findAll() as $h) {
+        $linesByLegacyId = [];
+        foreach ($this->lines->findAll() as $h) {
             if ($h->getLegacyId() !== null) {
-                $highlinesByLegacyId[$h->getLegacyId()] = $h;
+                $linesByLegacyId[$h->getLegacyId()] = $h;
             }
         }
 
@@ -82,8 +82,8 @@ final class ImportHighlineCrossingsCommand extends Command
                 continue;
             }
 
-            $highline = $highlinesByLegacyId[(int) $row['highline_id']] ?? null;
-            if ($highline === null) {
+            $line = $linesByLegacyId[(int) $row['highline_id']] ?? null;
+            if ($line === null) {
                 $io->writeln(sprintf('  <comment>[SKIP]</comment> prechod#%d — highline#%d not found in new DB', $row['id'], $row['highline_id']));
                 $skipped++;
                 continue;
@@ -114,9 +114,9 @@ final class ImportHighlineCrossingsCommand extends Command
                 $rating = null;
             }
 
-            $crossing = new HighlineCrossing();
+            $crossing = new LineCrossing();
             $crossing->setLegacyId((int) $row['id']);
-            $crossing->setHighline($highline);
+            $crossing->setLine($line);
             $crossing->setUser($user);
             $crossing->setCrossedAt($crossedAt);
             $crossing->setStyle($style);
@@ -129,10 +129,10 @@ final class ImportHighlineCrossingsCommand extends Command
                     $this->em->flush();
                     $this->em->clear();
                     // Re-cache highlines after clear (entity references invalidated)
-                    $highlinesByLegacyId = [];
-                    foreach ($this->highlines->findAll() as $h) {
+                    $linesByLegacyId = [];
+                    foreach ($this->lines->findAll() as $h) {
                         if ($h->getLegacyId() !== null) {
-                            $highlinesByLegacyId[$h->getLegacyId()] = $h;
+                            $linesByLegacyId[$h->getLegacyId()] = $h;
                         }
                     }
                     $this->userMergeMap->reset();

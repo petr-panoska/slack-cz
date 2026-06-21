@@ -27,7 +27,7 @@ export default class extends Controller {
     update() {
         if (!this.hasUrlPathTarget) return;
         const slug = slugify(this.nameInput.value) || '…';
-        this.urlPathTarget.textContent = `/highline/${slug}`;
+        this.urlPathTarget.textContent = `/line/${slug}`;
     }
 }
 

@@ -41,7 +41,7 @@
                 </thead>
                 <tbody>
                     {% for row in lines %}
-                    {% set line = row.highline %}
+                    {% set line = row.line %}
                     {% set prod_url = line.legacyId ? production_url ~ '/highlines/detail/' ~ line.legacyId : null %}
                     {% set missing_second = line.point2Latitude is null or line.point2Longitude is null %}
                     <tr>

@@ -15,7 +15,7 @@ use Symfony\Component\Form\ChoiceList\View\ChoiceView;
  */
 final class LonglineCrossingFormTest extends KernelTestCase
 {
-    public function testStylePickerExcludesHighlineOnlyStyles(): void
+    public function testStylePickerExcludesLineOnlyStyles(): void
     {
         self::bootKernel();
         $factory = self::getContainer()->get('form.factory');

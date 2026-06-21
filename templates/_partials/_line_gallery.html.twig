@@ -1,0 +1,61 @@
+{# Galerie fotek pro highline detail. Vstup: highline, photos (list<HighlinePhoto>) #}
+<section class="panel hl-gallery-panel">
+    <header class="panel-header">
+        <div class="panel-title">
+            <span class="panel-dot panel-dot-gallery"></span>
+            <h2>Fotky <span class="hl-crossings-count">{{ photos|length }}</span></h2>
+        </div>
+        {% if app.user %}
+            <a class="btn btn-primary btn-sm" href="{{ path('app_line_photo_new', { slug: line.slug }) }}">+ Přidat fotku</a>
+        {% else %}
+            <a class="btn btn-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+        {% endif %}
+    </header>
+
+    {% if photos|length > 0 %}
+        {% set likeCounts = likeCounts|default({}) %}
+        {% set commentCounts = commentCounts|default({}) %}
+        {% set likedIds = likedIds|default([]) %}
+
+        <ul class="hl-gallery-grid">
+            {% for photo in photos %}
+                {% set likes = likeCounts[photo.id]|default(0) %}
+                {% set commentsN = commentCounts[photo.id]|default(0) %}
+                {% set isLiked = photo.id in likedIds %}
+                <li class="hl-gallery-item">
+                    <a
+                        href="{{ path('app_line_photo_detail', { slug: line.slug, id: photo.id }) }}"
+                        class="hl-gallery-link"
+                        {% if photo.caption %}title="{{ photo.caption }}"{% endif %}
+                    >
+                        <img
+                            src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('line_thumb') }}"
+                            alt="{{ photo.caption ?? line.name }}"
+                            loading="lazy"
+                            decoding="async"
+                            width="320"
+                            height="240"
+                        >
+                        <span class="hl-gallery-stats">
+                            <span class="hl-gallery-stat {% if isLiked %}is-liked{% endif %}">❤ {{ likes }}</span>
+                            <span class="hl-gallery-stat">💬 {{ commentsN }}</span>
+                        </span>
+                    </a>
+                    <div class="hl-gallery-meta">
+                        {% if photo.caption %}<span class="hl-gallery-caption">{{ photo.caption }}</span>{% endif %}
+                        <span class="hl-gallery-author">
+                            {% if photo.uploadedBy %}
+                                <a href="{{ path('app_user_denik', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
+                            {% else %}
+                                ?
+                            {% endif %}
+                            {% if photo.createdAt %}· {{ photo.createdAt|date('j. n. Y') }}{% endif %}
+                        </span>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="hl-empty">Zatím žádné fotky.</p>
+    {% endif %}
+</section>

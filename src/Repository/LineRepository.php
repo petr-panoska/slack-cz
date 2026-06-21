@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Line;
+use App\Entity\LineCrossing;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<Line>
+ */
+class LineRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Line::class);
+    }
+
+    /**
+     * All lines with crossing count + whether a cover photo is set, for the
+     * /data-report quality table. `hasCover` is read off the FK id via IDENTITY()
+     * (no N+1 on the lazy coverPhoto relation); "missing second point" (point2 null)
+     * is read off the entity in twig. Sorted by crossing count DESC.
+     *
+     * @return list<array{line:Line, crossingCount:int, hasCover:bool}>
+     */
+    public function findForDataReport(): array
+    {
+        $rows = $this->createQueryBuilder('h')
+            ->select('h AS line', 'COUNT(c.id) AS crossingCount', 'IDENTITY(h.coverPhoto) AS coverPhotoId')
+            ->leftJoin(LineCrossing::class, 'c', Join::WITH, 'c.line = h')
+            ->groupBy('h.id')
+            ->orderBy('crossingCount', 'DESC')
+            ->addOrderBy('h.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (array $r): array => [
+            'line' => $r['line'],
+            'crossingCount' => (int) $r['crossingCount'],
+            'hasCover' => $r['coverPhotoId'] !== null,
+        ], $rows);
+    }
+
+    /**
+     * Returns lightweight rows for the map (no description/HTML payload). The two
+     * anchor points are included so the map can draw the actual line between them
+     * (they're null until both ends are mapped).
+     *
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,area:?string,region:?string,point1Latitude:?string,point1Longitude:?string,point2Latitude:?string,point2Longitude:?string}>
+     */
+    public function findAllForMap(): array
+    {
+        return $this->createQueryBuilder('h')
+            ->select(
+                'h.id, h.name, h.slug, h.type, h.length, h.height, h.area, h.region,'
+                . ' h.point1Latitude, h.point1Longitude, h.point2Latitude, h.point2Longitude',
+            )
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
+     * For the time-travel feature: each line with the date it should appear on the map
+     * (= firstAscentDate, falling back to the earliest known crossing date).
+     * Lines with no first-ascent and no crossings are excluded — nothing to anchor them in time.
+     *
+     * @return list<array{id:int,name:string,slug:string,type:string,length:int,height:int,latitude:?string,longitude:?string,area:?string,region:?string,appearanceDate:string}>
+     */
+    public function findAllForTimeline(): array
+    {
+        $sql = <<<'SQL'
+            SELECT
+                h.id,
+                h.name,
+                h.slug,
+                h.type,
+                h.length,
+                h.height,
+                h.point1_latitude::text  AS latitude,
+                h.point1_longitude::text AS longitude,
+                h.area,
+                h.region,
+                COALESCE(h.first_ascent_date, MIN(c.crossed_at))::text AS appearance_date
+            FROM line h
+            LEFT JOIN line_crossing c ON c.line_id = h.id
+            GROUP BY h.id
+            HAVING COALESCE(h.first_ascent_date, MIN(c.crossed_at)) IS NOT NULL
+            ORDER BY appearance_date ASC, h.id ASC
+        SQL;
+
+        $rows = $this->getEntityManager()->getConnection()->executeQuery($sql)->fetchAllAssociative();
+
+        return array_map(static fn(array $r): array => [
+            'id' => (int) $r['id'],
+            'name' => $r['name'],
+            'slug' => $r['slug'],
+            'type' => $r['type'],
+            'length' => (int) $r['length'],
+            'height' => (int) $r['height'],
+            'latitude' => $r['latitude'],
+            'longitude' => $r['longitude'],
+            'area' => $r['area'],
+            'region' => $r['region'],
+            'appearanceDate' => substr((string) $r['appearance_date'], 0, 10),
+        ], $rows);
+    }
+}

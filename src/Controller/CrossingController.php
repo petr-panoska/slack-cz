@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Highline;
-use App\Entity\HighlineCrossing;
+use App\Entity\Line;
+use App\Entity\LineCrossing;
 use App\Entity\User;
-use App\Form\HighlineCrossingForm;
+use App\Form\LineCrossingForm;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,23 +16,23 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class CrossingController extends AbstractController
 {
-    #[Route('/highline/{slug}/prechod/novy', name: 'app_crossing_new', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
+    #[Route('/line/{slug}/crossing/new', name: 'app_crossing_new', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function new(
         Request $request,
         #[MapEntity(mapping: ['slug' => 'slug'])]
-        Highline $highline,
+        Line $line,
         EntityManagerInterface $em,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
 
-        $crossing = new HighlineCrossing();
-        $crossing->setHighline($highline);
+        $crossing = new LineCrossing();
+        $crossing->setLine($line);
         $crossing->setUser($user);
         $crossing->setCrossedAt(new \DateTimeImmutable('today'));
 
-        $form = $this->createForm(HighlineCrossingForm::class, $crossing);
+        $form = $this->createForm(LineCrossingForm::class, $crossing);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -40,27 +40,27 @@ final class CrossingController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Přechod přidán.');
 
-            return $this->redirectToRoute('app_highline_detail', ['slug' => $highline->getSlug()]);
+            return $this->redirectToRoute('app_line_detail', ['slug' => $line->getSlug()]);
         }
 
         return $this->render('crossing/form.html.twig', [
             'form' => $form,
-            'highline' => $highline,
+            'line' => $line,
             'crossing' => $crossing,
             'mode' => 'new',
         ]);
     }
 
-    #[Route('/prechod/{id}/upravit', name: 'app_crossing_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[Route('/crossing/{id}/edit', name: 'app_crossing_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function edit(
         Request $request,
-        HighlineCrossing $crossing,
+        LineCrossing $crossing,
         EntityManagerInterface $em,
     ): Response {
         $this->assertOwner($crossing);
 
-        $form = $this->createForm(HighlineCrossingForm::class, $crossing);
+        $form = $this->createForm(LineCrossingForm::class, $crossing);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -72,17 +72,17 @@ final class CrossingController extends AbstractController
 
         return $this->render('crossing/form.html.twig', [
             'form' => $form,
-            'highline' => $crossing->getHighline(),
+            'line' => $crossing->getLine(),
             'crossing' => $crossing,
             'mode' => 'edit',
         ]);
     }
 
-    #[Route('/prechod/{id}/smazat', name: 'app_crossing_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/crossing/{id}/delete', name: 'app_crossing_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function delete(
         Request $request,
-        HighlineCrossing $crossing,
+        LineCrossing $crossing,
         EntityManagerInterface $em,
     ): Response {
         $this->assertOwner($crossing);
@@ -100,7 +100,7 @@ final class CrossingController extends AbstractController
         return $this->redirectToRoute('app_user_denik', ['id' => $userId]);
     }
 
-    private function assertOwner(HighlineCrossing $crossing): void
+    private function assertOwner(LineCrossing $crossing): void
     {
         $user = $this->getUser();
         if (!$user instanceof User || $crossing->getUser()->getId() !== $user->getId()) {

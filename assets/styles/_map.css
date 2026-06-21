@@ -1,12 +1,12 @@
 /* ---------- Map page ---------- */
 
-.highline-map-wrapper {
+.line-map-wrapper {
     position: relative;
     height: calc(100vh - var(--header-height));
     width: 100%;
 }
 
-.highline-map {
+.line-map {
     height: 100%;
     width: 100%;
 }
@@ -123,7 +123,7 @@
 }
 
 /* On /mapa the top-right corner already holds the "Přehrát historii" toggle. */
-.highline-map-wrapper .leaflet-top.leaflet-right {
+.line-map-wrapper .leaflet-top.leaflet-right {
     top: 44px;
 }
 
@@ -699,13 +699,13 @@
 }
 
 /* Highline first-ascent bloom */
-.highline-bloom-icon {
+.line-bloom-icon {
     background: transparent;
     border: none;
     pointer-events: none;
 }
 
-.highline-bloom {
+.line-bloom {
     display: block;
     width: 80px;
     height: 80px;
@@ -714,10 +714,10 @@
         rgba(225, 0, 91, 0.55) 0%,
         rgba(225, 0, 91, 0.25) 35%,
         rgba(225, 0, 91, 0)   70%);
-    animation: highline-bloom-anim 2.0s ease-out forwards;
+    animation: line-bloom-anim 2.0s ease-out forwards;
 }
 
-@keyframes highline-bloom-anim {
+@keyframes line-bloom-anim {
     0%   { transform: scale(0.15); opacity: 0; }
     20%  { transform: scale(1.0);  opacity: 1; }
     100% { transform: scale(2.6);  opacity: 0; }
@@ -775,7 +775,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .highline-bloom,
+    .line-bloom,
     .crossing-pulse-emoji,
     .crossing-pulse-ring,
     .map-tt-panel {
@@ -787,12 +787,12 @@
 /* Highline type markers on /mapa — a coloured dot per HighlineType (map_controller
    TYPE_COLORS); the inline background sets the type colour. White ring + shadow keep
    them legible on both the OSM and ortho basemaps. */
-.highline-marker {
+.line-marker {
     background: transparent;
     border: none;
 }
 
-.highline-marker .highline-dot {
+.line-marker .line-dot {
     display: block;
     width: 14px;
     height: 14px;
@@ -846,21 +846,21 @@
 }
 
 /* Highline popup (Leaflet) */
-.highline-popup strong {
+.line-popup strong {
     font-size: 1.05em;
 }
 
-.highline-popup .muted {
+.line-popup .muted {
     color: var(--color-muted);
     font-size: 0.9em;
 }
 
-.highline-popup a {
+.line-popup a {
     color: var(--color-accent);
     text-decoration: none;
 }
 
-.highline-popup a:hover {
+.line-popup a:hover {
     text-decoration: underline;
 }
 

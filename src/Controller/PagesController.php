@@ -5,8 +5,8 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Feed\FeedFetcherInterface;
 use App\Form\UserForm;
-use App\Repository\HighlineCrossingRepository;
-use App\Repository\HighlinePhotoRepository;
+use App\Repository\LineCrossingRepository;
+use App\Repository\LinePhotoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,8 +18,8 @@ final class PagesController extends AbstractController
     #[Route('/', name: 'app_index')]
     public function index(
         FeedFetcherInterface $feed,
-        HighlineCrossingRepository $crossings,
-        HighlinePhotoRepository $photos,
+        LineCrossingRepository $crossings,
+        LinePhotoRepository $photos,
     ): Response {
         return $this->render('pages/index.html.twig', [
             'feed_items' => $feed->fetch(12),
@@ -29,7 +29,7 @@ final class PagesController extends AbstractController
     }
 
     #[Route('/profile', name: 'app_profile')]
-    public function profile(HighlineCrossingRepository $crossings): Response
+    public function profile(LineCrossingRepository $crossings): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 

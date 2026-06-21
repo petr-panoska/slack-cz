@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ line.name }} – slack.cz{% endblock %}
+
+{% block body %}
+{% set cover = line.coverPhoto %}
+<article class="hl-detail{% if cover %} hl-detail-has-cover{% endif %}">
+    <header class="hl-cover">
+        {% if cover %}
+            <img
+                class="hl-cover-img"
+                src="{{ vich_uploader_asset(cover, 'file') | imagine_filter('line_full') }}"
+                alt="{{ line.name }}"
+                loading="eager"
+                decoding="async"
+                onerror="this.closest('.hl-detail').classList.remove('hl-detail-has-cover'); this.remove();"
+            >
+        {% endif %}
+        <div class="hl-cover-shade"></div>
+        <div class="hl-cover-content">
+            <a href="{{ path('app_line_map') }}" class="hl-back">← Mapa</a>
+            <h1>
+                {{ line.name }}
+                {# Štítek je signál pro admina (verifikační workflow) — běžný návštěvník
+                   ho nepotřebuje vidět, hlavně u 254 importovaných lajn. #}
+                {% if not line.isVerified and is_granted('ROLE_ADMIN') %}
+                    <span class="hl-proposal-badge" title="Lajna ještě není ověřená adminem">navrženo</span>
+                {% endif %}
+            </h1>
+            <div class="hl-detail-meta">
+                <span class="hl-type-badge hl-type-{{ line.type.value }}">{{ line.type.label }}</span>
+                {% if line.firstAscentDate %}
+                    <span class="hl-fa">První napnutí <time datetime="{{ line.firstAscentDate|date('Y-m-d') }}">{{ line.firstAscentDate|date('j. n. Y') }}</time></span>
+                {% endif %}
+            </div>
+            {% if app.user %}
+                {% set isAdmin = is_granted('ROLE_ADMIN') %}
+                {% set isOwner = line.isOwnedBy(app.user) %}
+                {% set canEditDirect = isAdmin or (isOwner and not line.isVerified) %}
+                {% set canDelete = canEditDirect %}
+                <div class="hl-detail-actions">
+                    <a class="btn btn-secondary btn-sm" href="{{ path('app_line_edit', { slug: line.slug }) }}">
+                        {{ canEditDirect ? 'Upravit' : 'Navrhnout úpravu' }}
+                    </a>
+                    {% if historyCount > 0 %}
+                        <a class="btn btn-secondary btn-sm" href="{{ path('app_line_history', { slug: line.slug }) }}">Historie ({{ historyCount }})</a>
+                    {% endif %}
+                    {% if isAdmin and not line.isVerified %}
+                        <form method="post" action="{{ path('app_line_verify', { slug: line.slug }) }}" class="hl-action-form" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ csrf_token('verify-line-' ~ line.id) }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Verifikovat</button>
+                        </form>
+                    {% endif %}
+                    {% if canDelete %}
+                        <form method="post" action="{{ path('app_line_delete', { slug: line.slug }) }}" class="hl-action-form" onsubmit="return confirm('Opravdu smazat lajnu „{{ line.name|e('js') }}"?');" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete-line-' ~ line.id) }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Smazat</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="hl-detail-body">
+        <div class="hl-detail-grid">
+            <aside class="hl-stats panel">
+                <div class="hl-stats-row">
+                    <div class="hl-stat">
+                        <span class="hl-stat-icon" aria-hidden="true">↔</span>
+                        <span class="hl-stat-value">{{ line.length }}<span class="hl-stat-unit"> m</span></span>
+                        <span class="hl-stat-label">Délka</span>
+                    </div>
+                    <div class="hl-stat">
+                        <span class="hl-stat-icon" aria-hidden="true">↕</span>
+                        <span class="hl-stat-value">{{ line.height }}<span class="hl-stat-unit"> m</span></span>
+                        <span class="hl-stat-label">Výška</span>
+                    </div>
+                </div>
+                {% if line.rating %}
+                    <div class="hl-rating-large" aria-label="hodnocení {{ line.rating }} z 5">
+                        {% for s in 1..5 %}<span class="hl-star{% if s <= line.rating %} on{% endif %}">★</span>{% endfor %}
+                    </div>
+                {% endif %}
+            </aside>
+
+            <section class="hl-info panel">
+                {% if line.description %}
+                    <div class="hl-info-block hl-richtext">
+                        <h2>Popis</h2>
+                        {{ line.description|nl2br }}
+                    </div>
+                {% endif %}
+
+                <table class="hl-table">
+                    {% if line.pointOneInfo %}<tr><th>Kotvení bodu&nbsp;1</th><td class="hl-richtext">{{ line.pointOneInfo|nl2br }}</td></tr>{% endif %}
+                    {% if line.pointTwoInfo %}<tr><th>Kotvení bodu&nbsp;2</th><td class="hl-richtext">{{ line.pointTwoInfo|nl2br }}</td></tr>{% endif %}
+                    {% if line.tensioningMinutes %}<tr><th>Napínání</th><td>{{ line.tensioningMinutes }} min</td></tr>{% endif %}
+                    {% if line.approachMinutes %}<tr><th>Přístup</th><td>{{ line.approachMinutes }} min</td></tr>{% endif %}
+                    {% if line.firstAscentBy %}<tr><th>Autor 1. napnutí</th><td>{{ line.firstAscentBy }}</td></tr>{% endif %}
+                    {% if line.firstAscentDate %}<tr><th>Datum 1. napnutí</th><td>{{ line.firstAscentDate|date('j. n. Y') }}</td></tr>{% endif %}
+                    {% if line.nameHistory %}<tr><th>Historie názvu</th><td class="hl-richtext">{{ line.nameHistory|nl2br }}</td></tr>{% endif %}
+                    {% if line.point1Latitude and line.point1Longitude %}
+                        <tr>
+                            <th>GPS bod&nbsp;1</th>
+                            <td>
+                                <a href="https://mapy.cz/turisticka?source=coor&id={{ line.point1Longitude }}%2C{{ line.point1Latitude }}" target="_blank" rel="noopener">
+                                    {{ line.point1Latitude }}, {{ line.point1Longitude }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% if line.point2Latitude and line.point2Longitude %}
+                        <tr>
+                            <th>GPS bod&nbsp;2</th>
+                            <td>
+                                <a href="https://mapy.cz/turisticka?source=coor&id={{ line.point2Longitude }}%2C{{ line.point2Latitude }}" target="_blank" rel="noopener">
+                                    {{ line.point2Latitude }}, {{ line.point2Longitude }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% if line.hasParking %}
+                        <tr>
+                            <th>Parkování</th>
+                            <td>
+                                <a href="https://mapy.cz/turisticka?source=coor&id={{ line.parkingLongitude }}%2C{{ line.parkingLatitude }}" target="_blank" rel="noopener">
+                                    {{ line.parkingLatitude }}, {{ line.parkingLongitude }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </section>
+
+            {{ include('_partials/_line_gallery.html.twig', {
+                line: line,
+                photos: photos,
+                likeCounts: likeCounts,
+                commentCounts: commentCounts,
+                likedIds: likedIds,
+            }) }}
+
+            <section class="panel hl-map-panel">
+                <header class="panel-header">
+                    <div class="panel-title">
+                        <span class="panel-dot panel-dot-map"></span>
+                        <h2>Mapa</h2>
+                    </div>
+                </header>
+                <div
+                    class="hl-map-wrapper"
+                    data-controller="line-detail-map"
+                    data-line-detail-map-lat-value="{{ line.latitude }}"
+                    data-line-detail-map-lng-value="{{ line.longitude }}"
+                    data-line-detail-map-name-value="{{ line.name }}"
+                    {% if line.hasPolyline %}
+                    data-line-detail-map-p1-lat-value="{{ line.point1Latitude }}"
+                    data-line-detail-map-p1-lng-value="{{ line.point1Longitude }}"
+                    data-line-detail-map-p2-lat-value="{{ line.point2Latitude }}"
+                    data-line-detail-map-p2-lng-value="{{ line.point2Longitude }}"
+                    {% endif %}
+                    {% if line.hasParking %}
+                    data-line-detail-map-parking-lat-value="{{ line.parkingLatitude }}"
+                    data-line-detail-map-parking-lng-value="{{ line.parkingLongitude }}"
+                    {% endif %}
+                    data-line-detail-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                    data-line-detail-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                    data-line-detail-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                >
+                    <div class="hl-map-canvas" data-line-detail-map-target="canvas"></div>
+                </div>
+            </section>
+
+            <section class="panel hl-crossings-panel">
+                <header class="panel-header">
+                    <div class="panel-title">
+                        <span class="panel-dot panel-dot-crossings"></span>
+                        <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
+                    </div>
+                    {% if app.user %}
+                        <a class="btn btn-primary btn-sm" href="{{ path('app_crossing_new', { slug: line.slug }) }}">+ Přidat přechod</a>
+                    {% else %}
+                        <a class="btn btn-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+                    {% endif %}
+                </header>
+                {% if crossings|length > 0 %}
+                    {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: false }) }}
+                {% else %}
+                    <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</article>
+{% endblock %}

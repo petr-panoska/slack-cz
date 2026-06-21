@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * (`FilesystemFetcher`), takže žádná síť ani DB. Slouží i jako regrese na
  * markdown sekce.
  *
- * DB-backed stránky (`/`, `/mapa`, `/denik/{id}`, `/highline/*`) ani zbylé
+ * DB-backed stránky (`/`, `/mapa`, `/denik/{id}`, `/line/*`) ani zbylé
  * síťové (slackTV) tu schválně nejsou — CI běží na prázdné SQLite bez schématu,
  * viz `.github/workflows/symfony.yml`. Až bude test DB se schématem (např.
  * `doctrine:schema:create` v test env), můžou přibýt.

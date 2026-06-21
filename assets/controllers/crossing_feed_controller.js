@@ -302,7 +302,7 @@ export default class extends Controller {
         li.className = 'crossing-feed-item';
 
         const userHref = `/denik/${item.userId}`;
-        const lineHref = `/highline/${encodeURIComponent(item.highlineSlug)}`;
+        const lineHref = `/line/${encodeURIComponent(item.lineSlug)}`;
         const dateStr = escapeHtml(formatDate(item.crossedAt));
         const styleHtml = item.styleLabel
             ? `<span class="crossing-feed-style">${escapeHtml(item.styleLabel)}</span>`
@@ -321,7 +321,7 @@ export default class extends Controller {
             <div class="crossing-feed-body">
                 <a class="crossing-feed-user" href="${userHref}">${escapeHtml(item.userDisplayName)}</a>
                 <span class="crossing-feed-on">na</span>
-                <a class="crossing-feed-line" href="${lineHref}">${escapeHtml(item.highlineName)}</a>
+                <a class="crossing-feed-line" href="${lineHref}">${escapeHtml(item.lineName)}</a>
             </div>
             ${commentHtml}
         `;

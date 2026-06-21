@@ -35,7 +35,7 @@ class LonglineCrossingForm extends AbstractType
             ->add('style', EnumType::class, [
                 'label' => 'Styl',
                 'class' => CrossingStyle::class,
-                // Same enum as highline crossings, minus the leash-only styles
+                // Same enum as line crossings, minus the leash-only styles
                 // (swami / solo / kotník) that don't apply to a longline.
                 'choices' => array_filter(
                     CrossingStyle::cases(),

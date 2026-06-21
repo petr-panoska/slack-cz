@@ -7,7 +7,7 @@ import { enableCtrlScrollZoom } from '../map_scroll_zoom.js';
 
 export default class extends Controller {
     static values = {
-        highlines: Array,
+        lines: Array,
         iconUrl: String,
         iconRetinaUrl: String,
         shadowUrl: String,
@@ -22,7 +22,7 @@ export default class extends Controller {
             shadowUrl: this.shadowUrlValue,
         });
 
-        const points = (this.highlinesValue || [])
+        const points = (this.linesValue || [])
             .map(h => [parseFloat(h.latitude), parseFloat(h.longitude), h])
             .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
 
@@ -49,7 +49,7 @@ export default class extends Controller {
             const label = h.crossings > 1 ? ` (${h.crossings}×)` : '';
             const safeName = escapeHtml(h.name);
             marker.bindPopup(
-                `<a href="/highline/${encodeURIComponent(h.slug)}" class="denik-map-popup">${safeName}</a>${label}`,
+                `<a href="/line/${encodeURIComponent(h.slug)}" class="denik-map-popup">${safeName}</a>${label}`,
             );
         }
 
