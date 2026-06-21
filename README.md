@@ -59,7 +59,7 @@ docker compose run php symfony check:requirements
 make legacyImport
 ```
 
-### Import legacy photos (cover + galerie)alpkew6NUnHF147U
+### Import legacy photos (cover + galerie)
 
 Fotky nejsou v MySQL dumpu — jsou to soubory na disku. Potřebuješ stažené legacy soubory v `../old-slack-cz/line/high/`.
 
