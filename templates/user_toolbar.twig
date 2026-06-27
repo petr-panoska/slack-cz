@@ -1,4 +1,4 @@
-<header class="site-header">
+<header class="site-header" data-controller="nav">
     <a href="{{ path('app_index') }}" class="site-logo">
         <img src="{{ asset('images/logo.png') }}" alt="slack.cz" />
     </a>
@@ -174,4 +174,19 @@
             <a href="{{ path('app_register') }}" class="btn btn-primary">Registrovat</a>
         {% endif %}
     </div>
+
+    <button
+        type="button"
+        class="nav-burger"
+        data-nav-target="burger"
+        data-action="click->nav#toggle"
+        aria-label="Menu"
+        aria-expanded="false"
+    >
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+            <line x1="2" y1="5"  x2="20" y2="5"  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="2" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="2" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
 </header>
