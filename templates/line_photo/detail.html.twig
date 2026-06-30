@@ -35,7 +35,7 @@
         {% if photo.caption %}<p class="hl-photo-caption">{{ photo.caption }}</p>{% endif %}
         <p class="hl-photo-byline">
             {% if photo.uploadedBy %}
-                <a href="{{ path('app_user_denik', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
+                <a href="{{ path('app_user_diary', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
             {% else %}
                 <span>?</span>
             {% endif %}
@@ -98,7 +98,7 @@
                         <div class="hl-comment-head">
                             <span class="hl-comment-author">
                                 {% if c.author %}
-                                    <a href="{{ path('app_user_denik', { id: c.author.id }) }}">{{ c.author.displayName }}</a>
+                                    <a href="{{ path('app_user_diary', { id: c.author.id }) }}">{{ c.author.displayName }}</a>
                                 {% else %}
                                     ?
                                 {% endif %}

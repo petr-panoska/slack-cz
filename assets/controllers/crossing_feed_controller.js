@@ -39,8 +39,8 @@ function isoDate(d) {
     return `${y}-${m}-${day}`;
 }
 
-const COLLAPSED_KEY = 'slack.cz:mapa:feed-collapsed';
-const USERS_HIDDEN_KEY = 'slack.cz:mapa:users-hidden';
+const COLLAPSED_KEY = 'slack.cz:map:feed-collapsed';
+const USERS_HIDDEN_KEY = 'slack.cz:map:users-hidden';
 const DEFAULT_COUNT = 10;
 const MAX_COUNT = 200;
 const DEFAULT_RANGE_DAYS = 30;

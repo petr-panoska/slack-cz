@@ -26,7 +26,7 @@ final class LineController extends AbstractController
     #[Route('/mapa', name: 'app_line_map')]
     public function map(): Response
     {
-        return $this->render('pages/mapa.html.twig');
+        return $this->render('pages/map.html.twig');
     }
 
     #[Route('/data-report', name: 'app_data_report', methods: ['GET'])]

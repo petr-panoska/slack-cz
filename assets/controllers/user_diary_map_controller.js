@@ -49,7 +49,7 @@ export default class extends Controller {
             const label = h.crossings > 1 ? ` (${h.crossings}×)` : '';
             const safeName = escapeHtml(h.name);
             marker.bindPopup(
-                `<a href="/lajna/${encodeURIComponent(h.slug)}" class="denik-map-popup">${safeName}</a>${label}`,
+                `<a href="/lajna/${encodeURIComponent(h.slug)}" class="diary-map-popup">${safeName}</a>${label}`,
             );
         }
 

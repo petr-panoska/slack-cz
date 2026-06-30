@@ -65,10 +65,10 @@ const FIT_MAX_ZOOM = 13;
 
 // Survives Turbo navigations (map → highline detail → back) so the user
 // returns to the same pan/zoom they left.
-const VIEW_STORAGE_KEY = 'slack.cz:mapa:view';
+const VIEW_STORAGE_KEY = 'slack.cz:map:view';
 // Owned by crossing_feed_controller (eye toggle); read here on boot so we don't
 // race with the feed controller's connect order.
-const USERS_HIDDEN_KEY = 'slack.cz:mapa:users-hidden';
+const USERS_HIDDEN_KEY = 'slack.cz:map:users-hidden';
 
 function readSavedView() {
     try {

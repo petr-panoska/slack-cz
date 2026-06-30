@@ -45,7 +45,7 @@
                         {% if photo.caption %}<span class="hl-gallery-caption">{{ photo.caption }}</span>{% endif %}
                         <span class="hl-gallery-author">
                             {% if photo.uploadedBy %}
-                                <a href="{{ path('app_user_denik', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
+                                <a href="{{ path('app_user_diary', { id: photo.uploadedBy.id }) }}">{{ photo.uploadedBy.displayName }}</a>
                             {% else %}
                                 ?
                             {% endif %}

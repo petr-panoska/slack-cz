@@ -33,13 +33,13 @@
                         </div>
                         <div class="proposals-meta">
                             {% if edit.proposedBy %}
-                                <a href="{{ path('app_user_denik', { id: edit.proposedBy.id }) }}">{{ edit.proposedBy.displayName }}</a>
+                                <a href="{{ path('app_user_diary', { id: edit.proposedBy.id }) }}">{{ edit.proposedBy.displayName }}</a>
                             {% else %}
                                 <em>(systém / smazaný účet)</em>
                             {% endif %}
                             · <time datetime="{{ edit.createdAt|date('c') }}">{{ edit.createdAt|date('j. n. Y H:i') }}</time>
                             {% if edit.reviewedBy and edit.reviewedBy.id != (edit.proposedBy.id ?? null) %}
-                                · schválil/zamítl <a href="{{ path('app_user_denik', { id: edit.reviewedBy.id }) }}">{{ edit.reviewedBy.displayName }}</a>
+                                · schválil/zamítl <a href="{{ path('app_user_diary', { id: edit.reviewedBy.id }) }}">{{ edit.reviewedBy.displayName }}</a>
                             {% endif %}
                         </div>
                     </header>

@@ -78,7 +78,7 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
   - `hp_map_controller.js` (identifier `hp-map`) — homepage mapa v panelu Mapa: ukazuje jen aktivní přechod, vykreslí reálnou linku + emoji walker animaci po lajně a auto-showcase cyklus přes posledních N přechodů. Sdílí emoji paletu (`assets/user_emoji.js`) s `map_controller`. Detailní chování v § *Hotové features → Index page*.
   - `line_detail_map_controller.js` (identifier `line-detail-map`) — slim mini-mapa pro detail lajny: jeden pin nebo polyline mezi `point1` a `point2` GPS (pokud má lajna oba body)
   - `line_form_map_controller.js` (identifier `line-form-map`) — 2-endpoint GPS picker pro line form. Alternující klik 1→2→1, oba markery draggable, polyline + live haversine length overlay. Sync se 4 input poli (point1Lat/Lng + point2Lat/Lng) oboustranně.
-  - `user_denik_map_controller.js` — mini-mapa na `/denik/{id}` se všemi unikátními highlines, co user prošel
+  - `user_diary_map_controller.js` — mini-mapa na `/denik/{id}` se všemi unikátními highlines, co user prošel
   - `crossing_feed_controller.js` — vertikální „news bar" sidebar na `/mapa`: list posledních N přechodů, dvě tlačítka v hlavičce (oko = visibility emoji markerů, šipka = collapse panelu), reaguje na time-travel režim (změní se v okno -7 dní zpět od virtuálního času)
   - `search_controller.js` — globální vyhledávání lajn v hlavičce
   - `intro_controller.js` — slackvibes 📻 audio player; persistent přes Turbo přes `data-turbo-permanent`. Detaily v `docs/audio-player.md`.
@@ -110,7 +110,7 @@ Stav přežívá Turbo navigaci přes `sessionStorage` (`slack.cz:mapa:feed-coll
 - **Linka mezi body na `/mapa`:** vlastní layer, viditelná až od **zoom ≥ 14** (`LINE_MIN_ZOOM`) — z pohledu na celou ČR by byla sub-pixelová; marker sedí na `point1`. Detail lajny ukazuje **oba body** (řádky „GPS bod 1 / bod 2" s odkazy na mapy.cz) + polyline na mini-mapě.
 - Markery: defaultní Leaflet ikony — kvůli AssetMapperu jsme musely PNG (`marker-icon`, `marker-icon-2x`, `marker-shadow`) stáhnout do `assets/images/leaflet/` a předat URLs z Twigu jako `data-*` (klasický bundling problém)
 - Zoom controly jsou na **`bottomright`** (default `topleft` koliduje se sidebarem `/mapa`); v time-travel módu se zoom navíc CSSkem zvedne nad time-travel panel. Basemap + fullscreen pilulky jsou v `topright` (na `/mapa` CSSkem posunuté pod tlačítko „Přehrát historii").
-- Použití na 4 místech: full mapa `/mapa` (s sidebar feedem + time-travel), mini mapa v panelu na indexu (sdílí `map_controller`), mini-mapa detailu lajny (`line_detail_map_controller`), mini-mapa deníku (`user_denik_map_controller`)
+- Použití na 4 místech: full mapa `/mapa` (s sidebar feedem + time-travel), mini mapa v panelu na indexu (sdílí `map_controller`), mini-mapa detailu lajny (`line_detail_map_controller`), mini-mapa deníku (`user_diary_map_controller`)
 
 ### Recent crossings — single source of truth
 

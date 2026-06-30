@@ -67,7 +67,7 @@ final class CrossingController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Přechod upraven.');
 
-            return $this->redirectToRoute('app_user_denik', ['id' => $crossing->getUser()->getId()]);
+            return $this->redirectToRoute('app_user_diary', ['id' => $crossing->getUser()->getId()]);
         }
 
         return $this->render('crossing/form.html.twig', [
@@ -97,7 +97,7 @@ final class CrossingController extends AbstractController
         $em->flush();
         $this->addFlash('success', 'Přechod smazán.');
 
-        return $this->redirectToRoute('app_user_denik', ['id' => $userId]);
+        return $this->redirectToRoute('app_user_diary', ['id' => $userId]);
     }
 
     private function assertOwner(LineCrossing $crossing): void

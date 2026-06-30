@@ -5,7 +5,7 @@
 {% block body %}
 <div class="auth-page">
     <div class="auth-card crossing-form-card">
-        <a class="hl-back" href="{{ path('app_user_denik', { id: longline.user.id }) }}#longline">← Longline deník</a>
+        <a class="hl-back" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">← Longline deník</a>
         <h1>{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }}</h1>
 
         {{ form_errors(form) }}
@@ -43,7 +43,7 @@
 
             <div class="crossing-form-actions">
                 <button type="submit" class="btn btn-primary">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
-                <a class="btn btn-secondary" href="{{ path('app_user_denik', { id: longline.user.id }) }}#longline">Zrušit</a>
+                <a class="btn btn-secondary" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">Zrušit</a>
             </div>
         {{ form_end(form) }}
     </div>

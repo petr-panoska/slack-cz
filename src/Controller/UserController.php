@@ -15,18 +15,18 @@ final class UserController extends AbstractController
     #[Route('/denicky', name: 'app_user_directory')]
     public function directory(UserRepository $users): Response
     {
-        return $this->render('pages/denicky.html.twig', [
+        return $this->render('pages/diaries.html.twig', [
             'rows' => $users->findDiaryRows(),
         ]);
     }
 
-    #[Route('/denik/{id}', name: 'app_user_denik', requirements: ['id' => '\d+'])]
-    public function denik(
+    #[Route('/denik/{id}', name: 'app_user_diary', requirements: ['id' => '\d+'])]
+    public function diary(
         User $user,
         LineCrossingRepository $crossings,
         LonglineCrossingRepository $longlines,
     ): Response {
-        return $this->render('pages/user_denik.html.twig', [
+        return $this->render('pages/user_diary.html.twig', [
             'profile' => $user,
             'crossings' => $crossings->findForUser($user),
             'firstCrossingDate' => $crossings->findFirstCrossingDate($user),

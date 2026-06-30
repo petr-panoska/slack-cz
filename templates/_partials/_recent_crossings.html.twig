@@ -18,7 +18,7 @@
                 <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
             {% endif %}
             {% if show_user %}
-                <a class="crossings-user" href="{{ path('app_user_denik', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
+                <a class="crossings-user" href="{{ path('app_user_diary', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
             {% endif %}
             <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
                 {% if c.rating %}

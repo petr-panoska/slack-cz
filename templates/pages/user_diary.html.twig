@@ -3,18 +3,18 @@
 {% block title %}{{ profile.displayName }} – deník – slack.cz{% endblock %}
 
 {% block body %}
-<article class="denik">
-    <header class="denik-head panel">
-        <div class="denik-identity">
+<article class="diary">
+    <header class="diary-head panel">
+        <div class="diary-identity">
             <h1>{{ profile.displayName }}</h1>
             {% set bits = [profile.firstName, profile.lastName]|filter(v => v)|join(' ') %}
-            {% if bits %}<p class="denik-realname">{{ bits }}</p>{% endif %}
-            <ul class="denik-meta">
-                {% if profile.city %}<li><span class="denik-meta-label">Město</span> {{ profile.city }}</li>{% endif %}
-                {% if profile.birthYear %}<li><span class="denik-meta-label">Ročník</span> {{ profile.birthYear }}</li>{% endif %}
+            {% if bits %}<p class="diary-realname">{{ bits }}</p>{% endif %}
+            <ul class="diary-meta">
+                {% if profile.city %}<li><span class="diary-meta-label">Město</span> {{ profile.city }}</li>{% endif %}
+                {% if profile.birthYear %}<li><span class="diary-meta-label">Ročník</span> {{ profile.birthYear }}</li>{% endif %}
                 {% if firstCrossingDate %}
                     <li>
-                        <span class="denik-meta-label">První přechod</span>
+                        <span class="diary-meta-label">První přechod</span>
                         <time datetime="{{ firstCrossingDate|date('Y-m-d') }}">{{ firstCrossingDate|date('j. n. Y') }}</time>
                     </li>
                 {% endif %}
@@ -22,15 +22,15 @@
         </div>
     </header>
 
-    <div class="denik-tabs tabs" data-controller="tabs">
+    <div class="diary-tabs tabs" data-controller="tabs">
         <div class="tabs-list" role="tablist">
             <button type="button" class="tab" role="tab" data-tabs-target="tab" data-action="tabs#select" data-tabs-hash-param="highline" aria-selected="true">Highline deník</button>
             <button type="button" class="tab" role="tab" data-tabs-target="tab" data-action="tabs#select" data-tabs-hash-param="longline" aria-selected="false">Longline deník</button>
         </div>
 
         <div class="tab-panel" role="tabpanel" data-tabs-target="panel">
-            <div class="denik-grid">
-                <section class="panel denik-map-panel">
+            <div class="diary-grid">
+                <section class="panel diary-map-panel">
                     <header class="panel-header">
                         <div class="panel-title">
                             <span class="panel-dot panel-dot-map"></span>
@@ -39,21 +39,21 @@
                     </header>
                     {% if mapLines|length > 0 %}
                         <div
-                            class="denik-map-wrapper"
-                            data-controller="user-denik-map"
-                            data-user-denik-map-lines-value="{{ mapLines|json_encode|e('html_attr') }}"
-                            data-user-denik-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
-                            data-user-denik-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
-                            data-user-denik-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
+                            class="diary-map-wrapper"
+                            data-controller="user-diary-map"
+                            data-user-diary-map-lines-value="{{ mapLines|json_encode|e('html_attr') }}"
+                            data-user-diary-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
+                            data-user-diary-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
+                            data-user-diary-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
                         >
-                            <div class="denik-map-canvas" data-user-denik-map-target="canvas"></div>
+                            <div class="diary-map-canvas" data-user-diary-map-target="canvas"></div>
                         </div>
                     {% else %}
                         <p class="hl-empty">Zatím bez záznamu na mapě.</p>
                     {% endif %}
                 </section>
 
-                <section class="panel denik-crossings-panel">
+                <section class="panel diary-crossings-panel">
                     <header class="panel-header">
                         <div class="panel-title">
                             <span class="panel-dot panel-dot-crossings"></span>
@@ -70,7 +70,7 @@
         </div>
 
         <div class="tab-panel" role="tabpanel" data-tabs-target="panel" hidden>
-            <section class="panel denik-longline-panel">
+            <section class="panel diary-longline-panel">
                 <header class="panel-header">
                     <div class="panel-title">
                         <span class="panel-dot panel-dot-crossings"></span>

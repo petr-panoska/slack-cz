@@ -17,10 +17,10 @@
             </div>
         </header>
 
-        <div class="denicky-toolbar">
+        <div class="diaries-toolbar">
             <input
                 type="search"
-                class="denicky-search"
+                class="diaries-search"
                 placeholder="Hledat podle nicku nebo jména…"
                 autocomplete="off"
                 spellcheck="false"
@@ -30,7 +30,7 @@
         </div>
 
         <div class="table-wrap">
-            <table class="table denicky-table">
+            <table class="table diaries-table">
                 <thead>
                     <tr>
                         <th scope="col" data-sort-type="text" data-action="click->data-table#sort">Nick</th>
@@ -45,7 +45,7 @@
                         {% set name = [row.firstName, row.lastName]|filter(v => v)|join(' ') %}
                         <tr data-filter="{{ (row.nick ~ ' ' ~ name)|trim }}">
                             <td>
-                                <a href="{{ path('app_user_denik', { id: row.id }) }}">
+                                <a href="{{ path('app_user_diary', { id: row.id }) }}">
                                     {{ row.nick ?: 'uživatel #' ~ row.id }}
                                 </a>
                             </td>
@@ -63,7 +63,7 @@
             </table>
         </div>
 
-        <p class="denicky-empty" data-data-table-target="empty" hidden>Nikdo nenalezen.</p>
+        <p class="diaries-empty" data-data-table-target="empty" hidden>Nikdo nenalezen.</p>
     </section>
 </div>
 {% endblock %}

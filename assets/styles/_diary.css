@@ -1,11 +1,11 @@
 /* ── Deníčky (public diary directory) ──────────────────────────────────────── */
 
-.denicky-toolbar {
+.diaries-toolbar {
     padding: 14px 16px;
     border-bottom: 1px solid var(--color-line);
 }
 
-.denicky-search {
+.diaries-search {
     width: 100%;
     max-width: 360px;
     border: 1px solid var(--color-line);
@@ -17,27 +17,27 @@
     color: var(--color-fg);
 }
 
-.denicky-search::placeholder {
+.diaries-search::placeholder {
     color: var(--color-muted);
 }
 
-.denicky-search:focus {
+.diaries-search:focus {
     outline: none;
     border-color: var(--color-accent);
 }
 
-.denicky-table a {
+.diaries-table a {
     color: var(--color-fg);
     text-decoration: none;
     font-weight: 600;
 }
 
-.denicky-table a:hover {
+.diaries-table a:hover {
     color: var(--color-accent);
     text-decoration: underline;
 }
 
-.denicky-empty {
+.diaries-empty {
     padding: 16px 14px;
     margin: 0;
     color: var(--color-muted);
@@ -46,7 +46,7 @@
 
 /* ---------- Deník (uživatelský profil) ---------- */
 
-.denik {
+.diary {
     max-width: 1100px;
     margin: 24px auto;
     padding: 0 16px;
@@ -55,24 +55,24 @@
     gap: 20px;
 }
 
-.denik-head {
+.diary-head {
     padding: 24px 28px;
 }
 
-.denik-identity h1 {
+.diary-identity h1 {
     margin: 0 0 4px;
     font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: -0.01em;
 }
 
-.denik-realname {
+.diary-realname {
     margin: 0 0 14px;
     color: var(--color-muted);
     font-size: 0.95rem;
 }
 
-.denik-meta {
+.diary-meta {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -83,7 +83,7 @@
     color: var(--color-fg);
 }
 
-.denik-meta-label {
+.diary-meta-label {
     color: var(--color-muted);
     font-size: 0.72rem;
     text-transform: uppercase;
@@ -91,45 +91,45 @@
     margin-right: 6px;
 }
 
-.denik-grid {
+.diary-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     align-items: start;
 }
 
-.denik-map-panel { grid-column: 1; }
-.denik-crossings-panel { grid-column: 2; }
+.diary-map-panel { grid-column: 1; }
+.diary-crossings-panel { grid-column: 2; }
 
-.denik-map-wrapper {
+.diary-map-wrapper {
     height: 420px;
     width: 100%;
 }
 
-.denik-map-canvas {
+.diary-map-canvas {
     height: 100%;
     width: 100%;
 }
 
-.denik-map-popup {
+.diary-map-popup {
     color: var(--color-accent);
     font-weight: 600;
     text-decoration: none;
 }
 
-.denik-map-popup:hover {
+.diary-map-popup:hover {
     text-decoration: underline;
 }
 
 @media (max-width: 900px) {
-    .denik-grid {
+    .diary-grid {
         grid-template-columns: 1fr;
     }
-    .denik-map-panel,
-    .denik-crossings-panel {
+    .diary-map-panel,
+    .diary-crossings-panel {
         grid-column: 1;
     }
-    .denik-map-wrapper {
+    .diary-map-wrapper {
         height: 300px;
     }
 }

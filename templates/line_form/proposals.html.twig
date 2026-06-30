@@ -26,7 +26,7 @@
                         <div class="proposals-meta">
                             #{{ edit.id }} ·
                             {% if edit.proposedBy %}
-                                <a href="{{ path('app_user_denik', { id: edit.proposedBy.id }) }}">{{ edit.proposedBy.displayName }}</a>
+                                <a href="{{ path('app_user_diary', { id: edit.proposedBy.id }) }}">{{ edit.proposedBy.displayName }}</a>
                             {% else %}
                                 <em>(smazaný účet)</em>
                             {% endif %}

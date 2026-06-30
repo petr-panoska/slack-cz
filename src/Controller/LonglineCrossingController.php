@@ -88,7 +88,7 @@ final class LonglineCrossingController extends AbstractController
     private function redirectToDenik(?int $userId): Response
     {
         // Land back on the Longline tab via its deep-link hash.
-        return $this->redirect($this->generateUrl('app_user_denik', ['id' => $userId]) . '#longline');
+        return $this->redirect($this->generateUrl('app_user_diary', ['id' => $userId]) . '#longline');
     }
 
     private function assertOwner(LonglineCrossing $longline): void
