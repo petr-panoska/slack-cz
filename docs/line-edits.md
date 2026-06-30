@@ -50,17 +50,17 @@ Index `idx_line_edit_status` — admin queue často filtruje `WHERE status='pend
 
 | Path | Name | Auth | Co dělá |
 |---|---|---|---|
-| `GET\|POST /line/new` | `app_line_new` | `ROLE_USER` | nová lajna; submit ⇒ `unverified` + `createdBy=user` + audit `APPLIED` |
-| `GET\|POST /line/{slug}/edit` | `app_line_edit` | `ROLE_USER` | direct edit (owner of unverified / admin) NEBO proposal (verified + non-admin) |
-| `POST /line/{slug}/delete` | `app_line_delete` | `ROLE_USER` | owner-of-unverified nebo admin |
-| `POST /line/{slug}/verify` | `app_line_verify` | `ROLE_ADMIN` | flag `isVerified = true` + sloučí dosavadní edity do jediné creation revize |
-| `GET /admin/proposals` | `app_admin_proposals` | `ROLE_ADMIN` | queue pending proposals + diff tabulky |
-| `POST /admin/proposals/{id}/approve` | `app_admin_proposal_approve` | `ROLE_ADMIN` | apply snapshot + flag `APPLIED` |
-| `POST /admin/proposals/{id}/reject` | `app_admin_proposal_reject` | `ROLE_ADMIN` | flag `REJECTED` |
-| `GET /line/{slug}/history` | `app_line_history` | public | audit log (APPLIED + REJECTED) chronologicky |
-| `POST /line/{slug}/history/{editId}/delete` | `app_line_history_delete` | `ROLE_ADMIN` | smaže jeden záznam historie (kromě prvního, chronologicky); stav lajny se nemění |
+| `GET\|POST /lajna/pridat` | `app_line_new` | `ROLE_USER` | nová lajna; submit ⇒ `unverified` + `createdBy=user` + audit `APPLIED` |
+| `GET\|POST /lajna/{slug}/uprava` | `app_line_edit` | `ROLE_USER` | direct edit (owner of unverified / admin) NEBO proposal (verified + non-admin) |
+| `POST /lajna/{slug}/smazat` | `app_line_delete` | `ROLE_USER` | owner-of-unverified nebo admin |
+| `POST /lajna/{slug}/overeni` | `app_line_verify` | `ROLE_ADMIN` | flag `isVerified = true` + sloučí dosavadní edity do jediné creation revize |
+| `GET /admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` | queue pending proposals + diff tabulky |
+| `POST /admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` | apply snapshot + flag `APPLIED` |
+| `POST /admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` | flag `REJECTED` |
+| `GET /lajna/{slug}/historie` | `app_line_history` | public | audit log (APPLIED + REJECTED) chronologicky |
+| `POST /lajna/{slug}/historie/{editId}/smazat` | `app_line_history_delete` | `ROLE_ADMIN` | smaže jeden záznam historie (kromě prvního, chronologicky); stav lajny se nemění |
 
-`/line/new` má `priority: 10` aby se nepřevrstvila s `/line/{slug}` (slug regex `[a-z0-9-]+` matchne i „new").
+`/lajna/pridat` má `priority: 10` aby se nepřevrstvila s `/lajna/{slug}` (slug regex `[a-z0-9-]+` matchne i „pridat").
 
 ## Form (`src/Form/LineForm.php`)
 
@@ -109,7 +109,7 @@ Každá `APPLIED` row v `line_edit` je trvalý záznam změny. Sjednoceno tak, a
 
 To dává uniform `findForLine(Line)` query která vrátí kompletní timeline změn bez ohledu na trasu jakou prošly.
 
-### History view (`/line/{slug}/history`)
+### History view (`/lajna/{slug}/historie`)
 
 Veřejný read-only audit log + admin stack-pop kurátoring.
 

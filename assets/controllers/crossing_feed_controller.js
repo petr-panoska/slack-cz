@@ -302,7 +302,7 @@ export default class extends Controller {
         li.className = 'crossing-feed-item';
 
         const userHref = `/denik/${item.userId}`;
-        const lineHref = `/line/${encodeURIComponent(item.lineSlug)}`;
+        const lineHref = `/lajna/${encodeURIComponent(item.lineSlug)}`;
         const dateStr = escapeHtml(formatDate(item.crossedAt));
         const styleHtml = item.styleLabel
             ? `<span class="crossing-feed-style">${escapeHtml(item.styleLabel)}</span>`

@@ -26,7 +26,7 @@ class LineForm extends AbstractType
         $nameAttrs = ['maxlength' => 150];
         if ($nameLocked) {
             $nameAttrs['title'] = sprintf(
-                'URL: /line/%s — název je pevný, aby existující odkazy nepřestaly fungovat.',
+                'URL: /lajna/%s — název je pevný, aby existující odkazy nepřestaly fungovat.',
                 $data->getSlug() ?? '',
             );
         } else {

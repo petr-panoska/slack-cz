@@ -13,7 +13,7 @@ Tři prostředí:
 | **Dev** | tvůj laptop, Docker Compose | Apache + PHP-FPM + Postgres 16 + MySQL legacy + Adminer + Mailpit. Bind-mount repa. | `docker compose` + `make dc*` targety, viz `dev.md` |
 | **CI** | GitHub Actions (`.github/workflows/deploy.yml`) | ephemeral Ubuntu runner. Triggered push do `main` + `workflow_dispatch`. Joby: `preflight` → `deploy`. | YAML inlinuje `ssh ... 'bash -s' < scripts/<X>.sh`, žádný copy-paste z `deploy.sh` |
 
-> Repo má **druhý** workflow `.github/workflows/symfony.yml` (původně skeletonový default „Symfony" — `composer install` + `vendor/bin/phpunit` na push/PR, **SQLite**, bez migrací). Teď v něm běží `tests/Controller/PublicPagesSmokeTest.php` — smoke testy DB-free veřejných rout (`/o-projektu`, `/login`, `/wiki`, `/wiki/{slug}`, `/docs`, `/docs/{slug}` → 200; `/profile` → redirect na login). `/wiki` + `/docs` čtou MD z lokálního checkoutu (`FilesystemFetcher`), takže žádná síť. DB-backed routy (`/`, `/mapa`) jsou schválně mimo, protože CI nemá DB schema. Rozšíření čeká na test DB se schématem + deprecation cleanup formulářů — viz `todo.md` a `roadmap.md`.
+> Repo má **druhý** workflow `.github/workflows/symfony.yml` (původně skeletonový default „Symfony" — `composer install` + `vendor/bin/phpunit` na push/PR, **SQLite**, bez migrací). Teď v něm běží `tests/Controller/PublicPagesSmokeTest.php` — smoke testy DB-free veřejných rout (`/o-projektu`, `/prihlaseni`, `/wiki`, `/wiki/{slug}`, `/docs`, `/docs/{slug}` → 200; `/profil` → redirect na login). `/wiki` + `/docs` čtou MD z lokálního checkoutu (`FilesystemFetcher`), takže žádná síť. DB-backed routy (`/`, `/mapa`) jsou schválně mimo, protože CI nemá DB schema. Rozšíření čeká na test DB se schématem + deprecation cleanup formulářů — viz `todo.md` a `roadmap.md`.
 | **Prod (beta.slack.cz)** | Hetzner CX22 (`178.105.81.158`), Ubuntu 24.04 | **Native** PHP 8.3 + Postgres 16 + Caddy + ufw + fail2ban. Žádný Docker. App v `/var/www/slack-cz` jako `deploy` user. | Skripty v `scripts/`, viz tabulka níž |
 
 Pět skriptů drží celou prod stranu. **Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč), updatuj patřičný skript ve stejném commitu jako kód — další deploy padne fail-fast, dokud server nedoinstaluješ.
@@ -294,11 +294,11 @@ sudo systemctl reload php8.3-fpm
 Rychlý sanity check po deployi (běží lokálně, target je beta):
 
 ```bash
-for path in / /mapa /login /register /reset-password /profile /o-projektu; do
+for path in / /mapa /prihlaseni /registrace /obnova-hesla /profil /o-projektu; do
   printf '%s  %s\n' "$(curl -s -o /dev/null -w '%{http_code}' https://beta.slack.cz$path)" "$path"
 done
 
-# /profile by mělo 302 (anon redirect na /login). Zbytek 200.
+# /profil by mělo 302 (anon redirect na /prihlaseni). Zbytek 200.
 
 # Ověř, že nový CSS hash je v HTML a obsahuje aktuální classes:
 CSS=$(curl -s https://beta.slack.cz/login | grep -oE 'assets/styles/app-[a-zA-Z0-9_-]+\.css' | head -1)

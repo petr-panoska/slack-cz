@@ -613,7 +613,7 @@ export default class extends Controller {
         const typeLabel = h.type === 'unsorted' ? '' : (TYPE_LABELS[h.type] ?? h.type);
         const place = [h.area, h.region].filter(Boolean).join(', ');
         const title = h.slug
-            ? `<a href="/line/${encodeURIComponent(h.slug)}">${escapeHtml(h.name)}</a>`
+            ? `<a href="/lajna/${encodeURIComponent(h.slug)}">${escapeHtml(h.name)}</a>`
             : `<strong>${escapeHtml(h.name)}</strong>`;
         return `
             <div class="line-popup">
@@ -698,7 +698,7 @@ export default class extends Controller {
             ? '★'.repeat(u.rating) + '☆'.repeat(5 - u.rating)
             : '';
         const lineLink = u.lineSlug
-            ? `<a href="/line/${encodeURIComponent(u.lineSlug)}">${escapeHtml(u.lineName)}</a>`
+            ? `<a href="/lajna/${encodeURIComponent(u.lineSlug)}">${escapeHtml(u.lineName)}</a>`
             : escapeHtml(u.lineName);
         const userLink = u.userId
             ? `<a href="/denik/${u.userId}">${escapeHtml(u.userDisplayName)}</a>`

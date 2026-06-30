@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class CrossingController extends AbstractController
 {
-    #[Route('/line/{slug}/crossing/new', name: 'app_crossing_new', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
+    #[Route('/lajna/{slug}/prechod/pridat', name: 'app_crossing_new', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function new(
         Request $request,
@@ -51,7 +51,7 @@ final class CrossingController extends AbstractController
         ]);
     }
 
-    #[Route('/crossing/{id}/edit', name: 'app_crossing_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[Route('/prechod/{id}/uprava', name: 'app_crossing_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function edit(
         Request $request,
@@ -78,7 +78,7 @@ final class CrossingController extends AbstractController
         ]);
     }
 
-    #[Route('/crossing/{id}/delete', name: 'app_crossing_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/prechod/{id}/smazat', name: 'app_crossing_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function delete(
         Request $request,

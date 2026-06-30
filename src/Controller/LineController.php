@@ -38,7 +38,7 @@ final class LineController extends AbstractController
         ]);
     }
 
-    #[Route('/line/{slug}', name: 'app_line_detail', requirements: ['slug' => '[a-z0-9-]+'])]
+    #[Route('/lajna/{slug}', name: 'app_line_detail', requirements: ['slug' => '[a-z0-9-]+'])]
     public function detail(
         #[MapEntity(mapping: ['slug' => 'slug'])]
         Line $line,

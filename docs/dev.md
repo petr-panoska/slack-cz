@@ -200,7 +200,7 @@ docker compose exec -T php sh -c '
 '
 ```
 
-> `phpunit.dist.xml` má `failOnDeprecation/Notice/Warning=true` → test, který spustí **přímou** (naši) deprecation, shodí build. Proto se do smoke testů zatím nedávají form-rendering routy (`/register` apod. — `RegistrationForm` má array-option constraints; viz `roadmap.md`). Vendor (indirect) deprecations se ignorují (`ignoreIndirectDeprecations="true"`).
+> `phpunit.dist.xml` má `failOnDeprecation/Notice/Warning=true` → test, který spustí **přímou** (naši) deprecation, shodí build. Proto se do smoke testů zatím nedávají form-rendering routy (`/registrace` apod. — `RegistrationForm` má array-option constraints; viz `roadmap.md`). Vendor (indirect) deprecations se ignorují (`ignoreIndirectDeprecations="true"`).
 
 ## Smoke testy v terminálu
 
@@ -256,7 +256,7 @@ Quota math: každá search query = 100 units / fetch. Default cache TTL = **2160
 |---|---|
 | App | <http://localhost:8000/> |
 | Mapa | <http://localhost:8000/mapa> |
-| Detail lajny | <http://localhost:8000/line/{slug}> (např. `cimburi-cimbuline`) |
+| Detail lajny | <http://localhost:8000/lajna/{slug}> (např. `cimburi-cimbuline`) |
 | Deník uživatele | <http://localhost:8000/denik/{id}> |
 | O projektu | <http://localhost:8000/o-projektu> |
 | Adminer (PG) | <http://localhost:8080/?pgsql=database&username=app&db=app> |

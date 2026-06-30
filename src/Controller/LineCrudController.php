@@ -49,7 +49,7 @@ final class LineCrudController extends AbstractController
         'firstAscentBy', 'firstAscentDate', 'nameHistory',
     ];
 
-    #[Route('/line/new', name: 'app_line_new', methods: ['GET', 'POST'], priority: 10)]
+    #[Route('/lajna/pridat', name: 'app_line_new', methods: ['GET', 'POST'], priority: 10)]
     #[IsGranted('ROLE_USER')]
     public function new(
         Request $request,
@@ -92,7 +92,7 @@ final class LineCrudController extends AbstractController
         ]);
     }
 
-    #[Route('/line/{slug}/edit', name: 'app_line_edit', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
+    #[Route('/lajna/{slug}/uprava', name: 'app_line_edit', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function edit(
         Request $request,
@@ -183,7 +183,7 @@ final class LineCrudController extends AbstractController
         ]);
     }
 
-    #[Route('/line/{slug}/delete', name: 'app_line_delete', requirements: ['slug' => '[a-z0-9-]+'], methods: ['POST'])]
+    #[Route('/lajna/{slug}/smazat', name: 'app_line_delete', requirements: ['slug' => '[a-z0-9-]+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function delete(
         Request $request,
@@ -216,7 +216,7 @@ final class LineCrudController extends AbstractController
         return $this->redirectToRoute('app_line_map');
     }
 
-    #[Route('/line/{slug}/verify', name: 'app_line_verify', requirements: ['slug' => '[a-z0-9-]+'], methods: ['POST'])]
+    #[Route('/lajna/{slug}/overeni', name: 'app_line_verify', requirements: ['slug' => '[a-z0-9-]+'], methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function verify(
         Request $request,
@@ -261,7 +261,7 @@ final class LineCrudController extends AbstractController
         return $this->redirectToRoute('app_line_detail', ['slug' => $line->getSlug()]);
     }
 
-    #[Route('/line/{slug}/history', name: 'app_line_history', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET'])]
+    #[Route('/lajna/{slug}/historie', name: 'app_line_history', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET'])]
     public function history(
         #[MapEntity(mapping: ['slug' => 'slug'])]
         Line $line,
@@ -289,7 +289,7 @@ final class LineCrudController extends AbstractController
         ]);
     }
 
-    #[Route('/line/{slug}/history/{editId}/delete', name: 'app_line_history_delete', requirements: ['slug' => '[a-z0-9-]+', 'editId' => '\d+'], methods: ['POST'])]
+    #[Route('/lajna/{slug}/historie/{editId}/smazat', name: 'app_line_history_delete', requirements: ['slug' => '[a-z0-9-]+', 'editId' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function historyDelete(
         Request $request,
@@ -340,7 +340,7 @@ final class LineCrudController extends AbstractController
         return $this->redirectToRoute('app_line_history', ['slug' => $line->getSlug()]);
     }
 
-    #[Route('/admin/proposals', name: 'app_admin_proposals', methods: ['GET'])]
+    #[Route('/admin/navrhy', name: 'app_admin_proposals', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function proposalIndex(LineEditRepository $edits): Response
     {
@@ -357,7 +357,7 @@ final class LineCrudController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/proposals/{id}/approve', name: 'app_admin_proposal_approve', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/admin/navrhy/{id}/schvalit', name: 'app_admin_proposal_approve', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function proposalApprove(
         Request $request,
@@ -380,7 +380,7 @@ final class LineCrudController extends AbstractController
         return $this->redirectToRoute('app_admin_proposals');
     }
 
-    #[Route('/admin/proposals/{id}/reject', name: 'app_admin_proposal_reject', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/admin/navrhy/{id}/zamitnout', name: 'app_admin_proposal_reject', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function proposalReject(
         Request $request,

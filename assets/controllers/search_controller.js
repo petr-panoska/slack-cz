@@ -116,7 +116,7 @@ export default class extends Controller {
                 const meta = [h.area, h.region].filter(Boolean).join(' · ');
                 return `
                     <li>
-                        <a href="/line/${encodeURIComponent(h.slug)}" data-action="click->search#close">
+                        <a href="/lajna/${encodeURIComponent(h.slug)}" data-action="click->search#close">
                             <span class="site-search-name">${escapeHtml(h.name)}</span>
                             ${meta ? `<span class="site-search-meta">${escapeHtml(meta)}</span>` : ''}
                         </a>

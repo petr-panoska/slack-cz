@@ -26,7 +26,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class LinePhotoController extends AbstractController
 {
-    #[Route('/line/{slug}/photos/new', name: 'app_line_photo_new', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
+    #[Route('/lajna/{slug}/fotky/pridat', name: 'app_line_photo_new', requirements: ['slug' => '[a-z0-9-]+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function new(
         Request $request,
@@ -79,7 +79,7 @@ final class LinePhotoController extends AbstractController
         ]);
     }
 
-    #[Route('/line/{slug}/photos/{id}', name: 'app_line_photo_detail', requirements: ['slug' => '[a-z0-9-]+', 'id' => '\d+'], methods: ['GET', 'POST'])]
+    #[Route('/lajna/{slug}/fotky/{id}', name: 'app_line_photo_detail', requirements: ['slug' => '[a-z0-9-]+', 'id' => '\d+'], methods: ['GET', 'POST'])]
     public function detail(
         Request $request,
         #[MapEntity(mapping: ['slug' => 'slug'])]
@@ -144,7 +144,7 @@ final class LinePhotoController extends AbstractController
         ]);
     }
 
-    #[Route('/line/photo/{id}/like', name: 'app_line_photo_like', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/lajna/foto/{id}/libi', name: 'app_line_photo_like', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function toggleLike(
         Request $request,
@@ -193,7 +193,7 @@ final class LinePhotoController extends AbstractController
         return str_contains($accept, 'application/json') || $request->isXmlHttpRequest();
     }
 
-    #[Route('/line/comment/{id}/delete', name: 'app_line_photo_comment_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/lajna/komentar/{id}/smazat', name: 'app_line_photo_comment_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function deleteComment(
         Request $request,
@@ -222,7 +222,7 @@ final class LinePhotoController extends AbstractController
         ]);
     }
 
-    #[Route('/line/photo/{id}/delete', name: 'app_line_photo_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/lajna/foto/{id}/smazat', name: 'app_line_photo_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function delete(
         Request $request,

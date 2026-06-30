@@ -30,7 +30,7 @@
                     data-live-slug-name-input-value="{{ form.name.vars.id }}"
                 >
                     <span class="hl-form-url-label">URL lajny</span>
-                    <code class="hl-form-url" data-live-slug-target="urlPath">/line/{{ line.slug }}</code>
+                    <code class="hl-form-url" data-live-slug-target="urlPath">/lajna/{{ line.slug }}</code>
                     <span class="hl-form-url-hint">Lajna ještě není verifikovaná — při změně názvu se aktualizuje i URL.</span>
                 </div>
             {% endif %}
@@ -38,7 +38,7 @@
                 <h2>Základní info</h2>
                 <div class="form-group">
                     <label for="{{ form.name.vars.id }}">
-                        Název{% if line.isVerified %} <span class="hl-form-lock" tabindex="0" aria-label="Název je pevný" title="URL: /line/{{ line.slug }}&#10;Název je pevný, aby existující odkazy nepřestaly fungovat.">🔒</span>{% endif %}
+                        Název{% if line.isVerified %} <span class="hl-form-lock" tabindex="0" aria-label="Název je pevný" title="URL: /lajna/{{ line.slug }}&#10;Název je pevný, aby existující odkazy nepřestaly fungovat.">🔒</span>{% endif %}
                     </label>
                     {{ form_widget(form.name) }}
                     {{ form_errors(form.name) }}

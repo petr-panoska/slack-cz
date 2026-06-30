@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * (`FilesystemFetcher`), takže žádná síť ani DB. Slouží i jako regrese na
  * markdown sekce.
  *
- * DB-backed stránky (`/`, `/mapa`, `/denik/{id}`, `/line/*`) ani zbylé
+ * DB-backed stránky (`/`, `/mapa`, `/denik/{id}`, `/lajna/*`) ani zbylé
  * síťové (slackTV) tu schválně nejsou — CI běží na prázdné SQLite bez schématu,
  * viz `.github/workflows/symfony.yml`. Až bude test DB se schématem (např.
  * `doctrine:schema:create` v test env), můžou přibýt.
@@ -27,12 +27,12 @@ final class PublicPagesSmokeTest extends WebTestCase
     public static function publicSuccessRoutes(): iterable
     {
         yield 'about' => ['/o-projektu'];
-        yield 'login' => ['/login'];
+        yield 'login' => ['/prihlaseni'];
         yield 'wiki index' => ['/wiki'];
         yield 'wiki page' => ['/wiki/bezpecnost'];
         yield 'docs index' => ['/docs'];
         yield 'docs page' => ['/docs/architecture'];
-        // POZN: `/register` sem zatím nedávat — render `RegistrationForm` spouští
+        // POZN: `/registrace` sem zatím nedávat — render `RegistrationForm` spouští
         // přímé deprecations (array-option validator constraints, viz roadmap.md
         // deprecation checklist). S `failOnDeprecation=true` by shodil CI. Přidat
         // až po cleanupu formulářů na named-args constraints.
@@ -50,11 +50,11 @@ final class PublicPagesSmokeTest extends WebTestCase
     public function testProfileRedirectsAnonymousUserToLogin(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/profile');
+        $client->request('GET', '/profil');
 
         self::assertResponseRedirects();
         self::assertStringContainsString(
-            '/login',
+            '/prihlaseni',
             (string) $client->getResponse()->headers->get('Location'),
         );
     }

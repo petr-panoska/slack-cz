@@ -16,7 +16,7 @@ Otevřené úkoly napříč projektem. **Seřazeno podle priority** (revize 2026
   - Stimulus: `user_denik_map_controller.js` → `user_diary_map_controller.js` (+ `data-controller`/`data-*` v šabloně).
   - PHP: `UserController::denik()` a podobné CS metody/proměnné; route names `app_user_denik`, `app_user_directory` (+ `app_line_map*` jsou už EN) → EN, a přepsat všechny `path('app_user_denik')`/`{{ path(...) }}`.
   - Sken: `grep -rniE 'denik|denicky|mapa|prechod|navrh|lajn|fotk|vyska|delka|oblast|misto' src/ assets/ templates/` → odfiltrovat UI texty + legacy SQL.
-- [ ] **Zvážit revert anglických URL zpět do CS.** Rename anglicizoval veřejné cesty: `/line/{slug}/edit|delete|history`, `/line/{slug}/crossing/new`, `/line/{slug}/photos/*`, `/admin/proposals/*`, longline verby. Pro CZ appku zvážit `/line/`→`/lajna/` a verby zpět česky (`/upravit`, `/smazat`, `/historie`, …). **Pozn.:** každá změna URL = další break bez redirectů (staré linky 404) → rozhodnout společně s cutoverem legacy `slack.cz`.
+- [x] **Veřejné URL zpět do CS** (2026-06-30) — `/line/`→`/lajna/`, `/crossing/`→`/prechod/`, verby česky (`/uprava`, `/smazat`, `/historie`, `/pridat`, `/fotky`, `/libi`), `/admin/proposals/*`→`/admin/navrhy/*`, auth (`/login`→`/prihlaseni`, `/register`→`/registrace`, `/logout`→`/odhlaseni`, `/reset-password`→`/obnova-hesla`, `/verify/email`→`/overeni-emailu`, `/profile`→`/profil`). Jména rout zůstala EN (`app_*`), takže `path()` v Twigu se nedotklo; ručně jen hardcoded `/line/` v 5 JS controllerech + smoke test. Mezinárodní/odborné termíny (`/longline`, `/docs`, `/wiki`, `/tv`, `/intro`, `/data-report`) ponechány EN. Ověřeno `lint:twig`+`lint:container`+`debug:router`+smoke test 7/7. **Pozn.:** žádné redirecty ze starých EN cest — ale ty byly živé jen krátce (od 2026-06-21 renamu), bez SEO. Legacy `slack.cz` cutover je samostatná věc.
 
 ### 🔥 Teď
 
@@ -96,7 +96,7 @@ Detailně v `deploy.md`. Launch-blockery.
 
 ## Údržba / drobnosti
 - [ ] Rozšířit smoke testy o DB-backed routy (`/`, `/mapa`, `/denik/{id}`, …) — vyžaduje test DB se schématem (přidat `doctrine:schema:create --env=test` step do `symfony.yml`; migrace jsou Postgres-specific, na SQLite je nepustíš).
-- [ ] Přidat `/register` (a další form-rendering routy) do smoke testů až po deprecation cleanupu — render `RegistrationForm` teď spouští **přímé** array-option constraint deprecations, takže s `failOnDeprecation=true` by shodil CI. Viz `roadmap.md` deprecation checklist.
+- [ ] Přidat `/registrace` (a další form-rendering routy) do smoke testů až po deprecation cleanupu — render `RegistrationForm` teď spouští **přímé** array-option constraint deprecations, takže s `failOnDeprecation=true` by shodil CI. Viz `roadmap.md` deprecation checklist.
 - [ ] Default Symfony `hello_controller.js` v `assets/controllers/` smazat až bude místo něj něco užitečného.
 - [ ] Restrikce `YOUTUBE_API_KEY` v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — teď bez restrikce. (nízká, nic na tom nestojí)
 - [ ] Po nasazení produkce rotovat `YOUTUBE_API_KEY`. (nízká)
@@ -144,7 +144,7 @@ Detailně v `deploy.md`. Launch-blockery.
 #### OTEVŘENÉ ROZHODOVACÍ BODY (k doptání)
 1. **Styl podkladu / vrstevnice.** `protomaps-leaflet` basemap je „city" styl **bez vrstevnic / hillshade / terénu** — pro highliny v horách možná chceme topo. Varianty: (a) smířit se s plochým podkladem, (b) přidat druhou pmtiles vrstvu s vrstevnicemi/hillshade (víc dat + práce), (c) jiný zdroj tilesetu. **Tohle je největší otevřená otázka.**
 2. **maxzoom** — z13 (lehčí) vs z14 (detailnější). Ovlivní velikost stažení i ostrost u skal.
-3. **Co všechno je offline.** Jen `/mapa`, nebo i detail stránky `/line/{slug}` (server-rendered Twig, 254 stránek)? Buď runtime-cache jen navštívené, nebo přestavět detail na data-driven z cachovaného JSON. Fotky/audio offline spíš ne (velikost).
+3. **Co všechno je offline.** Jen `/mapa`, nebo i detail stránky `/lajna/{slug}` (server-rendered Twig, 254 stránek)? Buď runtime-cache jen navštívené, nebo přestavět detail na data-driven z cachovaného JSON. Fotky/audio offline spíš ne (velikost).
 4. **iOS UX** — když nejde chytit install event, kdy přesně spustit download (hned při prvním standalone startu? za potvrzením kvůli mobilním datům?).
 5. **Aktualizace pmtiles** — jak často přegenerovat CZ extract a jak řešit cache-busting / verzování souboru.
 6. **Stažení jen na wifi?** Desítky MB — nabídnout potvrzení / detekci typu připojení před stažením?

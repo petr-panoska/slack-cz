@@ -83,7 +83,7 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
   - `search_controller.js` — globální vyhledávání lajn v hlavičce
   - `intro_controller.js` — slackvibes 📻 audio player; persistent přes Turbo přes `data-turbo-permanent`. Detaily v `docs/audio-player.md`.
   - `live_slug_controller.js` — live URL preview pro unverified line edit form: slugify-uje typed name a updatuje `<code>` preview. Server na save přegeneruje slug přes `makeUniqueSlug`.
-  - `photo_like_controller.js` — like button na `/line/{slug}/photos/{id}`; intercept-uje form submit, POST přes fetch s `Accept: application/json`, endpoint vrátí `{liked, count}` JSON, controller updatuje classy + `aria-pressed` + icon + count. Při fetch failu padá zpět na nativní form submit (graceful degradation).
+  - `photo_like_controller.js` — like button na `/lajna/{slug}/fotky/{id}`; intercept-uje form submit, POST přes fetch s `Accept: application/json`, endpoint vrátí `{liked, count}` JSON, controller updatuje classy + `aria-pressed` + icon + count. Při fetch failu padá zpět na nativní form submit (graceful degradation).
   - `tv_controller.js` — click-to-play facade na `/tv`: náhled karty nahradí `youtube-nocookie` embedem až po kliknutí (neload 24 iframů + privacy). Viz § *Feed (slackTV)*.
   - `tabs_controller.js` — **obecná** tab komponenta: přepíná `aria-selected` + `hidden` panel podle indexu, volitelný deep-link přes URL hash (`data-tabs-hash-param`). Vzhled čistě v CSS (`.tabs` underline / `.tabs-pills` chip varianta). Použito na `/tv` (hashtag taby) a `/denik/{id}` (Highline/Longline).
 
@@ -224,36 +224,36 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/mapa/data` | `app_line_map_data` | ✓ JSON — všechny lajny (markery na mapě) |
 | `/mapa/feed` | `app_line_map_feed` | ✓ JSON — N posledních přechodů (default `RECENT_LIMIT`); s `?date=YYYY-MM-DD&days=7` vrací time-travel okno |
 | `/mapa/timeline-data` | `app_line_map_timeline` | ✓ JSON — vše pro time-travel playback (lajny + crossings chronologicky) |
-| `/line/{slug}` | `app_line_detail` | ✓ |
-| `/line/new` | `app_line_new` | `ROLE_USER` — formulář nové lajny (priority 10 kvůli kolizi s `/line/{slug}`) |
-| `/line/{slug}/edit` | `app_line_edit` | `ROLE_USER` — direct edit (owner of unverified / admin) nebo proposal (verified + non-admin); detail v `docs/line-edits.md` |
-| `/line/{slug}/delete` | `app_line_delete` | `ROLE_USER` — owner-of-unverified nebo admin |
-| `/line/{slug}/verify` | `app_line_verify` | `ROLE_ADMIN` — flag isVerified=true |
-| `/line/{slug}/history` | `app_line_history` | ✓ — veřejný audit log editů (APPLIED + REJECTED) |
-| `/line/{slug}/history/{editId}/delete` | `app_line_history_delete` | `ROLE_ADMIN` POST — stack-pop poslední revize |
-| `/line/{slug}/photos/new` | `app_line_photo_new` | `ROLE_USER` — upload fotky |
-| `/line/{slug}/photos/{id}` | `app_line_photo_detail` | ✓ — photo detail (like, komentáře, prev/next) |
-| `/line/photo/{id}/like` | `app_line_photo_like` | `ROLE_USER` POST — toggle like |
-| `/line/photo/{id}/delete` | `app_line_photo_delete` | `ROLE_USER` POST — owner uploadu / admin |
-| `/line/comment/{id}/delete` | `app_line_photo_comment_delete` | `ROLE_USER` POST — owner komentu / admin |
-| `/line/{slug}/crossing/new` | `app_crossing_new` | `ROLE_USER` — přidat přechod |
-| `/crossing/{id}/edit` | `app_crossing_edit` | `ROLE_USER` — vlastní přechody |
-| `/crossing/{id}/delete` | `app_crossing_delete` | `ROLE_USER` — vlastní přechody, CSRF |
-| `/longline/new` | `app_longline_new` | `ROLE_USER` — přidat longline přechod |
+| `/lajna/{slug}` | `app_line_detail` | ✓ |
+| `/lajna/pridat` | `app_line_new` | `ROLE_USER` — formulář nové lajny (priority 10 kvůli kolizi s `/lajna/{slug}`) |
+| `/lajna/{slug}/uprava` | `app_line_edit` | `ROLE_USER` — direct edit (owner of unverified / admin) nebo proposal (verified + non-admin); detail v `docs/line-edits.md` |
+| `/lajna/{slug}/smazat` | `app_line_delete` | `ROLE_USER` — owner-of-unverified nebo admin |
+| `/lajna/{slug}/overeni` | `app_line_verify` | `ROLE_ADMIN` — flag isVerified=true |
+| `/lajna/{slug}/historie` | `app_line_history` | ✓ — veřejný audit log editů (APPLIED + REJECTED) |
+| `/lajna/{slug}/historie/{editId}/smazat` | `app_line_history_delete` | `ROLE_ADMIN` POST — stack-pop poslední revize |
+| `/lajna/{slug}/fotky/pridat` | `app_line_photo_new` | `ROLE_USER` — upload fotky |
+| `/lajna/{slug}/fotky/{id}` | `app_line_photo_detail` | ✓ — photo detail (like, komentáře, prev/next) |
+| `/lajna/foto/{id}/libi` | `app_line_photo_like` | `ROLE_USER` POST — toggle like |
+| `/lajna/foto/{id}/smazat` | `app_line_photo_delete` | `ROLE_USER` POST — owner uploadu / admin |
+| `/lajna/komentar/{id}/smazat` | `app_line_photo_comment_delete` | `ROLE_USER` POST — owner komentu / admin |
+| `/lajna/{slug}/prechod/pridat` | `app_crossing_new` | `ROLE_USER` — přidat přechod |
+| `/prechod/{id}/uprava` | `app_crossing_edit` | `ROLE_USER` — vlastní přechody |
+| `/prechod/{id}/smazat` | `app_crossing_delete` | `ROLE_USER` — vlastní přechody, CSRF |
+| `/longline/new` | `app_longline_new` | `ROLE_USER` — přidat longline přechod (disciplína = EN) |
 | `/longline/{id}/edit` | `app_longline_edit` | `ROLE_USER` — vlastní longline přechody |
 | `/longline/{id}/delete` | `app_longline_delete` | `ROLE_USER` — vlastní, CSRF |
-| `/admin/proposals` | `app_admin_proposals` | `ROLE_ADMIN` — fronta pending proposals + diff tabulky |
-| `/admin/proposals/{id}/approve` | `app_admin_proposal_approve` | `ROLE_ADMIN` |
-| `/admin/proposals/{id}/reject` | `app_admin_proposal_reject` | `ROLE_ADMIN` |
+| `/admin/navrhy` | `app_admin_proposals` | `ROLE_ADMIN` — fronta pending proposals + diff tabulky |
+| `/admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` |
+| `/admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` |
 | `/data-report` | `app_data_report` | ✓ veřejná, ale odkaz v menu jen adminovi — proklik na legacy detail (`LineController::PRODUCTION_URL`) |
 | `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele (taby Highline / Longline, deep-link `#highline`/`#longline`) |
 | `/denicky` | `app_user_directory` | ✓ adresář deníčků (žebříček počtu přechodů) |
 | `/o-projektu` | `app_about` | ✓ |
 | `/intro` | `app_intro` | ✓ splash overlay (zatím nelinkováno z nav) |
-| `/profile` | `app_profile` | login required |
-| `/login`, `/register`, `/logout` | auth | ✓ |
-| `/reset-password`, `/reset-password/reset/{token}` | reset | ✓ |
-| `/verify/email` | email verify | login required |
+| `/profil` | `app_profile` | login required |
+| `/prihlaseni`, `/registrace`, `/odhlaseni` | auth | ✓ |
+| `/obnova-hesla`, `/obnova-hesla/zmena/{token}` | reset | ✓ |
+| `/overeni-emailu` | email verify | login required |
 | `/wiki`, `/wiki/{slug}` | `app_wiki_*` | ✓ highline guidebook (17 kapitol z `wiki/`, čte se z lokálního checkoutu, `NN-slug.md` konvence, žádný frontmatter) |
 | `/docs`, `/docs/{slug}` | `app_docs_*` | ✓ technická dokumentace (interní), čte se z `docs/*.md` v repu |
 
@@ -266,7 +266,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossings import** — 993 / 995 přechodů (2 skipy kvůli `0000-00-00` datu). Style enum (`App\Enum\CrossingStyle`, 9 hodnot, viz `docs/crossing-styles.md`), neznámé legacy hodnoty se reportují jako warning.
 - ✅ **Longline deník** (session 2026-06-13) — druhý tab na `/denik/{id}` vedle highline obsahu. `LonglineCrossing` entita (bez lajny/GPS — longline se nezapisuje k highline, `place` je volný text), `LonglineCrossingController` (plný CRUD, owner-gated + CSRF, vzor `CrossingController`). Import `app:import:longline-crossings` z legacy `longline` (414 / 435, 21 skipů kvůli `0000-00-00`), idempotentní přes `legacyId`. **Styl** sdílí stejný enum jako highline — proto `HighlineCrossingStyle` přejmenován na `App\Enum\CrossingStyle`; longline picker filtruje leash-only styly (`swami`/`solo`/`kotník`) přes `CrossingStyle::appliesToLongline()`. Vznikly u toho dvě **obecné UI komponenty**: Stimulus `tabs` controller + page-agnostic CSS (`.tabs`/`.tab`/`.tab-panel`, `.tabs-pills` varianta, deep-link přes URL hash; `/tv` na ni převedeno, `tv-tabs` smazán) a generická **`.table`** (+ `.table-wrap`/`.table-num`/`.table-actions`/`.table-subtext`), kterou používá longline tabulka.
 - ✅ **Line mapa** s 254 lajnami (Leaflet, OSM + Esri ortofoto přepínač, fullscreen, linka mezi body od zoom ≥ 14, popup linkuje na detail)
-- ✅ **Line detail** `/line/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
+- ✅ **Line detail** `/lajna/{slug}` — slug unikátně v DB (gen. přes `AsciiSlugger`), info tabulka, mini-mapa s polyline mezi kotvícími body, list všech přechodů
 - ✅ **Index page** (single-column rework): sloučený panel **Mapa** (`hp_map_controller.js`, identifier `hp-map`) = levý scrollovatelný sidebar posledních 10 přechodů + mapa, která ukazuje **jen aktivní přechod** (na load první). Aktivní přechod vykreslí reálnou linku (polyline point1↔point2), zazoomuje na ni a animuje ikonku (emoji walker) po posledním úseku lajny (`WALK_FRACTION`/`WALK_DURATION`, do budoucna chování dle typu přechodu). Po dojití se na ikonce spustí náhodná oslavná animace (`CELEBRATIONS` → CSS `hp-cel-*`: bounce/flip/spin/pop/wobble, respektuje `prefers-reduced-motion`). Má-li přechod komentář (`data-comment`), po dokončení chůze se nad ikonou objeví decentní „thought" bublina (`showThought()` injektuje `.hp-thought` do DOM markeru až na konci, ne během walku; clamp 3 řádky, fade-in, `textContent` = auto-escape). Stejná geometrie po sobě (víc přechodů na téže lajně) let přeskočí (`lastGeoKey`), aby mapa necukala; jiná lajna `flyToBounds` glide. Úvodní zobrazení po načtení je **instantní** (`activate(0, {animate:false})` + mapa se rovnou seedne u prvního přechodu) — jinak by velký z7→z17 fly-through nafoukl vrstvy a rozmazal tiles. Homepage běží jako **auto-showcase**: po dokončení přechodu se počká `DWELL` (7 s) a `scheduleAdvance()` přepne na další přechod dokola (cyklus ≈ fly 1,6 s + walk 5 s + dwell 7 s ≈ 14 s). Timer je vázaný na generaci (`gen`) a maže se v `activate`, takže manuální klik cyklus jen převezme z nového místa. Geometrie se čte ze `data-*` na `<li>` (server-render, žádný extra endpoint). Pod tím panel „Z galerie" a na konci horizontální slackTV strip.
 - ✅ **slackTV** — YouTube feed, hashtag/search/channel zdroje, in-memory cache, dedikovaná stránka `/tv` s inline přehráváním
 - ✅ **slackTV redesign na sekce** (session 2026-06-11) — `/tv` rozdělena na Kanály / Playlisty / Hashtagy, horizontální slidery, AJAX „load more" se stránkováním (`/tv/more`), hashtag taby. Druhá feed vrstva `App\Feed\Tv\*` (`TvFeedInterface`, `YoutubeClient` s `forHandle` + `pageToken`, `CachedTvFeed`). Viz § *Feed (slackTV)*.
@@ -280,7 +280,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými lajnami, list všech přechodů
 - ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro MD obsah z repa (čte se z disku). Detail níže.
-- ✅ **Line foto galerie + sociální vrstva** — `LinePhoto` (line FK, uploadedBy FK SET NULL, filename, caption, createdAt) + `LinePhotoLike` (UNIQUE photo+user) + `LinePhotoComment` (photo FK CASCADE, author FK SET NULL, text, createdAt). Upload přes `vich/uploader-bundle` (mapping `line_photo` → `public/uploads/line/{id}/<uniqid>.ext`, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `line_thumb` 320×240 outbound, `line_medium` 800×600 inset, `line_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace + WebP master řeší `App\Service\PhotoNormalizer` (post-upload, `magick` + `exiftool`), takže ani originál v `/uploads/` neuniká GPS. Per-photo detail `/line/{slug}/photos/{id}` s AJAX like-toggle (Stimulus `photo_like_controller`, fetch s `Accept: application/json`, endpoint vrací `{liked, count}`), plain-text flat komentáři (owner/admin delete), prev/next navigací. Grid v `_line_gallery.html.twig` zobrazuje overlay badges (likes ❤, komenty 💬). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked. Cover header lajny v `line_detail.html.twig` je zatím čistě `Line::getLegacyCoverUrl()` (legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`) — fotky z galerie do coveru zatím nemícháme. Legacy import `highline_foto` + `highline_media` deferred (vyžaduje SSH).
+- ✅ **Line foto galerie + sociální vrstva** — `LinePhoto` (line FK, uploadedBy FK SET NULL, filename, caption, createdAt) + `LinePhotoLike` (UNIQUE photo+user) + `LinePhotoComment` (photo FK CASCADE, author FK SET NULL, text, createdAt). Upload přes `vich/uploader-bundle` (mapping `line_photo` → `public/uploads/line/{id}/<uniqid>.ext`, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `line_thumb` 320×240 outbound, `line_medium` 800×600 inset, `line_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace + WebP master řeší `App\Service\PhotoNormalizer` (post-upload, `magick` + `exiftool`), takže ani originál v `/uploads/` neuniká GPS. Per-photo detail `/lajna/{slug}/fotky/{id}` s AJAX like-toggle (Stimulus `photo_like_controller`, fetch s `Accept: application/json`, endpoint vrací `{liked, count}`), plain-text flat komentáři (owner/admin delete), prev/next navigací. Grid v `_line_gallery.html.twig` zobrazuje overlay badges (likes ❤, komenty 💬). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked. Cover header lajny v `line_detail.html.twig` je zatím čistě `Line::getLegacyCoverUrl()` (legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`) — fotky z galerie do coveru zatím nemícháme. Legacy import `highline_foto` + `highline_media` deferred (vyžaduje SSH).
 
 ## Markdown sections (`/docs`, `/wiki`)
 

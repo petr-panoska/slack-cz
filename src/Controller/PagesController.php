@@ -28,7 +28,7 @@ final class PagesController extends AbstractController
         ]);
     }
 
-    #[Route('/profile', name: 'app_profile')]
+    #[Route('/profil', name: 'app_profile')]
     public function profile(LineCrossingRepository $crossings): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
@@ -38,7 +38,7 @@ final class PagesController extends AbstractController
         ]);
     }
 
-    #[Route('/profile/edit', name: 'app_profile_edit')]
+    #[Route('/profil/uprava', name: 'app_profile_edit')]
     public function editProfile(Request $request, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
