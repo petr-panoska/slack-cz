@@ -96,7 +96,7 @@ Mapový sidebar a mapa potřebují komunikovat napříč nezávislými Stimulus 
 | `slack:map-mode` | `map` | `crossing-feed` | `{ mode: 'recent' \| 'time-travel', date?, days? }` — feed podle toho přefetchuje data (sloty se debouncují 200 ms + AbortController) |
 | `slack:users-visibility` | `crossing-feed` (eye button) | `map` | `{ visible: bool }` — mapa přidá/odebere `usersLayer` |
 
-Stav přežívá Turbo navigaci přes `sessionStorage` (`slack.cz:mapa:feed-collapsed`, `slack.cz:mapa:users-hidden`, `slack.cz:mapa:view`). Map controller čte `users-hidden` přímo na bootu (ne přes event), aby nedocházelo k race condition s pořadím Stimulus connectů.
+Stav přežívá Turbo navigaci přes `sessionStorage` (`slack.cz:map:feed-collapsed`, `slack.cz:map:users-hidden`, `slack.cz:map:view`). Map controller čte `users-hidden` přímo na bootu (ne přes event), aby nedocházelo k race condition s pořadím Stimulus connectů.
 - **CSS v `assets/styles/`** — `app.css` byl monolit (~5000 řádků); rozdělený na **30 komponentních partialů** (`_tokens.css`, `_nav.css`, `_map.css`, `_line.css`, `_photo.css`, `_music.css`, …). `app.css` je teď jen **`@import` manifest** (pořadí = kaskáda; tokens první, komponenty pak). AssetMapper servíruje partialy jako samostatné soubory (CSS `@import`, žádný build step / bundling), takže žádný preprocessor — jen plain CSS rozkrájené podle komponent. `_tokens.css` drží design tokeny (CSS custom properties) + `data-theme` varianty. Nový komponentní blok = nový `_*.css` + řádek v `app.css`.
 - Obrázky v `assets/images/` (logo, leaflet ikony, archivní artefakty)
 - Audio v `public/audio/` (12 stop, 128 kbps stereo). Originály v `var/audio-original/` (gitignored).
@@ -246,7 +246,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/admin/navrhy/{id}/schvalit` | `app_admin_proposal_approve` | `ROLE_ADMIN` |
 | `/admin/navrhy/{id}/zamitnout` | `app_admin_proposal_reject` | `ROLE_ADMIN` |
 | `/data-report` | `app_data_report` | ✓ veřejná, ale odkaz v menu jen adminovi — proklik na legacy detail (`LineController::PRODUCTION_URL`) |
-| `/denik/{id}` | `app_user_denik` | ✓ deník konkrétního uživatele (taby Highline / Longline, deep-link `#highline`/`#longline`) |
+| `/denik/{id}` | `app_user_diary` | ✓ deník konkrétního uživatele (taby Highline / Longline, deep-link `#highline`/`#longline`) |
 | `/denicky` | `app_user_directory` | ✓ adresář deníčků (žebříček počtu přechodů) |
 | `/o-projektu` | `app_about` | ✓ |
 | `/intro` | `app_intro` | ✓ splash overlay (zatím nelinkováno z nav) |

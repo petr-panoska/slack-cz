@@ -301,7 +301,7 @@ done
 # /profil by mělo 302 (anon redirect na /prihlaseni). Zbytek 200.
 
 # Ověř, že nový CSS hash je v HTML a obsahuje aktuální classes:
-CSS=$(curl -s https://beta.slack.cz/login | grep -oE 'assets/styles/app-[a-zA-Z0-9_-]+\.css' | head -1)
+CSS=$(curl -s https://beta.slack.cz/prihlaseni | grep -oE 'assets/styles/app-[a-zA-Z0-9_-]+\.css' | head -1)
 echo "CSS asset: $CSS"
 curl -s "https://beta.slack.cz/$CSS" | grep -cE 'auth-page|panel'   # nenulové = nové styly živé
 ```
