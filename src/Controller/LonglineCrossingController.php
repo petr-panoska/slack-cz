@@ -33,7 +33,7 @@ final class LonglineCrossingController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Longline přechod přidán.');
 
-            return $this->redirectToDenik($user->getId());
+            return $this->redirectToDiary($user->getId());
         }
 
         return $this->render('longline/form.html.twig', [
@@ -56,7 +56,7 @@ final class LonglineCrossingController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Longline přechod upraven.');
 
-            return $this->redirectToDenik($longline->getUser()->getId());
+            return $this->redirectToDiary($longline->getUser()->getId());
         }
 
         return $this->render('longline/form.html.twig', [
@@ -82,10 +82,10 @@ final class LonglineCrossingController extends AbstractController
         $em->flush();
         $this->addFlash('success', 'Longline přechod smazán.');
 
-        return $this->redirectToDenik($userId);
+        return $this->redirectToDiary($userId);
     }
 
-    private function redirectToDenik(?int $userId): Response
+    private function redirectToDiary(?int $userId): Response
     {
         // Land back on the Longline tab via its deep-link hash.
         return $this->redirect($this->generateUrl('app_user_diary', ['id' => $userId]) . '#longline');
