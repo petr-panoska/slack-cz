@@ -42,6 +42,13 @@ jobs:
       # (gitignored) by chyběl a render `importmap('app')` v base.html.twig by hodil 500.
       # Smoke testy renderují reálné stránky, tohle je proto nutné.
       run: php bin/console importmap:install
+    - name: Build Sass
+      # brand.scss se servíruje z var/sass/*.output.css (gitignored) — při renderu
+      # importmapy sass-bundle NEbuildí automaticky (SassCssCompiler jen čte hotový
+      # output), takže bez sass:build smoke testy padají na 500. Deploy tenhle krok
+      # nepotřebuje: asset-map:compile má PreAssetsCompileEventListener, který si
+      # sass build spustí sám; testy ale kompilaci assetů nepouští.
+      run: php bin/console sass:build
     - name: Create Database
       run: |
         mkdir -p data
