@@ -131,9 +131,3 @@
     text-align: center;
 }
 
-@media (max-width: 640px) {
-    .site-search-panel {
-        width: calc(100vw - 32px);
-        right: -16px;
-    }
-}

@@ -5,8 +5,8 @@
                     user (default false). Set true on the user's own deník. #}
 {% set show_actions = show_actions ?? false %}
 {% if crossings|length > 0 %}
-<div class="table-wrap">
-    <table class="table">
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
         <thead>
             <tr>
                 <th scope="col">Datum</th>
@@ -19,20 +19,20 @@
         <tbody>
             {% for c in crossings %}
                 <tr>
-                    <td class="table-num">
+                    <td class="cell-num">
                         <time datetime="{{ c.crossedAt|date('Y-m-d') }}">{{ c.crossedAt|date('j. n. Y') }}</time>
                     </td>
-                    <td class="table-num">{{ c.length }} m</td>
+                    <td class="cell-num">{{ c.length }} m</td>
                     <td>
                         {{ c.place }}
-                        {% if c.comment %}<span class="table-subtext">{{ c.comment }}</span>{% endif %}
+                        {% if c.comment %}<span class="d-block small text-body-secondary">{{ c.comment }}</span>{% endif %}
                     </td>
-                    <td class="table-muted">{{ c.style ? c.style.label : '–' }}</td>
+                    <td class="text-body-secondary">{{ c.style ? c.style.label : '–' }}</td>
                     {% if show_actions %}
-                        <td class="table-actions">
+                        <td class="text-end text-nowrap">
                             {% if app.user and c.user.id == app.user.id %}
                                 <a class="btn btn-secondary btn-sm" href="{{ path('app_longline_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
-                                <form method="post" action="{{ path('app_longline_delete', { id: c.id }) }}" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false">
+                                <form method="post" action="{{ path('app_longline_delete', { id: c.id }) }}" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete-longline-' ~ c.id) }}">
                                     <button type="submit" class="btn btn-danger btn-sm" title="Smazat přechod">Smazat</button>
                                 </form>

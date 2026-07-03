@@ -1,3 +1,5 @@
+@use 'breakpoints' as *;
+
 /* ---------- Map page ---------- */
 
 .line-map-wrapper {
@@ -649,9 +651,9 @@
     }
 }
 
-@media (max-width: 768px) {
-    /* Overlay strip on top of the map; height grows with content up to half the
-       screen, boxes scroll inside. Collapse (header-only) to see the map. */
+/* Overlay strip on top of the map; height grows with content up to half the
+   screen, boxes scroll inside. Collapse (header-only) to see the map. */
+@include media-down(md) {
     .map-side {
         bottom: auto;
         width: calc(100% - 28px);

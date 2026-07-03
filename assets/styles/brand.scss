@@ -8,6 +8,14 @@
 //  možný follow-up; teď accent přes CSS proměnné = robustní a stačí.)
 // =====================================================================
 
+// Breakpointy: VŽDY přes mixiny z _breakpoints.scss (Bootstrap škála),
+// žádné hardcoded px v @media. Viz hlavička _breakpoints.scss.
+@use 'breakpoints' as *;
+
+// Stránkové styly migrované z legacy app.css manifestu do Sass vrstvy
+// (postupně sem přibudou další, jak je Fáze 3 přepisuje na Bootstrap).
+@use 'map';
+
 // --- Brand paleta ----------------------------------------------------
 //  Sladěno s legacy `--color-accent` (_tokens.css) kvůli koherenci,
 //  dokud běží smíšený Bootstrap + legacy stav.
@@ -60,6 +68,96 @@ body {
     --bs-btn-hover-border-color: #{$brand};
     --bs-btn-active-bg: #{$brand};
     --bs-btn-active-border-color: #{$brand};
+}
+
+// --- Tabulky (Bootstrap) ----------------------------------------------
+// Theme vrstva nad Bootstrap .table — sjednocuje vzhled s původními
+// datovými tabulkami webu (malé verzálkové hlavičky, tmavé bold odkazy
+// bez podtržení, kompaktní ale dýchající řádky). Platí pro všechny
+// migrované tabulky, ať se to neladí per-page.
+.table {
+    font-size: 0.85rem;
+
+    > :not(caption) > * > * {
+        padding: 0.6rem 0.85rem;
+    }
+
+    > thead th {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--color-muted, #6b6b6b);
+    }
+
+    a {
+        color: var(--color-fg, #1a1a1a);
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            color: $brand;
+            text-decoration: underline;
+        }
+    }
+}
+
+// Tabulka v kartě: poslední řádek bez borderu — hranu dělá karta sama.
+.card .table > tbody > tr:last-child > * {
+    border-bottom: 0;
+}
+
+// Filtr nad tabulkou (data-table controller) — nemá smysl přes celou kartu.
+.table-filter {
+    max-width: 360px;
+}
+
+// Titulky v hlavičkách karet — stejná řeč jako legacy panel headery.
+.card-header h2 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0;
+}
+
+// Sort affordance pro data-table Stimulus controller — funguje na
+// libovolné Bootstrap tabulce, stačí th[data-sort-type] (+ aria-sort,
+// který controller přepíná).
+th[data-sort-type] {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+
+    &::after {
+        content: '↕';
+        margin-left: 4px;
+        opacity: 0.35;
+        font-size: 0.85em;
+    }
+
+    &:hover {
+        color: $brand;
+    }
+}
+
+th[aria-sort='ascending']::after {
+    content: '↑';
+    opacity: 1;
+    color: $brand;
+}
+
+th[aria-sort='descending']::after {
+    content: '↓';
+    opacity: 1;
+    color: $brand;
+}
+
+// Číselné buňky — zarovnané číslice, nezalamovat.
+.cell-num {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 // --- Header / navbar -------------------------------------------------

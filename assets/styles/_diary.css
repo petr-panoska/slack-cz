@@ -1,50 +1,5 @@
-/* ── Deníčky (public diary directory) ──────────────────────────────────────── */
-
-.diaries-toolbar {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--color-line);
-}
-
-.diaries-search {
-    width: 100%;
-    max-width: 360px;
-    border: 1px solid var(--color-line);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font: inherit;
-    font-size: 0.9rem;
-    background: var(--color-bg);
-    color: var(--color-fg);
-}
-
-.diaries-search::placeholder {
-    color: var(--color-muted);
-}
-
-.diaries-search:focus {
-    outline: none;
-    border-color: var(--color-accent);
-}
-
-.diaries-table a {
-    color: var(--color-fg);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.diaries-table a:hover {
-    color: var(--color-accent);
-    text-decoration: underline;
-}
-
-.diaries-empty {
-    padding: 16px 14px;
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 0.9rem;
-}
-
-/* ---------- Deník (uživatelský profil) ---------- */
+/* ---------- Deník (uživatelský profil) ----------
+   (Adresář /denicky je už na Bootstrapu — jeho styly zmizely s migrací.) */
 
 .diary {
     max-width: 1100px;

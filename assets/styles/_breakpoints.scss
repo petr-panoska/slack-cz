@@ -1,0 +1,49 @@
+// =====================================================================
+//  Breakpointy — JEDINÝ zdroj pravdy pro media queries.
+// ---------------------------------------------------------------------
+//  Zrcadlí Bootstrap 5 $grid-breakpoints (Bootstrap CSS jede z dist
+//  buildu přes importmapu, jeho Sass proměnné tu nemáme — proto lokální
+//  kopie hodnot). Musí zůstat v synku s markup breakpointy typu
+//  `navbar-expand-lg` / `d-lg-none`.
+//
+//  Použití (v .scss souborech importovaných z brand.scss):
+//      @use 'breakpoints' as *;
+//      .foo { @include media-down(md) { ... } }   // < 768px
+//      .bar { @include media-up(lg)   { ... } }   // ≥ 992px
+//
+//  Legacy CSS partialy (app.css manifest) mají ještě staré hardcoded
+//  640/768/900 — NEpřidávat další; ty soubory postupně umírají s Fází 3
+//  (migrace na Bootstrap). Nové styly = vždy tyhle mixiny.
+// =====================================================================
+
+@use 'sass:map';
+
+$breakpoints: (
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px,
+    xxl: 1400px,
+);
+
+@function bp($name) {
+    @if not map.has-key($breakpoints, $name) {
+        @error "Neznámý breakpoint `#{$name}` — povolené: #{map.keys($breakpoints)}.";
+    }
+    @return map.get($breakpoints, $name);
+}
+
+// Mobile-first: platí od breakpointu nahoru (≥ sm/md/lg/…).
+@mixin media-up($name) {
+    @media (min-width: bp($name)) {
+        @content;
+    }
+}
+
+// Pod breakpoint (< sm/md/lg/…). -0.02px stejně jako Bootstrap,
+// kvůli sub-pixel zaokrouhlování při zoomu.
+@mixin media-down($name) {
+    @media (max-width: bp($name) - 0.02px) {
+        @content;
+    }
+}
