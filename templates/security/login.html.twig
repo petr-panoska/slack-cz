@@ -35,9 +35,12 @@
             </form>
 
             <div class="auth-links">
-                <a href="{{ path('app_register') }}">Vytvořit účet</a>
                 <a href="{{ path('app_forgot_password_request') }}">Zapomenuté heslo</a>
             </div>
+
+            <p class="auth-register-prompt mt-3 mb-0 text-center">
+                Nemáte účet? <a href="{{ path('app_register') }}">Registrujte se</a>.
+            </p>
         </div>
     </div>
 {% endblock %}

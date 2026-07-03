@@ -1,0 +1,142 @@
+// =====================================================================
+//  slack.cz — Bootstrap 5 brand + shell layer (light theme, magenta)
+// ---------------------------------------------------------------------
+//  Bootstrap base CSS se načítá z importmapy (`bootstrap.min.css`, viz
+//  app.js). Tady jen přebarvení přes Bootstrap CSS custom properties +
+//  shell (navbar/offcanvas/header). Načítá se jako POSLEDNÍ stylesheet
+//  → přebíjí Bootstrap i legacy. (Plné Sass theming přes $primary =
+//  možný follow-up; teď accent přes CSS proměnné = robustní a stačí.)
+// =====================================================================
+
+// --- Brand paleta ----------------------------------------------------
+//  Sladěno s legacy `--color-accent` (_tokens.css) kvůli koherenci,
+//  dokud běží smíšený Bootstrap + legacy stav.
+$brand:      #e1005b;
+$brand-dark: #b8004a;
+
+:root {
+    // Výška fixní hlavičky — drží ji i legacy map wrapper (calc(100vh - var(--header-height))).
+    --slack-header-h: 72px;
+    --header-height: 72px;
+
+    --bs-primary: #{$brand};
+    --bs-primary-rgb: 225, 0, 91;
+
+    --bs-link-color: #{$brand};
+    --bs-link-color-rgb: 225, 0, 91;
+    --bs-link-hover-color: #{$brand-dark};
+    --bs-link-hover-color-rgb: 184, 0, 74;
+}
+
+// --- Konec bočního scrollu + prostor pod fixní hlavičkou -------------
+//  overflow-x: clip zabíjí přetečení do stran (mobil i desktop) bez
+//  vedlejších efektů na position:sticky. Hlavní příčina (mobilní nav)
+//  je vyřešena offcanvasem níž; tohle je guard proti zbytkovým únikům.
+html {
+    overflow-x: clip;
+}
+
+body {
+    overflow-x: clip;
+    padding-top: var(--slack-header-h);
+}
+
+// --- Tlačítka (Bootstrap komponentní proměnné) -----------------------
+.btn-primary {
+    --bs-btn-bg: #{$brand};
+    --bs-btn-border-color: #{$brand};
+    --bs-btn-hover-bg: #{$brand-dark};
+    --bs-btn-hover-border-color: #{$brand-dark};
+    --bs-btn-active-bg: #{$brand-dark};
+    --bs-btn-active-border-color: #{$brand-dark};
+    --bs-btn-disabled-bg: #{$brand};
+    --bs-btn-disabled-border-color: #{$brand};
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #{$brand};
+    --bs-btn-border-color: #{$brand};
+    --bs-btn-hover-bg: #{$brand};
+    --bs-btn-hover-border-color: #{$brand};
+    --bs-btn-active-bg: #{$brand};
+    --bs-btn-active-border-color: #{$brand};
+}
+
+// --- Header / navbar -------------------------------------------------
+.site-navbar {
+    min-height: var(--slack-header-h);
+    padding-top: 0;
+    padding-bottom: 0;
+    background: var(--color-header-bg, #fff);
+    border-bottom: 1px solid var(--color-line, #e5e5e5);
+}
+
+// Hlavička je VŽDY jednořádková — body padding-top: 72px s tím počítá.
+// Logo (wordmark 1072×136) by na úzkém mobilu vytlačilo pravý cluster
+// na druhý řádek → místo zalomení se logo samo zmenší (flex shrink).
+.site-navbar > .container-fluid {
+    flex-wrap: nowrap;
+}
+
+.site-navbar .navbar-brand {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.site-navbar-logo {
+    display: block;
+    width: auto;
+    height: auto;
+    max-height: 40px;
+    max-width: 100%;
+}
+
+.site-navbar .nav-link {
+    font-weight: 500;
+    color: var(--color-fg, #1a1a1a);
+
+    &:hover,
+    &:focus {
+        color: $brand;
+    }
+
+    &.active {
+        color: $brand;
+        font-weight: 600;
+    }
+}
+
+// Offcanvas (mobilní menu) — užší panel, ať nepřekryje celou obrazovku.
+.offcanvas.offcanvas-end {
+    --bs-offcanvas-width: min(80vw, 320px);
+}
+
+// Search (legacy Stimulus komponenta) sedí v pravém clusteru navbaru —
+// kotva pro absolutně poziciovaný panel.
+.site-navbar .site-search {
+    position: relative;
+}
+
+// Inline varianta hledání v offcanvasu (<lg) — bez toggle tlačítka a bez
+// dropdown panelu; input + výsledky přímo v menu. Dropdown v navbaru je
+// na mobilu skrytý (d-none d-lg-flex), takže legacy mobilní pozicování
+// panelu z _search.css se neuplatní.
+.site-search--inline {
+    display: block; // přebíjí legacy .site-search { display: flex } (input + výsledky pod sebou)
+
+    .site-search-input {
+        border: 1px solid var(--color-line, #e5e5e5);
+        border-radius: 8px;
+
+        &:focus {
+            border-color: $brand;
+        }
+    }
+
+    .site-search-results {
+        margin-top: 8px;
+        border: 1px solid var(--color-line, #e5e5e5);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+}

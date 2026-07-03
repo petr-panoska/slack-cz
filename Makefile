@@ -17,6 +17,16 @@ dcClearCache:
 dcAssetMapCompile:
 	docker compose run php bin/console asset-map:compile
 
+# Zkompiluje Sass (assets/styles/brand.scss → var/sass, AssetMapper ho servíruje).
+# Deploy to řeší přes asset-map:compile automaticky; v DEV spusť po každé změně
+# .scss (nebo nech běžet dcSassWatch).
+dcSassBuild:
+	docker compose exec -T php bin/console sass:build
+
+# Watch režim — přebuildí Sass při každé změně .scss. Nech běžet během vývoje.
+dcSassWatch:
+	docker compose exec php bin/console sass:build --watch
+
 # Clear+warm prod cache explicitly, regardless of .env.local APP_ENV.
 dcClearCacheProd:
 	docker compose run -e APP_ENV=prod php bin/console cache:clear

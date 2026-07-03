@@ -1,0 +1,4 @@
+symfonycasts_sass:
+    root_sass:
+        # brand.scss (ne app.scss) — vyhýbá se kolizi s legacy manifestem assets/styles/app.css
+        - 'assets/styles/brand.scss'

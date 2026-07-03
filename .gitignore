@@ -29,3 +29,7 @@
 /public/uploads/
 /public/media/cache/
 ###< highline gallery uploads ###
+
+###> symfonycasts/sass-bundle ###
+/public/assets/
+###< symfonycasts/sass-bundle ###

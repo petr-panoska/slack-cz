@@ -36,13 +36,19 @@
 
     {% include 'user_toolbar.twig' %}
 
-    {% for label, messages in app.flashes %}
-        {% for message in messages %}
-        <div class="flash-{{ label }}">
-            {{ message }}
+    {% set flashes = app.flashes %}
+    {% if flashes is not empty %}
+        <div class="container-fluid mt-3 d-flex flex-column gap-2">
+            {% for label, messages in flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ {'error': 'danger', 'success': 'success', 'warning': 'warning', 'info': 'info'}[label]|default('info') }} alert-dismissible fade show mb-0" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zavřít"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
         </div>
-        {% endfor %}
-    {% endfor %}
+    {% endif %}
 
     <main>
         {% block body %}{% endblock %}

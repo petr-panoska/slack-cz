@@ -352,6 +352,19 @@
             "config/packages/reset_password.yaml"
         ]
     },
+    "symfonycasts/sass-bundle": {
+        "version": "0.10",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "0.5",
+            "ref": "4812be2fc05dad51e05837779e9175321fb68d9f"
+        },
+        "files": [
+            "config/packages/symfonycasts_sass.yaml",
+            "assets/styles/app.scss"
+        ]
+    },
     "symfonycasts/verify-email-bundle": {
         "version": "v1.17.3"
     },

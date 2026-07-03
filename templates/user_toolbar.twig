@@ -1,192 +1,135 @@
-<header class="site-header" data-controller="nav">
-    <a href="{{ path('app_index') }}" class="site-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="slack.cz" />
-    </a>
+{# Aktivní stav per route: shoda na začátek route name. Logo je link na Domů. #}
+{% set route = app.current_route|default('') %}
 
-    {# Aktivní stav per route: shoda na začátek route name. Logo nahoře je už link
-       na Domů, druhá položka v navu by byla redundantní. #}
-    {% set route = app.current_route|default('') %}
-    <nav class="site-nav">
-        <a href="{{ path('app_line_map') }}" class="{{ (route starts with 'app_line_map' or route == 'app_line_detail') ? 'is-active' : '' }}">Mapa</a>
-        <a href="{{ path('app_user_directory') }}" class="{{ route starts with 'app_user_' ? 'is-active' : '' }}">Deníčky</a>
-        <a href="{{ path('app_tv') }}" class="{{ route == 'app_tv' ? 'is-active' : '' }}">slackTV</a>
-        <a href="{{ path('app_about') }}" class="{{ route == 'app_about' ? 'is-active' : '' }}">O projektu</a>
-        <a href="{{ path('app_wiki_index') }}" class="{{ route starts with 'app_wiki_' ? 'is-active' : '' }}">Wiki</a>
-        <a href="{{ path('app_docs_index') }}" class="{{ route starts with 'app_docs_' ? 'is-active' : '' }}">Docs</a>
-        {% if app.user %}
-            <a href="{{ path('app_line_new') }}" class="{{ route == 'app_line_new' ? 'is-active' : '' }}">+ Lajna</a>
-        {% endif %}
-        {% if is_granted('ROLE_ADMIN') %}
-            <a href="{{ path('app_admin_proposals') }}" class="site-nav-admin {{ route == 'app_admin_proposals' ? 'is-active' : '' }}">Návrhy</a>
-            <a href="{{ path('app_data_report') }}" class="site-nav-admin {{ route == 'app_data_report' ? 'is-active' : '' }}">Data report</a>
-        {% endif %}
-    </nav>
+<nav class="navbar navbar-expand-lg fixed-top site-navbar" data-bs-theme="light">
+    <div class="container-fluid">
+        <a href="{{ path('app_index') }}" class="navbar-brand py-0 me-2 me-lg-4">
+            <img src="{{ asset('images/logo.png') }}" alt="slack.cz" class="site-navbar-logo">
+        </a>
 
-    <div class="site-user">
-        <div
-            class="site-search"
-            data-controller="search"
-            data-search-data-url-value="{{ path('app_line_map_data') }}"
-        >
-            <button
-                type="button"
-                class="site-search-btn"
-                data-action="click->search#toggle"
-                aria-label="Hledat"
-                title="Hledat"
+        {# Pravý cluster — vždy viditelný (i na mobilu): hledání + auth + hamburger.
+           order-lg-last ho na desktopu posune za nav odkazy. #}
+        <div class="d-flex align-items-center gap-2 order-lg-last">
+            {# Dropdown hledání jen na ≥lg — na mobilu je inline verze v offcanvasu. #}
+            <div
+                class="site-search d-none d-lg-flex"
+                data-controller="search"
+                data-search-data-url-value="{{ path('app_line_map_data') }}"
             >
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                    <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <line x1="15.2" y1="15.2" x2="20" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
-            <div class="site-search-panel">
-                <input
-                    type="search"
-                    class="site-search-input"
-                    placeholder="Najít highline…"
-                    data-search-target="input"
-                    data-action="input->search#input"
-                    autocomplete="off"
-                    spellcheck="false"
+                <button
+                    type="button"
+                    class="site-search-btn"
+                    data-action="click->search#toggle"
+                    aria-label="Hledat"
+                    title="Hledat"
                 >
-                <ul class="site-search-results" data-search-target="results"></ul>
-            </div>
-        </div>
-
-        {# slackvibes intro splash + hudební přehrávač — DOČASNĚ VYPNUTO (použijeme později).
-           Přepni intro_enabled na true a celá feature (vstupní overlay + audio player) je zpět. #}
-        {% set intro_enabled = false %}
-        {% if intro_enabled %}
-        {# Persistent across Turbo navigations — id+turbo-permanent keeps the audio playing through page swaps. #}
-        <div
-            id="music-player"
-            class="intro-wrapper"
-            data-controller="intro"
-            data-intro-tracks-value="{{ music_tracks|json_encode }}"
-            data-turbo-permanent
-        >
-            <div class="intro-overlay" data-intro-target="overlay">
-                <div class="intro-content">
-                    <img src="{{ asset('images/logo.png') }}" alt="slack.cz" class="intro-logo" />
-                    <button type="button" class="intro-button" data-action="click->intro#enterSilent">Vstoupit</button>
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="15.2" y1="15.2" x2="20" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="site-search-panel">
+                    <input
+                        type="search"
+                        class="site-search-input"
+                        placeholder="Najít highline…"
+                        data-search-target="input"
+                        data-action="input->search#input"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <ul class="site-search-results" data-search-target="results"></ul>
                 </div>
-                <button type="button" class="intro-button intro-button--small intro-button-slackvibes" data-action="click->intro#enter">slackvibes 📻</button>
             </div>
 
-            <aside class="music-panel panel" data-intro-target="menu" role="group" aria-label="Hudba">
-                <header class="panel-header music-panel-header">
-                    <div class="panel-title music-panel-title">
-                        <span class="panel-dot music-panel-dot"></span>
-                        <span class="music-radio-icon" aria-hidden="true">📻</span>
-                        <h2 class="music-radio-name">slackvibes</h2>
-                        <span class="music-eq" aria-hidden="true">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </span>
-                    </div>
-                    <div class="music-panel-trail">
-                        <div class="music-panel-actions">
-                            <button
-                                type="button"
-                                class="music-mute"
-                                data-intro-target="muteBtn"
-                                data-action="click->intro#toggleMuteOrPlay"
-                                aria-label="Ztlumit"
-                            >
-                                <span class="music-icon music-icon-on" aria-hidden="true">♪</span>
-                                <span class="music-icon music-icon-off" aria-hidden="true">⊘</span>
-                                <span class="music-icon music-icon-play" aria-hidden="true">▶</span>
-                                <span class="music-icon music-icon-pause" aria-hidden="true">⏸</span>
-                            </button>
-                            <button
-                                type="button"
-                                class="music-mini"
-                                data-intro-target="miniBtn"
-                                data-action="click->intro#toggleCompact"
-                                aria-label="Rozbalit přehrávač"
-                                title="Rozbalit"
-                            >
-                                <span class="music-mini-icon music-mini-icon-collapse" aria-hidden="true">−</span>
-                                <span class="music-mini-icon music-mini-icon-expand" aria-hidden="true">+</span>
-                            </button>
-                        </div>
-                        <button
-                            type="button"
-                            class="music-close"
-                            data-action="click->intro#hide"
-                            aria-label="Skrýt přehrávač"
-                            title="Skrýt"
-                        >×</button>
-                    </div>
-                </header>
+            {% if app.user %}
+                {# Na mobilu je profil/odhlášení v offcanvasu; tady jen na ≥lg. #}
+                <a href="{{ path('app_profile') }}" class="btn btn-sm btn-outline-secondary d-none d-lg-inline-flex text-truncate" style="max-width: 14rem;">{{ app.user.email }}</a>
+                <form method="post" action="{{ path('app_logout') }}" class="d-none d-lg-block m-0">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Odhlásit</button>
+                </form>
+            {% else %}
+                {# Auth tlačítka jen na ≥lg — na mobilu je „Přihlásit" v offcanvasu
+                   (v headeru zůstává jen logo + hamburger). Registrace přes login stránku. #}
+                <a href="{{ path('app_login') }}" class="btn btn-sm btn-primary d-none d-lg-inline-flex">Přihlásit</a>
+                <a href="{{ path('app_register') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-flex">Registrovat</a>
+            {% endif %}
 
-                <div class="music-now">
-                    <div class="music-now-title" data-intro-target="title">—</div>
-                    <div class="music-now-artist" data-intro-target="artist"></div>
+            <button
+                class="navbar-toggler border-0 p-1"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#mainNav"
+                aria-controls="mainNav"
+                aria-label="Menu"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
 
-                    <div class="music-progress-row">
-                        <input
-                            type="range"
-                            min="0"
-                            max="1000"
-                            value="0"
-                            step="1"
-                            class="music-progress"
-                            data-intro-target="progress"
-                            data-action="input->intro#seek"
-                            aria-label="Pozice ve stopě"
-                        >
-                        <span class="music-time" data-intro-target="time">0:00 / 0:00</span>
-                    </div>
-
-                    <div class="music-controls">
-                        <button type="button" class="music-ctrl music-ctrl-prev" data-action="click->intro#prev" aria-label="Předchozí">‹‹</button>
-                        <button type="button" class="music-ctrl music-ctrl-play" data-intro-target="playBtn" data-action="click->intro#togglePlay" aria-label="Přehrát/Pauza">▶</button>
-                        <button type="button" class="music-ctrl music-ctrl-next" data-action="click->intro#next" aria-label="Další">››</button>
-                    </div>
+        {# Nav odkazy — offcanvas overlay na mobilu, inline na ≥lg. #}
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="mainNav" aria-labelledby="mainNavLabel">
+            <div class="offcanvas-header">
+                <h2 class="offcanvas-title h5 mb-0" id="mainNavLabel">Menu</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Zavřít"></button>
+            </div>
+            <div class="offcanvas-body">
+                {# Inline hledání (mobil) — bez toggle tlačítka, input + výsledky přímo v menu.
+                   Druhá instance search controlleru; data cache je sdílená (module scope). #}
+                <div
+                    class="site-search site-search--inline d-lg-none mb-3"
+                    data-controller="search"
+                    data-search-data-url-value="{{ path('app_line_map_data') }}"
+                >
+                    <input
+                        type="search"
+                        class="site-search-input"
+                        placeholder="Najít highline…"
+                        data-search-target="input"
+                        data-action="input->search#input"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <ul class="site-search-results" data-search-target="results"></ul>
                 </div>
 
-                <ol class="music-queue" data-intro-target="queue">
-                    {% for i, t in music_tracks %}
-                    <li class="music-queue-item" data-index="{{ i }}" data-action="click->intro#playIndex">
-                        <span class="music-queue-num">{{ i + 1 }}</span>
-                        <span class="music-queue-meta">
-                            <span class="music-queue-title">{{ t.title }}</span>
-                            <span class="music-queue-artist">{{ t.artist }}</span>
-                        </span>
-                    </li>
-                    {% endfor %}
-                </ol>
-            </aside>
-        </div>
-        {% endif %}
+                <ul class="navbar-nav me-auto align-items-lg-center column-gap-lg-1">
+                    <li class="nav-item"><a href="{{ path('app_line_map') }}" class="nav-link {{ (route starts with 'app_line_map' or route == 'app_line_detail') ? 'active' }}">Mapa</a></li>
+                    <li class="nav-item"><a href="{{ path('app_user_directory') }}" class="nav-link {{ route starts with 'app_user_' ? 'active' }}">Deníčky</a></li>
+                    <li class="nav-item"><a href="{{ path('app_tv') }}" class="nav-link {{ route == 'app_tv' ? 'active' }}">slackTV</a></li>
+                    <li class="nav-item"><a href="{{ path('app_about') }}" class="nav-link {{ route == 'app_about' ? 'active' }}">O projektu</a></li>
+                    <li class="nav-item"><a href="{{ path('app_wiki_index') }}" class="nav-link {{ route starts with 'app_wiki_' ? 'active' }}">Wiki</a></li>
+                    {% if app.user %}
+                        <li class="nav-item"><a href="{{ path('app_line_new') }}" class="nav-link {{ route == 'app_line_new' ? 'active' }}">+ Lajna</a></li>
+                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item"><a href="{{ path('app_admin_proposals') }}" class="nav-link {{ route == 'app_admin_proposals' ? 'active' }}">Návrhy</a></li>
+                        <li class="nav-item"><a href="{{ path('app_data_report') }}" class="nav-link {{ route == 'app_data_report' ? 'active' }}">Data report</a></li>
+                    {% endif %}
+                </ul>
 
-        {% if app.user %}
-            <a href="{{ path('app_profile') }}" class="user-email">{{ app.user.email }}</a>
-            <form method="post" action="{{ path('app_logout') }}" class="logout-form">
-                <button type="submit" class="btn btn-secondary">Odhlásit</button>
-            </form>
-        {% else %}
-            <a href="{{ path('app_login') }}" class="btn btn-secondary">Přihlásit</a>
-            <a href="{{ path('app_register') }}" class="btn btn-primary">Registrovat</a>
-        {% endif %}
+                {% if app.user %}
+                    {# Mobilní user akce (na desktopu jsou v pravém clusteru). #}
+                    <div class="d-lg-none border-top pt-3 mt-3">
+                        <a href="{{ path('app_profile') }}" class="d-block mb-2 text-truncate">{{ app.user.email }}</a>
+                        <form method="post" action="{{ path('app_logout') }}" class="m-0">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Odhlásit</button>
+                        </form>
+                    </div>
+                {% else %}
+                    {# Mobilní přihlášení (na desktopu je v pravém clusteru). #}
+                    <div class="d-lg-none border-top pt-3 mt-3">
+                        <a href="{{ path('app_login') }}" class="btn btn-primary w-100">Přihlásit</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
+</nav>
 
-    <button
-        type="button"
-        class="nav-burger"
-        data-nav-target="burger"
-        data-action="click->nav#toggle"
-        aria-label="Menu"
-        aria-expanded="false"
-    >
-        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-            <line x1="2" y1="5"  x2="20" y2="5"  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="2" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="2" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-    </button>
-</header>
+{# slackvibes intro splash + hudební přehrávač — DOČASNĚ VYPNUTO (použijeme později).
+   Přepni intro_enabled na true a celá feature (vstupní overlay + audio player) je zpět. #}
+{% set intro_enabled = false %}
+{% if intro_enabled %}
+    {% include '_partials/_music_player.twig' %}
+{% endif %}

@@ -17,10 +17,18 @@ Otevřené úkoly napříč projektem. **Seřazeno podle priority** (revize 2026
 
 ### 🔥 Teď
 
-- [ ] Responzivita celého webu
-  - [x] **CSS refaktoring** (2026-06-20→21) — `app.css` 5000 řádků → **30 komponentních souborů** v `assets/styles/` (`app.css` je teď `@import` manifest). Sjednoceny breakpointy na 640/768/900px (bylo 600/640/700/720/760/800/900px). Přidán theme system v `_tokens.css` (4 webbing-color varianty: weaver/slackline-tools/gibbon/landcruising) přes CSS custom properties a `data-theme` atribut.
-  - [ ] **Chybějící mobile styly** — nav na malých obrazovkách (hamburger / skrytí nav odkazů), forms, panel layout na mobilu
-  - [ ] webbing themes picker
+- [ ] **PIVOT (2026-07-01): mobil = priorita č. 1, přepsat CSS na Bootstrap 5.** Custom CSS (30 partialů) označen jako nepoužitelný (feedback od kamaráda + user). Desktop skoro nikdo. Detail v paměti `mobile-first-bootstrap-rewrite`.
+  - [x] **CSS refaktoring** (2026-06-20→21) — `app.css` 5000 řádků → **30 komponentních souborů** v `assets/styles/`. *(Nahrazeno Bootstrap přepisem — historie.)*
+  - [x] **Fáze 0 — Bootstrap základ** (2026-07-01) — `symfonycasts/sass-bundle` (v0.10) + Bootstrap 5 JS+Popper přes importmap + `bootstrap.min.css`. Brand vrstva `assets/styles/brand.scss` (accent `#e1005b` = legacy `--color-accent`, kvůli koherenci; theming přes Bootstrap CSS proměnné, ne `$primary`). Wiring v `app.js`: Bootstrap CSS → legacy `app.css` (netknutý manifest) → `brand.scss` (poslední = přebíjí). **Pozor na kolizi jmen**: sass entry je `brand.scss` (ne `app.scss`), jinak stíní legacy `app.css`. Symfony `bootstrap_5_layout` form theme. Ověřeno asset-map:compile (81 assetů) + všechny stránky 200.
+  - [x] **Fáze 1 — Shell + mobil** (2026-07-01) — `user_toolbar.twig` přepsán na Bootstrap **navbar + offcanvas** (`navbar-expand-lg`, `fixed-top`), fixní výška hlavičky (`--slack-header-h: 72px` = `--header-height`, drží map wrapper). Na mobilu v headeru **jen „Přihlásit"** (Registrovat `d-none d-lg-inline-flex`); user profil/odhlášení na mobilu v offcanvasu. Login stránka: „Nemáte účet? Registrujte se." Flash → Bootstrap alerts (`base.html.twig`). **Horizontální overflow**: příčina = stará vodorovná `.site-nav` (řada odkazů) → vyřešeno offcanvasem; `overflow-x: clip` na html/body jako guard. Disabled music/intro blok vytažen do `_partials/_music_player.twig` (inert). Ověřeno lint:twig+lint:container+asset-map:compile+phpunit 8/8.
+  - [x] **Fáze 1 — bugfixy po headless kontrole** (2026-07-03) — ověřeno v headless Chrome (360/390/768/1440 + klik offcanvas/search): **(a)** hlavička se na mobilu lámala na 2 řádky (logo.png 1072×136 při h=40px ⇒ ~315px šířky) → `flex-wrap: nowrap` na navbar containeru + logo se zmenšuje (`flex: 0 1 auto` + `min-width: 0` + `max-width/max-height`), hlavička teď všude přesně 72px; **(b)** search panel na mobilu ujížděl mimo obrazovku (legacy `_search.css` `right:-16px` kotvil k tlačítku u pravého okraje, které v navbaru není) → vyřešeno přesunem do offcanvasu (viz níž).
+  - [x] **Mobilní header = jen logo + hamburger** (2026-07-03) — search i „Přihlásit" přesunuty do offcanvasu (<lg): search jako **inline varianta** nahoře v menu (`site-search--inline`, druhá instance search controlleru, sdílená module-scope cache; dropdown v navbaru `d-none d-lg-flex`), „Přihlásit" jako `w-100` tlačítko v patičce menu (zrcadlí přihlášený stav). Ověřeno headless: výsledky hledání se renderují, klik naviguje, žádný stuck backdrop po Turbo navigaci, desktop beze změny.
+  - [x] **Fáze 1 — cleanup** (2026-07-03) — smazán mrtvý `assets/controllers/nav_controller.js` + `assets/styles/_nav.css` (+ import z `app.css`); ověřeno grep-em, že `.site-header`/`.nav-burger`/`data-controller="nav"` už nikde nejsou.
+  - [ ] **Fáze 1 — zbylý cleanup**: zvážit osekání `_buttons.css` (Bootstrap `.btn*` je drop-in), `_flash.css`.
+  - [ ] **Fáze 2 — Mapa redesign** (sreality box se seznamem lajn ve výřezu) — viz sekce *Mapa* níž + paměť `map-redesign-sreality-viewport-list`.
+  - [ ] **Fáze 3 — migrace zbylých stránek** na Bootstrap (kamarádova 2. priorita: seznam highlines + deníček; pak formuláře/detail/homepage/TV/about). Postupně osekávat legacy partialy z `app.css`.
+  - [x] **Docs pryč z menu** (2026-07-01) — odebráno z `user_toolbar.twig`, místo toho odkaz v nové sekci „Dokumentace" na konci `/o-projektu` (`about.html.twig`).
+  - [ ] ⏸ webbing themes picker — **odloženo na neurčito** (2026-07-01).
 
 ### Obsah ze starého slack.cz (nasát + archivovat)
 - [ ] **Archiv článků** — nasosat texty/články z původního slack.cz a udělat z nich archiv v nové appce.
@@ -49,7 +57,9 @@ Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (
 
 ### Mapa
 - [x] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (2026-06-16) — sdílený helper `assets/map_scroll_zoom.js` (`enableCtrlScrollZoom`): inline mapa = plain kolečko scrolluje stránku, **Ctrl/⌘ + kolečko zoomuje** (mirror Leafletího debounce/zoom-to-cursor) + hint overlay „podrž Ctrl"; **ve fullscreenu zoomuje plain kolečko bez modifikátoru** (není co scrollovat). Nasazeno na vložené mapy: `hp_map`, `user_denik_map`, `line_detail_map`, `line_form_map`. Dedikovaná `/mapa` (`map_controller`) **záměrně ponechána** se zoomem samotným kolečkem (na celostránkové mapě očekávané).
-- [ ] Filtry na `/mapa` (typ, délka, výška)
+- [ ] **Redesign `/mapa` — sreality styl** (2026-07-01) — box se seznamem lajn **aktuálně ve výřezu** mapy (abecedně, vizuálně jako box přechodů). 2 boxy pod sebou: nahoře lajny (default otevřený, plní zbývající výšku), dole přechody (default zavřený). Přechody = podružná info. Data z `app_line_map_data`, filtr klientsky přes `map.getBounds()` (žádný nový backend). Detail v paměti `map-redesign-sreality-viewport-list`.
+- [ ] **Time-travel („Přehrát historii") — doladit do „super feature"** (2026-07-01) — user ho chce **ZACHOVAT** a vylepšit; dřívější záměr smazat zrušen.
+- ❌ ~~Filtry na `/mapa` (typ, délka, výška)~~ — **nebude** (2026-07-01, rozhodnutí usera).
 - [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
 - [ ] „Přidat lajnu" CTA klikem na mapu — z `/mapa` klik na prázdné místo předvyplní Bod 1 (teď jen v hlavičce + ručně nastavené GPS)
