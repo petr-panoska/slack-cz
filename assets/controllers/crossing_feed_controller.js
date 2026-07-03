@@ -74,7 +74,9 @@ export default class extends Controller {
         this.fetchTimer = null;
         this.abortController = null;
 
-        if (sessionStorage.getItem(COLLAPSED_KEY) === '1') {
+        // Default = collapsed (map redesign 2026-07: lines list is the primary box,
+        // crossings are secondary info). '0' = user explicitly expanded it before.
+        if (sessionStorage.getItem(COLLAPSED_KEY) !== '0') {
             this.element.classList.add('is-collapsed');
         }
 

@@ -168,9 +168,12 @@
     border-radius: 0;
 }
 
-/* ---------- Crossing news-bar feed ---------- */
+/* ---------- Left column: lines-in-viewport box + crossings box ---------- */
 
-.crossing-feed {
+/* Sreality-style stack over the map: lines box on top (primary, default open),
+   crossings below (secondary, default collapsed). Boxes size to content and
+   shrink/scroll when the column runs out of height. */
+.map-side {
     position: absolute;
     top: 14px;
     bottom: 14px;
@@ -179,26 +182,33 @@
     width: 320px;
     display: flex;
     flex-direction: column;
+    gap: 10px;
+    /* The column spans full height — let clicks in the empty space reach the map. */
+    pointer-events: none;
+}
+
+.map-side > * {
+    pointer-events: auto;
+}
+
+.time-travel-active .map-side {
+    bottom: 110px;
+}
+
+.crossing-feed {
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     background: rgba(255, 255, 255, 0.96);
     border: 1px solid var(--color-line);
     border-radius: 12px;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
     overflow: hidden;
-    pointer-events: auto;
-    transition: width 0.25s ease;
-}
-
-.time-travel-active .crossing-feed {
-    bottom: 110px;
 }
 
 .crossing-feed.is-collapsed {
-    width: auto;
-    bottom: auto;
-}
-
-.time-travel-active .crossing-feed.is-collapsed {
-    bottom: auto;
+    flex: 0 0 auto;
 }
 
 .crossing-feed-header {
@@ -534,6 +544,93 @@
     font-style: italic;
 }
 
+/* ---------- Lines-in-viewport box (shares the .crossing-feed shell) ---------- */
+
+/* Caption is a plain counter here, not a filter toggle. */
+.crossing-feed-caption--static {
+    cursor: default;
+}
+
+.crossing-feed-caption--static::after {
+    content: none;
+}
+
+.crossing-feed-caption--static:hover,
+.crossing-feed-caption--static:focus-visible {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.crossing-feed-dot--lines {
+    animation: none;
+}
+
+.line-feed-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Row click centers the map on the line (the name is a link to its detail). */
+.line-feed-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #fff;
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    padding: 7px 10px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.12s, background-color 0.12s;
+}
+
+.line-feed-item:hover {
+    border-color: var(--color-accent);
+    background: rgba(225, 0, 91, 0.04);
+}
+
+/* Type dot — same colours as the map markers (line_feed_controller ← typeColor). */
+.line-feed-dot {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1.5px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.line-feed-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.line-feed-name {
+    color: var(--color-fg);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.line-feed-name:hover {
+    color: var(--color-accent);
+}
+
+.line-feed-meta {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Push Leaflet's bottom-right zoom controls above the time-travel panel when active. */
 .time-travel-active .leaflet-bottom.leaflet-right {
     bottom: 110px;
@@ -553,14 +650,13 @@
 }
 
 @media (max-width: 768px) {
-    .crossing-feed {
+    /* Overlay strip on top of the map; height grows with content up to half the
+       screen, boxes scroll inside. Collapse (header-only) to see the map. */
+    .map-side {
+        bottom: auto;
         width: calc(100% - 28px);
         max-width: 320px;
-        bottom: auto;
-        max-height: 45%;
-    }
-    .crossing-feed.is-collapsed {
-        width: 44px;
+        max-height: 55%;
     }
 }
 

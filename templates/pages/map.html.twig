@@ -15,12 +15,43 @@
 >
     <div class="line-map" data-map-target="canvas"></div>
 
-    <aside
-        class="crossing-feed"
-        aria-label="Přechody"
-        data-controller="crossing-feed"
-        data-crossing-feed-url-value="{{ path('app_line_map_feed') }}"
-    >
+    {# Levý sloupec (sreality styl): nahoře lajny aktuálně ve výřezu mapy
+       (default otevřený), dole přechody (default zavřený, podružná info).
+       Oba boxy sdílí vizuál .crossing-feed. #}
+    <div class="map-side">
+        <aside
+            class="crossing-feed crossing-feed--lines"
+            aria-label="Lajny ve výřezu mapy"
+            data-controller="line-feed"
+        >
+            <header class="crossing-feed-header">
+                <span class="crossing-feed-dot crossing-feed-dot--lines" aria-hidden="true"></span>
+                <div class="crossing-feed-titles">
+                    <h2 class="crossing-feed-title">Lajny</h2>
+                    <span class="crossing-feed-caption crossing-feed-caption--static" data-line-feed-target="caption">—</span>
+                </div>
+                <button
+                    type="button"
+                    class="crossing-feed-toggle"
+                    data-action="click->line-feed#toggle"
+                    aria-label="Sbalit panel"
+                    title="Sbalit panel"
+                >
+                    <span class="crossing-feed-toggle-icon" aria-hidden="true">▾</span>
+                </button>
+            </header>
+            <div class="crossing-feed-body-wrap">
+                <ul class="line-feed-list" data-line-feed-target="list"></ul>
+                <p class="crossing-feed-empty" data-line-feed-target="empty" hidden>Ve výřezu žádná lajna.</p>
+            </div>
+        </aside>
+
+        <aside
+            class="crossing-feed"
+            aria-label="Přechody"
+            data-controller="crossing-feed"
+            data-crossing-feed-url-value="{{ path('app_line_map_feed') }}"
+        >
         <header class="crossing-feed-header">
             <span class="crossing-feed-dot" aria-hidden="true"></span>
             <div class="crossing-feed-titles">
@@ -57,10 +88,10 @@
                 type="button"
                 class="crossing-feed-toggle"
                 data-action="click->crossing-feed#toggle"
-                aria-label="Skrýt panel"
-                title="Skrýt panel"
+                aria-label="Sbalit panel"
+                title="Sbalit panel"
             >
-                <span class="crossing-feed-toggle-icon" aria-hidden="true">‹</span>
+                <span class="crossing-feed-toggle-icon" aria-hidden="true">▾</span>
             </button>
         </header>
         <div
@@ -121,7 +152,8 @@
             <ul class="crossing-feed-list" data-crossing-feed-target="list"></ul>
             <p class="crossing-feed-empty" data-crossing-feed-target="empty" hidden>Zatím žádný přechod.</p>
         </div>
-    </aside>
+        </aside>
+    </div>
 
     <button
         type="button"

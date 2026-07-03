@@ -28,7 +28,9 @@ const TYPE_COLORS = {
 // Canonical legend order; the legend itself only renders the types actually on the map.
 const LEGEND_ORDER = ['highline', 'midline', 'longline', 'waterline', 'unsorted'];
 
-function typeColor(type) {
+// Exported for the sidebar line list (line_feed_controller) so the type dots
+// there match the map markers.
+export function typeColor(type) {
     return TYPE_COLORS[type] ?? TYPE_COLORS.unsorted;
 }
 
@@ -154,7 +156,10 @@ export default class extends Controller {
         // time-travel controls stay on screen.
         addFullscreenToggle(this.map, { element: this.element });
 
-        this.map.on('moveend zoomend', () => writeSavedView(this.map));
+        this.map.on('moveend zoomend', () => {
+            writeSavedView(this.map);
+            this._publishViewportLines();
+        });
         this.map.on('zoomend', () => this._updateLinesVisibility());
 
         // Static mode = highlines (always visible) + recent users emoji (toggleable via sidebar eye)
@@ -189,6 +194,14 @@ export default class extends Controller {
         this._onFeedFilter = (e) => this._handleFeedFilter(e.detail);
         document.addEventListener('slack:feed-filter', this._onFeedFilter);
 
+        // Sidebar line list: it asks for a (re)publish when it connects (covers the
+        // boot race where lines finished loading before the list controller existed)
+        // and sends back clicks so we can focus the map on the picked line.
+        this._onLinesRequest = () => this._publishViewportLines();
+        this._onLineFocus = (e) => this._focusLine(e.detail?.id);
+        document.addEventListener('slack:lines-request', this._onLinesRequest);
+        document.addEventListener('slack:line-focus', this._onLineFocus);
+
         await this.loadLines();
         await this.loadUsers();
 
@@ -205,6 +218,12 @@ export default class extends Controller {
         }
         if (this._onFeedFilter) {
             document.removeEventListener('slack:feed-filter', this._onFeedFilter);
+        }
+        if (this._onLinesRequest) {
+            document.removeEventListener('slack:lines-request', this._onLinesRequest);
+        }
+        if (this._onLineFocus) {
+            document.removeEventListener('slack:line-focus', this._onLineFocus);
         }
         if (this.map) {
             this.map.remove();
@@ -224,6 +243,8 @@ export default class extends Controller {
         const highlines = await response.json();
         const markers = [];
         const presentTypes = new Set();
+        // Feeds the sidebar line list (viewport filter + click-to-focus).
+        this.lineIndex = [];
         for (const h of highlines) {
             // A line is anchored by point1; the marker sits exactly on it. point2 is
             // optional (legacy lines may have only the first anchor) — with both we
@@ -237,6 +258,19 @@ export default class extends Controller {
             const marker = L.marker(p1, { icon: lineIcon(h.type) }).bindPopup(this.popupHtml(h));
             marker.addTo(this.staticLayer);
             markers.push(marker);
+            this.lineIndex.push({
+                id: h.id,
+                name: h.name,
+                slug: h.slug,
+                type: h.type,
+                length: h.length,
+                height: h.height,
+                area: h.area,
+                region: h.region,
+                lat: p1[0],
+                lng: p1[1],
+                marker,
+            });
 
             // The line rides in its own layer so we can hide it again at low zoom
             // (lines are meaningless from a country-wide view).
@@ -254,6 +288,29 @@ export default class extends Controller {
 
         this._addLegend(presentTypes);
         this._updateLinesVisibility();
+        this._publishViewportLines();
+    }
+
+    // Broadcast the lines inside the current viewport (alphabetical) for the sidebar
+    // list. Cheap enough to run on every moveend/zoomend — max ~254 lines.
+    _publishViewportLines() {
+        if (!this.map || !this.lineIndex) return;
+        const bounds = this.map.getBounds();
+        const lines = this.lineIndex
+            .filter((r) => bounds.contains([r.lat, r.lng]))
+            .map(({ marker, ...data }) => data)
+            .sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+        document.dispatchEvent(new CustomEvent('slack:viewport-lines', { detail: { lines } }));
+    }
+
+    // Sidebar list click → center the picked line and open its popup. In time-travel
+    // the static markers are off the map, so a popup would have nothing to anchor to.
+    _focusLine(id) {
+        if (!this.map || this.timeTravel) return;
+        const rec = this.lineIndex?.find((r) => r.id === id);
+        if (!rec) return;
+        this.map.setView([rec.lat, rec.lng], Math.max(this.map.getZoom(), LINE_MIN_ZOOM));
+        rec.marker.openPopup();
     }
 
     // Type legend as a collapsible top-right control: a "?" pill that toggles a panel
