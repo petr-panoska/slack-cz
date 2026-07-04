@@ -105,7 +105,7 @@ Detailně v `deploy.md`. Launch-blockery.
 - [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů).
 - [ ] Zkontrolovat `LineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji veřejná „Data report" stránka (`/data-report`) pro proklik na legacy detail; upravit, pokud se prod host změní.
 - [ ] Nastavit reálné `YOUTUBE_API_KEY` v `.env.local` na serveru pro slackTV feed.
-- [ ] Po prvním deployi s galerií spustit na serveru **`bin/console app:photo:backfill-dimensions`** (jednorázově; migrace přidá `line_photo.width/height` jako NULL a bez backfillu se fotky v `/galerie` vykreslí s fallback poměrem 4:3).
+- [ ] Po prvním deployi s galerií zkontrolovat `line_photo.width` na serveru (`SELECT count(*) FROM line_photo WHERE width IS NULL`) — normálně přijdou hodnoty s `make syncBetaFromLocal` dumpem (lokálně backfill proběhl) i z čerstvého importu (command je plní). Kdyby NULL zůstaly (DB syncnutá před 2026-07-04 bez re-syncu), spustit jednorázově **`bin/console app:photo:backfill-dimensions`**; bez toho `/galerie` kreslí fotky s fallback poměrem 4:3.
 - [ ] (volitelné) `unattended-upgrades` na auto-security patches.
 - [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery.
 

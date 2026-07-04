@@ -28,8 +28,8 @@ src/
                     # CrossingController, LonglineCrossingController, UserController, MarkdownSectionController, Registration/Reset/Security
   Entity/           # NOVÉ entity (Postgres, EM default): User, Line, LineCrossing, LonglineCrossing,
                     # LineEdit, LinePhoto, LinePhotoComment, LinePhotoLike, ResetPasswordRequest
-  Enum/             # LineType, CrossingStyle, LineEditStatus, Gender
-  Service/          # PhotoNormalizer (magick + exiftool: datum/GPS → DB, soubor → WebP master), NormalizedImage
+  Enum/             # LineType, CrossingStyle, LineEditStatus
+  Service/          # PhotoNormalizer (magick + exiftool: datum/GPS/rozměry → DB, soubor → WebP master), NormalizedImage
   Feed/             # plochý homepage feed + cache + dispatcher (mock fallback)
     Tv/             # sekcový /tv feed: FeedGroup, TvFeedInterface, YoutubeClient, paginace + cache
   Form/             # Symfony forms (LineForm, LineCrossingForm, LonglineCrossingForm, RegistrationForm, ...)
@@ -38,7 +38,7 @@ src/
   Repository/       # Doctrine repos (LineCrossingRepository::RECENT_LIMIT je single source of truth)
   Security/         # EmailVerifier
   Command/          # Console commands: app:import:*, app:admin:grant, app:edit:sync-from-history,
-                    # app:user:list, app:user:reset-password
+                    # app:user:list, app:user:reset-password, app:photo:backfill-dimensions
 ```
 
 ### Pojmenování: entita `Line`, disciplíny "highline" a "longline" a další
@@ -68,8 +68,8 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
 
 ## Frontend
 
-- **Asset Mapper** + **Stimulus** + **Turbo Drive** (Symfony stack, žádný build step)
-- **Importmap** (`importmap.php`) drží: stimulus, turbo, leaflet
+- **Asset Mapper** + **Stimulus** + **Turbo Drive** (Symfony stack; jediný „build step" je Sass — `symfonycasts/sass-bundle`, `make dcSassBuild` / `make dcSassWatch`)
+- **Importmap** (`importmap.php`) drží: stimulus, turbo, leaflet, **bootstrap** (JS + Popper) a `bootstrap/dist/css/bootstrap.min.css`
 - Turbo je aktivně zapnuté — link kliky a form submity jsou frame swapy, ne full reloady. Předpokládá to, že stránky extendují `base.html.twig` a vrací 30x redirecty po POST.
 - Stimulus controllery v `assets/controllers/`:
   - `hello_controller.js` — placeholder z generátoru
@@ -85,7 +85,11 @@ Pravidlo: **legacy tabulky čti raw SQL přes `doctrine.dbal.old_connection`, ne
   - `live_slug_controller.js` — live URL preview pro unverified line edit form: slugify-uje typed name a updatuje `<code>` preview. Server na save přegeneruje slug přes `makeUniqueSlug`.
   - `photo_like_controller.js` — like button na `/lajna/{slug}/fotky/{id}`; intercept-uje form submit, POST přes fetch s `Accept: application/json`, endpoint vrátí `{liked, count}` JSON, controller updatuje classy + `aria-pressed` + icon + count. Při fetch failu padá zpět na nativní form submit (graceful degradation).
   - `tv_controller.js` — click-to-play facade na `/tv`: náhled karty nahradí `youtube-nocookie` embedem až po kliknutí (neload 24 iframů + privacy). Viz § *Feed (slackTV)*.
-  - `tabs_controller.js` — **obecná** tab komponenta: přepíná `aria-selected` + `hidden` panel podle indexu, volitelný deep-link přes URL hash (`data-tabs-hash-param`). Vzhled čistě v CSS (`.tabs` underline / `.tabs-pills` chip varianta). Použito na `/tv` (hashtag taby) a `/denik/{id}` (Highline/Longline).
+  - `tabs_controller.js` — **obecná** tab komponenta: přepíná `aria-selected` + `hidden` panel podle indexu (+ Bootstrap `.active` na tabu), volitelný deep-link přes URL hash (`data-tabs-hash-param`). Vzhled dodává Bootstrap (`nav-underline` / `nav-pills` s brand theme v `_tabs.scss`). Použito na `/tv` (hashtag taby) a `/denik/{id}` (Highline/Longline).
+  - `tv_more_controller.js` — AJAX „načíst další" stránkování sliderů na `/tv` (`/tv/more`, `pageToken`).
+  - `data_table_controller.js` — generická filtrovatelná + řaditelná tabulka (fulltext filtr, klik na `th[data-sort-type]` řadí, `aria-sort`, count badge). Použito na `/denicky`.
+  - `line_feed_controller.js` — box „Lajny ve výřezu" v sidebaru `/mapa`: čistý view, poslouchá `slack:viewport-lines` broadcast z `map_controller` (viz event bus níž), klik na řádek → `slack:line-focus`.
+  - `gallery_nav_controller.js` — lišta roků na `/galerie`: scrollspy (rAF-throttled scroll listener zvýrazňuje rok právě pod hlavičkou + doscrolluje aktivní chip v liště) a klik na rok (`jump`). **Gotcha:** klik na in-page kotvu nesmí propadnout Turbu — to ho bere jako novou visit (refetch celé stránky + vlastní scroll, který přestřeluje), proto `preventDefault` + `scrollIntoView` + `history.replaceState`.
 
 #### Cross-controller event bus
 
@@ -95,9 +99,17 @@ Mapový sidebar a mapa potřebují komunikovat napříč nezávislými Stimulus 
 |---|---|---|---|
 | `slack:map-mode` | `map` | `crossing-feed` | `{ mode: 'recent' \| 'time-travel', date?, days? }` — feed podle toho přefetchuje data (sloty se debouncují 200 ms + AbortController) |
 | `slack:users-visibility` | `crossing-feed` (eye button) | `map` | `{ visible: bool }` — mapa přidá/odebere `usersLayer` |
+| `slack:viewport-lines` | `map` (na `moveend`/`zoomend`) | `line-feed` | `{ lines: [...] }` — lajny v aktuálním výřezu (box „Lajny ve výřezu") |
+| `slack:lines-request` | `line-feed` (na connect) | `map` | replay posledního `viewport-lines` — jistí boot race při pořadí connectů |
+| `slack:line-focus` | `line-feed` (klik na řádek) | `map` | `{ id }` — setView na lajnu + otevření popupu |
 
 Stav přežívá Turbo navigaci přes `sessionStorage` (`slack.cz:map:feed-collapsed`, `slack.cz:map:users-hidden`, `slack.cz:map:view`). Map controller čte `users-hidden` přímo na bootu (ne přes event), aby nedocházelo k race condition s pořadím Stimulus connectů.
-- **CSS v `assets/styles/`** — `app.css` byl monolit (~5000 řádků); rozdělený na **30 komponentních partialů** (`_tokens.css`, `_nav.css`, `_map.css`, `_line.css`, `_photo.css`, `_music.css`, …). `app.css` je teď jen **`@import` manifest** (pořadí = kaskáda; tokens první, komponenty pak). AssetMapper servíruje partialy jako samostatné soubory (CSS `@import`, žádný build step / bundling), takže žádný preprocessor — jen plain CSS rozkrájené podle komponent. `_tokens.css` drží design tokeny (CSS custom properties) + `data-theme` varianty. Nový komponentní blok = nový `_*.css` + řádek v `app.css`.
+- **CSS = Bootstrap 5 + jedna vlastní Sass vrstva** (mobile-first pivot 2026-07-01, custom CSS monolit zahozen). Kaskáda ve `app.js`: `bootstrap.min.css` (importmap) → **`assets/styles/app.scss`** — jediný vlastní stylesheet. `app.scss` je **jen `@use` manifest** (žádné selektory!): shell (tokeny + base) → porty legacy stránek → Bootstrap theme vrstvy. Konvence:
+  - **jedna komponenta = jeden flat `_*.scss`** v `assets/styles/` + řádek v manifestu (pořadí = kaskáda)
+  - **breakpointy VŽDY přes mixiny** `media-up($bp)`/`media-down($bp)` z `_breakpoints.scss` (Bootstrap škála sm 576 / md 768 / lg 992 / xl 1200 / xxl 1400) — žádné hardcoded px v `@media`
+  - **žádný surový Bootstrap vzhled** — default je polotovar; komponenty dostávají brand theme (paleta v `_variables.scss`: `$brand` `#e1005b`, theming přes Bootstrap CSS proměnné v `_shell.scss`, ne přes Sass `$primary`)
+  - `_shell.scss` drží `--slack-header-h` (72 px fixní hlavička) + legacy `--color-*` tokeny, které ještě čtou portnuté partialy
+  - build: `make dcSassBuild` (jednorázově) / `make dcSassWatch` (dev); **v dev pozor na `public/assets/`** — zkompilované assety z `asset-map:compile` stínují živé soubory, po změně assetů je přegenerovat nebo smazat
 - Obrázky v `assets/images/` (logo, leaflet ikony, archivní artefakty)
 - Audio v `public/audio/` (12 stop, 128 kbps stereo). Originály v `var/audio-original/` (gitignored).
 - Google Fonts: **Space Grotesk** (400, 500, 600, 700) jako globální font na `body` — geometrický sans s charakterem, sedí k bold display logu. Linkovaný přes `<link>` tag v `base.html.twig`.
@@ -134,10 +146,11 @@ Fotky lajn (`LinePhoto`, Vich storage `public/uploads/line/<id>/`, gitignored). 
 
 1. **Vytáhne metadata** přes exiftool: `DateTimeOriginal` → `LinePhoto.createdAt`, GPS → `gpsLat`/`gpsLng`. Nic víc (ISO/model foťáku = balast).
 2. **Normalizuje soubor**: HEIC/JPG/PNG → **WebP master**, auto-orientace, zmenšení na ≤ 2560 px delší hrana, q85, strip všech metadat.
+3. **Uloží pixel rozměry masteru** → `LinePhoto.width`/`height` (z `getimagesize` nad výstupem, tj. po resize + rotaci). Potřebuje je justified grid na `/galerie` — poměr stran musí být známý před načtením obrázku (layout bez CLS). Řádky z doby před sloupci dorovnává **`app:photo:backfill-dimensions`** (čte mastery přes Vich storage; jednorázově po importu / na novém prostředí).
 
 Důvod modelu „metadata do DB sloupců + čistý soubor": embedovaná metadata v souborech jsou pro web nepraktická a reencode (nutný kvůli HEIC/velikosti) je stejně zahodí. Tak vytáhneme ty 2 užitečné věci (datum + GPS) do DB a ukážeme je na detailu fotky; soubor je čistý.
 
-`LiipImagine` (GD driver, WebP in/out) pak z WebP masteru generuje thumb/medium/full (cachované v `public/media/cache/`). Disk-conscious schválně — běžíme na nejlevnějším Hetzner VPS (40 GB sdílených). Ladicí knoby (`MAX_EDGE`, `QUALITY`) jsou konstanty v `PhotoNormalizer`. Originály nedržíme (jsou v mobilech lidí).
+`LiipImagine` (GD driver, WebP in/out) pak z WebP masteru generuje thumb/medium/full + `gallery_thumb` (inset 1600×480 — výška pro ~240px řádek galerie ve 2× retina, poměr stran zachovaný; cachované v `public/media/cache/`). Disk-conscious schválně — běžíme na nejlevnějším Hetzner VPS (40 GB sdílených). Ladicí knoby (`MAX_EDGE`, `QUALITY`) jsou konstanty v `PhotoNormalizer`. Originály nedržíme (jsou v mobilech lidí).
 
 `Assert\File` na uploadu povoluje `jpeg/png/webp/heic/heif` do 30 MB (syrový vstup; downscale řeší velikost). HEIC detekuje `finfo` jako `image/heic` (libmagic v Alpine).
 
@@ -248,6 +261,7 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 | `/data-report` | `app_data_report` | ✓ veřejná, ale odkaz v menu jen adminovi — proklik na legacy detail (`LineController::PRODUCTION_URL`) |
 | `/denik/{id}` | `app_user_diary` | ✓ deník konkrétního uživatele (taby Highline / Longline, deep-link `#highline`/`#longline`) |
 | `/denicky` | `app_user_directory` | ✓ adresář deníčků (žebříček počtu přechodů) |
+| `/galerie` | `app_gallery` | ✓ kronika všech fotek po letech (justified grid, scrollspy roků) |
 | `/o-projektu` | `app_about` | ✓ |
 | `/intro` | `app_intro` | ✓ splash overlay (zatím nelinkováno z nav) |
 | `/profil` | `app_profile` | login required |
@@ -280,7 +294,8 @@ Diagnostika v `var/log/dev.log`: `quotaExceeded` → starý projekt vyčerpal kv
 - ✅ **Crossing news-bar sidebar** na `/mapa` — vertikální panel vlevo s posledními N přechody (sdílí data s emoji markery na mapě). Eye toggle skryje/zobrazí emoji markery, šipka collapsne panel na samotnou hlavičku. V time-travel režimu se obsah přepíná na okno -7 dní zpět od virtuálního času.
 - ✅ **Deník uživatele** `/denik/{id}` — hlavička (nick, město, ročník, datum prvního přechodu), mini-mapa s navštívenými lajnami, list všech přechodů
 - ✅ **Markdown sections** `/docs` + `/wiki` — sjednocený subsystém pro MD obsah z repa (čte se z disku). Detail níže.
-- ✅ **Line foto galerie + sociální vrstva** — `LinePhoto` (line FK, uploadedBy FK SET NULL, filename, caption, createdAt) + `LinePhotoLike` (UNIQUE photo+user) + `LinePhotoComment` (photo FK CASCADE, author FK SET NULL, text, createdAt). Upload přes `vich/uploader-bundle` (mapping `line_photo` → `public/uploads/line/{id}/<uniqid>.ext`, JPG/PNG/WebP). Thumby on-demand přes `liip/imagine-bundle` (filter sety `line_thumb` 320×240 outbound, `line_medium` 800×600 inset, `line_full` 2400 inset; všechny s `auto_rotate` + `strip`). Origin EXIF strip + orientace + WebP master řeší `App\Service\PhotoNormalizer` (post-upload, `magick` + `exiftool`), takže ani originál v `/uploads/` neuniká GPS. Per-photo detail `/lajna/{slug}/fotky/{id}` s AJAX like-toggle (Stimulus `photo_like_controller`, fetch s `Accept: application/json`, endpoint vrací `{liked, count}`), plain-text flat komentáři (owner/admin delete), prev/next navigací. Grid v `_line_gallery.html.twig` zobrazuje overlay badges (likes ❤, komenty 💬). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní; fallback all-time top-liked. Cover header lajny v `line_detail.html.twig` je zatím čistě `Line::getLegacyCoverUrl()` (legacy URL `https://slack.cz/line/high/{legacyId}/foto.jpg`) — fotky z galerie do coveru zatím nemícháme. Legacy import `highline_foto` + `highline_media` deferred (vyžaduje SSH).
+- ✅ **Line foto galerie + sociální vrstva** — `LinePhoto` (line FK, uploadedBy FK SET NULL, filename, caption, createdAt) + `LinePhotoLike` (UNIQUE photo+user) + `LinePhotoComment` (photo FK CASCADE, author FK SET NULL, text, createdAt). Upload přes `vich/uploader-bundle` (mapping `line_photo` → `public/uploads/line/{id}/<uniqid>.webp`; vstup JPG/PNG/WebP/HEIC do 30 MB, ukládá se vždy WebP master z `PhotoNormalizer`). Thumby on-demand přes `liip/imagine-bundle` (filter sety `line_thumb` 320×240 outbound, `gallery_thumb` 1600×480 inset, `line_medium` 800×600 inset, `line_full` 2400 inset; všechny s `auto_rotate` + `strip`). EXIF (datum + GPS) jde do DB sloupců, soubor je čistý — viz § *Foto galerie — upload pipeline*. Per-photo detail `/lajna/{slug}/fotky/{id}` s AJAX like-toggle (Stimulus `photo_like_controller`, fetch s `Accept: application/json`, endpoint vrací `{liked, count}`), plain-text flat komentáři (owner/admin delete), prev/next navigací. Grid v `_line_gallery.html.twig` zobrazuje overlay badges (likes ❤, komenty 💬). Homepage panel „Z galerie" rotuje N fotek z posledních 7 dní (fallback all-time top-liked) + „Otevřít →" na `/galerie`. Cover lajny je **self-hostovaný** přes `Line.coverPhoto` FK (legacy hotlink zrušen 2026-06-16). Legacy import cover + galerie **hotový** (`app:import:line-photos`, viz `migration.md` § *Line photos*); `highline_media` (externí odkazy) zůstává deferred.
+- ✅ **Galerie `/galerie` — kronika po letech** (2026-07-04) — všech ~376 fotek v ročních sekcích 2026→2004 + „Bez data", sticky lišta roků se scrollspy (`gallery_nav_controller.js`). **Justified grid čistě v CSS** (`_gallery.scss`): `flex-grow` i `flex-basis` položky škálované poměrem stran (`--ar` inline z `LinePhoto.getAspectRatio()`), takže řádek má jednotnou výšku a layout je stabilní ještě před načtením obrázků (nulový CLS — výška dokumentu se s obrázky nemění); `::after` spacer hlídá poslední řádek. Hover overlay se jménem lajny + popiskem (na touch skrytý), klik → stávající photo detail. Koncept „čas jako jediná osa" je rozhodnutí usera — u legacy fotek je `createdAt` datum 1. napnutí lajny (aproximace), s user uploady (reálný EXIF) se kronika zpřesňuje sama. Seskupení po lajnách/místech záměrně ne: ~1,6 fotky na lajnu, `area`/`region` prázdné.
 
 ## Markdown sections (`/docs`, `/wiki`)
 

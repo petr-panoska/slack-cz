@@ -321,7 +321,8 @@ Legacy `longline.styl` má stejný volný slovník jako highline (`one way`, `OS
 - Cílová entita: `App\Entity\LinePhoto` (`legacyId` = `highline_foto.id` u galerie, NULL u coveru/orphanů), `Line.coverPhoto`.
 - Soubory: normalizace přes `App\Service\PhotoNormalizer` (stejná pipeline jako user uploady) → **WebP master** ve Vich storage `public/uploads/line/<id>/` (gitignored). Legacy originály v `../old-slack-cz` se nesahají. Legacy soubory nemají žádné EXIF (ověřeno: 0 GPS / 0 orientace / 0 capture-date), takže se z nich GPS/datum netáhne.
 - Výsledek (ověřeno disk × old DB × **živý slack.cz**, všech 254 lajn): **151 galerie + 225 coverů = 376 fotek, 0 ztraceno.** 228/254 lajn má aspoň fotku, 26 nemá žádnou.
-- **Datum fotky** (`LinePhoto.createdAt`, nullable): legacy = datum 1. napnutí lajny (`firstAscentDate`), nebo **NULL** když lajna datum nemá (legacy neměl per-foto datum a soubory nemají EXIF). Nové uploady = reálný čas nahrání. Vidět v detailu i galerii (NULL → datum se nezobrazí). Galerie řadí NULL data naposled.
+- **Datum fotky** (`LinePhoto.createdAt`, nullable): legacy = datum 1. napnutí lajny (`firstAscentDate`), nebo **NULL** když lajna datum nemá (legacy neměl per-foto datum a soubory nemají EXIF). Nové uploady = reálný čas nahrání. Vidět v detailu i galerii (NULL → datum se nezobrazí). Galerie řadí NULL data naposled; `/galerie` (kronika po letech) je má v sekci „Bez data".
+- **Rozměry masteru** (`LinePhoto.width`/`height`, od 2026-07-04): import je plní z normalizovaného WebP; řádky importované před přidáním sloupců dorovnal jednorázový **`app:photo:backfill-dimensions`** (376/376 lokálně). Na novém prostředí (beta/prod po `syncBetaFromLocal` z doby před sloupci) ho spusť po deployi — bez něj `/galerie` kreslí fotky s fallback poměrem 4:3.
 
 #### Legacy nekonzistence (ověřené, ošetřené — ne ztráta stažení)
 

@@ -36,7 +36,7 @@ chmod 777 public/uploads public/media/cache
 
 Oba adresáře jsou v `.gitignore`, takže permisivní mód nikoho neuráží. Symptom při chybějícím write: `Warning: mkdir(): Permission denied` při uploadu fotky.
 
-**Upload pipeline** (user uploady i legacy import): každá fotka projde `App\Service\PhotoNormalizer` → vytáhne datum+GPS přes `exiftool`, převede přes ImageMagick (`magick`) na **WebP master** (auto-orient, ≤ 2560 px, q85, strip metadat), HEIC z iPhonů včetně. Oboje je v `php` containeru (`docker/php/Dockerfile`: `imagemagick imagemagick-heic imagemagick-webp exiftool`) — **po editaci Dockerfile nezapomeň `docker compose build php`**, jinak `magick`/`exiftool` chybí a upload spadne. Upload limit je v `conf.d/uploads.ini` (32M) kvůli mobil fotkám — default `php.ini-development` má jen 2M. Detail pipeline v `architecture.md` § *Foto galerie — upload pipeline*.
+**Upload pipeline** (user uploady i legacy import): každá fotka projde `App\Service\PhotoNormalizer` → vytáhne datum+GPS přes `exiftool`, převede přes ImageMagick (`magick`) na **WebP master** (auto-orient, ≤ 2560 px, q85, strip metadat), HEIC z iPhonů včetně. Oboje je v `php` containeru (`docker/php/Dockerfile`: `imagemagick imagemagick-heic imagemagick-webp exiftool`) — **po editaci Dockerfile nezapomeň `docker compose build php`**, jinak `magick`/`exiftool` chybí a upload spadne. Upload limit je v `conf.d/uploads.ini` (32M) kvůli mobil fotkám — default `php.ini-development` má jen 2M. Pipeline zapisuje i **pixel rozměry masteru** do `line_photo.width/height` (poměr stran pro justified grid na `/galerie`); starší řádky bez rozměrů dorovná `bin/console app:photo:backfill-dimensions`. Detail pipeline v `architecture.md` § *Foto galerie — upload pipeline*.
 
 ## Symfony console
 

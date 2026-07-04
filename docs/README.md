@@ -28,6 +28,8 @@ Je míněn primárně pro vývojáře projektu (CAS).
 | Rozhodnout se o upgradu na Symfony 8.x (cesta, cena, deprecations) | `roadmap.md` |
 | Ladit YouTube feed / quota / cache | `architecture.md` § *Feed* |
 | Pochopit foto upload (WebP/HEIC, datum+GPS) nebo legacy foto import | `architecture.md` § *Foto galerie* + `migration.md` § *Line photos* |
+| Pochopit `/galerie` (kronika po letech, justified grid, width/height sloupce) | `architecture.md` § *Hotové features → Galerie* + `todo.md` § *Galerie* |
+| Přidat/upravit styly (Sass partialy, breakpoint mixiny, brand theme) | `architecture.md` § *Frontend* |
 | Cokoli kolem `slackvibes` audio playeru | `audio-player.md` |
 | Pochopit `App\Markdown\Section\*` (jak `/docs` a `/wiki` jedou ze stejného kódu) | `architecture.md` § *Markdown sections* |
 | Deployovat (`make deploy`, GH Actions) | `deploy.md` § *Deploy* |
