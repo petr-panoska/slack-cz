@@ -6,6 +6,7 @@
 docker compose up -d
 make dcSetup
 make dcInitDb
+make dcSassBuild
 
 # download *.sql export and save in project root
 make loadLegacyDump
@@ -25,6 +26,7 @@ App běží na [localhost:8000](http://localhost:8000)
 docker compose up -d
 make dcSetup
 make dcInitDb
+make dcSassBuild
 ```
 
 app is running at [localhost:8000](http://localhost:8000)
