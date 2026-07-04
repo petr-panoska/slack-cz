@@ -60,6 +60,22 @@ final class PagesController extends AbstractController
         ]);
     }
 
+    #[Route('/galerie', name: 'app_gallery')]
+    public function gallery(LinePhotoRepository $photos): Response
+    {
+        // Year sections, newest first; photos without a date close the chronicle (key null).
+        $byYear = [];
+        foreach ($photos->findForGallery() as $photo) {
+            $year = $photo->getCreatedAt()?->format('Y');
+            $byYear[$year ?? 'null'][] = $photo;
+        }
+
+        return $this->render('pages/gallery.html.twig', [
+            'photos_by_year' => $byYear,
+            'total' => array_sum(array_map('count', $byYear)),
+        ]);
+    }
+
     #[Route('/o-projektu', name: 'app_about')]
     public function about(): Response
     {

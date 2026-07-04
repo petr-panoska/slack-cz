@@ -15,6 +15,9 @@ final readonly class NormalizedImage
         public ?\DateTimeImmutable $takenAt,
         public ?string $gpsLat,
         public ?string $gpsLng,
+        /** Pixel size of the normalized master (post-resize, post-rotate). */
+        public int $width,
+        public int $height,
     ) {
     }
 }

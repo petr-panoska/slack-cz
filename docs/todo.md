@@ -69,6 +69,10 @@ Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (
 - [ ] Clustering markerů v hustých oblastech (Tisá, Ostrov)
 - [ ] „Přidat lajnu" CTA klikem na mapu — z `/mapa` klik na prázdné místo předvyplní Bod 1 (teď jen v hlavičce + ručně nastavené GPS)
 
+### Galerie
+- [x] **Samostatná stránka `/galerie` — kronika po letech** (2026-07-04) — koncept vybrán s userem (čas = jediná osa s daty: 0 GPS/autorů/lajků, oblast prázdná, ~1,6 fotky na lajnu ⇒ seskupení po lajnách/místech nedává smysl). Roční sekce 2026→2004 + „Bez data", sticky lišta roků se scrollspy (`gallery_nav_controller.js`), **justified grid** (flex: `flex-grow`/`flex-basis` škálované poměrem stran přes `--ar`, `aspect-ratio` ⇒ nulový CLS — výška dokumentu identická s obrázky i bez nich), hover overlay se jménem lajny + popiskem, klik → stávající detail fotky. Nové `line_photo.width/height` (migrace `Version20260704133205`, plní `PhotoNormalizer` při uploadu i importu; backfill `app:photo:backfill-dimensions` — lokálně hotovo 376/376). Liip filtr `gallery_thumb` (inset 1600×480). Odkazy: nav „Galerie" + „Otevřít →" z homepage karty. **Gotcha:** klik na kotvu v rámci stránky Turbo bere jako novou visit (refetch + vlastní scroll, který přestřelí) → chip klik řeší controller sám (`preventDefault` + `scrollIntoView` + `replaceState`). Ověřeno lint:twig+lint:container+phpunit 8/8 + Playwright (chip → sekce přesně pod lištou, klik na fotku → detail, mobil bez overflow).
+- [ ] Časem: fotky z přechodů / hero momenty — až budou user uploady s reálnými EXIF daty, kronika se zpřesní sama (legacy fotky mají datum = 1. napnutí lajny).
+
 ### Profil — avatar / bio / odkazy
 - [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy.
 
@@ -101,6 +105,7 @@ Detailně v `deploy.md`. Launch-blockery.
 - [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů).
 - [ ] Zkontrolovat `LineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji veřejná „Data report" stránka (`/data-report`) pro proklik na legacy detail; upravit, pokud se prod host změní.
 - [ ] Nastavit reálné `YOUTUBE_API_KEY` v `.env.local` na serveru pro slackTV feed.
+- [ ] Po prvním deployi s galerií spustit na serveru **`bin/console app:photo:backfill-dimensions`** (jednorázově; migrace přidá `line_photo.width/height` jako NULL a bez backfillu se fotky v `/galerie` vykreslí s fallback poměrem 4:3).
 - [ ] (volitelné) `unattended-upgrades` na auto-security patches.
 - [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery.
 

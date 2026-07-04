@@ -325,6 +325,7 @@ final class ImportLinePhotosCommand extends Command
         if ($normalized->gpsLat !== null) {
             $photo->setGps($normalized->gpsLat, $normalized->gpsLng);
         }
+        $photo->setDimensions($normalized->width, $normalized->height);
         $photo->setFile(new UploadedFile($normalized->path, 'photo.webp', 'image/webp', null, true));
         $this->em->persist($photo);
         $this->em->flush(); // Vich writes the file and sets filename here

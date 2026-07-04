@@ -15,6 +15,15 @@ liip_imagine:
                 strip: ~
                 thumbnail: { size: [320, 240], mode: outbound }
 
+        # Galerie /galerie — justified grid, řádek ~240 px ⇒ 480 px na výšku (2× retina),
+        # poměr stran zachovaný (inset; šířka 1600 jen jistí extrémní panorama)
+        gallery_thumb:
+            quality: 82
+            filters:
+                auto_rotate: ~
+                strip: ~
+                thumbnail: { size: [1600, 480], mode: inset }
+
         # Lightbox / preview (max 800×600, zachová poměr)
         line_medium:
             quality: 85

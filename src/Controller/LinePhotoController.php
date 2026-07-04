@@ -65,6 +65,7 @@ final class LinePhotoController extends AbstractController
                 $photo->setCreatedAt($normalized->takenAt);
             }
             $photo->setGps($normalized->gpsLat, $normalized->gpsLng);
+            $photo->setDimensions($normalized->width, $normalized->height);
 
             $em->persist($photo);
             $em->flush();

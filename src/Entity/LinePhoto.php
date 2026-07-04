@@ -34,6 +34,17 @@ class LinePhoto
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $caption = null;
 
+    /**
+     * Pixel dimensions of the stored master. Known for new uploads and backfilled
+     * imports (app:photo:backfill-dimensions); NULL only until a backfill runs.
+     * The gallery needs the aspect ratio before the image loads (layout without CLS).
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $width = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $height = null;
+
     /** Capture GPS, extracted from EXIF at upload (mostly phone photos). NULL when absent. */
     #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
     private ?string $gpsLat = null;
@@ -117,6 +128,32 @@ class LinePhoto
     {
         $this->caption = $caption;
         return $this;
+    }
+
+    public function getWidth(): ?int
+    {
+        return $this->width;
+    }
+
+    public function getHeight(): ?int
+    {
+        return $this->height;
+    }
+
+    public function setDimensions(?int $width, ?int $height): static
+    {
+        $this->width = $width;
+        $this->height = $height;
+        return $this;
+    }
+
+    /** Width/height ratio for layout, or NULL when dimensions are unknown. */
+    public function getAspectRatio(): ?float
+    {
+        if ($this->width === null || $this->height === null || $this->height === 0) {
+            return null;
+        }
+        return $this->width / $this->height;
     }
 
     public function getGpsLat(): ?string

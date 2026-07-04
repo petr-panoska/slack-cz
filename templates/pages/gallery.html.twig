@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Galerie – fotky českých lajn rok po roku – slack.cz{% endblock %}
+
+{% block body %}
+<div class="container-xxl py-4" data-controller="gallery-nav">
+    <header class="mb-3">
+        <h1 class="mb-1">Galerie</h1>
+        <p class="text-body-secondary mb-0">
+            {{ total }} fotek, rok po roku. Klikni na fotku — u každé najdeš detail, komentáře a lajky.
+        </p>
+    </header>
+
+    <nav class="gallery-years" aria-label="Skok na rok">
+        {% for year, list in photos_by_year %}
+            {% set anchor = year == 'null' ? 'bez-data' : 'rok-' ~ year %}
+            <a href="#{{ anchor }}" class="gallery-year-link" data-gallery-nav-target="link" data-action="gallery-nav#jump">
+                {{ year == 'null' ? 'Bez data' : year }}
+            </a>
+        {% endfor %}
+    </nav>
+
+    {% for year, list in photos_by_year %}
+        {% set anchor = year == 'null' ? 'bez-data' : 'rok-' ~ year %}
+        <section class="gallery-section" id="{{ anchor }}" data-gallery-nav-target="section">
+            <h2 class="gallery-year-heading">
+                {{ year == 'null' ? 'Bez data' : year }}
+                <span class="gallery-year-count">{{ list|length }} {{ list|length == 1 ? 'fotka' : (list|length < 5 ? 'fotky' : 'fotek') }}</span>
+            </h2>
+            <div class="gallery-grid">
+                {% for photo in list %}
+                    <a
+                        href="{{ path('app_line_photo_detail', { slug: photo.line.slug, id: photo.id }) }}"
+                        class="gallery-item"
+                        style="--ar: {{ (photo.aspectRatio ?? 1.3333)|number_format(4, '.', '') }}"
+                    >
+                        <img
+                            src="{{ vich_uploader_asset(photo, 'file') | imagine_filter('gallery_thumb') }}"
+                            alt="{{ photo.caption ?? photo.line.name }}"
+                            loading="lazy"
+                        >
+                        <span class="gallery-item-overlay">
+                            <span class="gallery-item-line">{{ photo.line.name }}</span>
+                            {% if photo.caption %}
+                                <span class="gallery-item-caption">{{ photo.caption }}</span>
+                            {% endif %}
+                        </span>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}

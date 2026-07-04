@@ -96,6 +96,7 @@
                 <ul class="navbar-nav me-auto align-items-lg-center column-gap-lg-1">
                     <li class="nav-item"><a href="{{ path('app_line_map') }}" class="nav-link {{ (route starts with 'app_line_map' or route == 'app_line_detail') ? 'active' }}">Mapa</a></li>
                     <li class="nav-item"><a href="{{ path('app_user_directory') }}" class="nav-link {{ route starts with 'app_user_' ? 'active' }}">Deníčky</a></li>
+                    <li class="nav-item"><a href="{{ path('app_gallery') }}" class="nav-link {{ route == 'app_gallery' ? 'active' }}">Galerie</a></li>
                     <li class="nav-item"><a href="{{ path('app_tv') }}" class="nav-link {{ route == 'app_tv' ? 'active' }}">slackTV</a></li>
                     <li class="nav-item"><a href="{{ path('app_about') }}" class="nav-link {{ route == 'app_about' ? 'active' }}">O projektu</a></li>
                     <li class="nav-item"><a href="{{ path('app_wiki_index') }}" class="nav-link {{ route starts with 'app_wiki_' ? 'active' }}">Wiki</a></li>

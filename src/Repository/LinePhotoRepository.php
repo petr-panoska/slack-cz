@@ -33,6 +33,24 @@ class LinePhotoRepository extends ServiceEntityRepository
     }
 
     /**
+     * Gallery chronicle: every photo, newest year first; undated last. Line is
+     * fetch-joined — the grid prints its name/slug for each photo.
+     * @return list<LinePhoto>
+     */
+    public function findForGallery(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('l')
+            ->join('p.line', 'l')
+            ->addSelect('CASE WHEN p.createdAt IS NULL THEN 1 ELSE 0 END AS HIDDEN createdNull')
+            ->orderBy('createdNull', 'ASC')
+            ->addOrderBy('p.createdAt', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Homepage rotation: random N from the recent window; top up with all-time most-liked if short.
      * @return list<LinePhoto>
      */

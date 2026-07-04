@@ -69,12 +69,13 @@ final class PhotoNormalizer
             throw $e;
         }
 
-        if (!is_file($out) || filesize($out) === 0 || @getimagesize($out) === false) {
+        $size = is_file($out) && filesize($out) > 0 ? @getimagesize($out) : false;
+        if ($size === false) {
             @unlink($out);
             throw new \RuntimeException('Normalization produced no valid image for ' . $sourcePath);
         }
 
-        return new NormalizedImage($out, $takenAt, $gpsLat, $gpsLng);
+        return new NormalizedImage($out, $takenAt, $gpsLat, $gpsLng, $size[0], $size[1]);
     }
 
     /**
