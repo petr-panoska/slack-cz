@@ -1,0 +1,82 @@
+// --- Tabulky (Bootstrap) ----------------------------------------------
+// Theme vrstva nad Bootstrap .table — sjednocuje vzhled s původními
+// datovými tabulkami webu (malé verzálkové hlavičky, tmavé bold odkazy
+// bez podtržení, kompaktní ale dýchající řádky). Platí pro všechny
+// migrované tabulky, ať se to neladí per-page.
+@use 'variables' as *;
+
+.table {
+    font-size: 0.85rem;
+
+    > :not(caption) > * > * {
+        padding: 0.6rem 0.85rem;
+    }
+
+    > thead th {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--color-muted, #6b6b6b);
+    }
+
+    a {
+        color: var(--color-fg, #1a1a1a);
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            color: $brand;
+            text-decoration: underline;
+        }
+    }
+}
+
+// Tabulka v kartě: poslední řádek bez borderu — hranu dělá karta sama.
+.card .table > tbody > tr:last-child > * {
+    border-bottom: 0;
+}
+
+// Filtr nad tabulkou (data-table controller) — nemá smysl přes celou kartu.
+.table-filter {
+    max-width: 360px;
+}
+
+// Sort affordance pro data-table Stimulus controller — funguje na
+// libovolné Bootstrap tabulce, stačí th[data-sort-type] (+ aria-sort,
+// který controller přepíná).
+th[data-sort-type] {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+
+    &::after {
+        content: '↕';
+        margin-left: 4px;
+        opacity: 0.35;
+        font-size: 0.85em;
+    }
+
+    &:hover {
+        color: $brand;
+    }
+}
+
+th[aria-sort='ascending']::after {
+    content: '↑';
+    opacity: 1;
+    color: $brand;
+}
+
+th[aria-sort='descending']::after {
+    content: '↓';
+    opacity: 1;
+    color: $brand;
+}
+
+// Číselné buňky — zarovnané číslice, nezalamovat.
+.cell-num {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}

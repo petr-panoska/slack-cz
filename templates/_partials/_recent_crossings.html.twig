@@ -1,46 +1,45 @@
-{# Renders a list of recent highline crossings.
+{# Renders a list of recent highline crossings (Bootstrap list-group,
+   meant to sit flush inside a .card).
    Params:
      crossings    – iterable of LineCrossing
-     layout       – 'panel' (default, vertical list) or 'stripe' (horizontal scroll)
      show_line    – include the line name (default true). Set false on a line detail page where it's redundant.
-     show_user    – include the crossing author's name (default true). Set false on a user's own deník where it's redundant.
-     show_actions – render edit/delete buttons next to crossings owned by the current user. Set true on the user's own deník. #}
-{% set layout = layout|default('panel') %}
+     show_user    – include the crossing author's name (default true). Set false on a user's own diary where it's redundant.
+     show_actions – render edit/delete buttons next to crossings owned by the current user. Set true on the user's own diary. #}
 {% set show_line = show_line ?? true %}
 {% set show_user = show_user ?? true %}
 {% set show_actions = show_actions ?? false %}
 {% if crossings|length > 0 %}
-<ul class="crossings-list crossings-list-{{ layout }}">
+<ul class="list-group list-group-flush">
     {% for c in crossings %}
-        <li class="crossings-item{% if not show_line %} crossings-item-noline{% endif %}{% if not show_user %} crossings-item-nouser{% endif %}">
-            <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
+        <li class="list-group-item crossing-item{% if not show_line %} crossing-item--noline{% endif %}{% if not show_user %} crossing-item--nouser{% endif %}">
+            <time datetime="{{ c.crossedAt|date('c') }}" class="crossing-date">{{ c.crossedAt|date('j. n. Y') }}</time>
             {% if c.style %}
-                <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
+                <span class="badge crossing-style" title="Styl přechodu">{{ c.style.label }}</span>
             {% endif %}
             {% if show_user %}
-                <a class="crossings-user" href="{{ path('app_user_diary', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
+                <a class="crossing-user" href="{{ path('app_user_diary', { id: c.user.id }) }}">{{ c.user.displayName }}</a>
             {% endif %}
-            <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
+            <span class="crossing-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
                 {% if c.rating %}
                     {% for s in 1..5 %}
-                        <span class="crossings-star{% if s <= c.rating %} on{% endif %}">★</span>
+                        <span class="crossing-star{% if s <= c.rating %} on{% endif %}">★</span>
                     {% endfor %}
                 {% else %}
-                    <span class="crossings-rating-none">–</span>
+                    <span>–</span>
                 {% endif %}
             </span>
             {% if show_line %}
-                <a class="crossings-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
+                <a class="crossing-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
             {% endif %}
             {% if c.comment %}
-                <p class="crossings-comment">{{ c.comment }}</p>
+                <p class="crossing-comment">{{ c.comment }}</p>
             {% endif %}
             {% if show_actions and app.user and c.user.id == app.user.id %}
-                <div class="crossings-actions">
-                    <a class="btn btn-secondary btn-sm" href="{{ path('app_crossing_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
-                    <form method="post" action="{{ path('app_crossing_delete', { id: c.id }) }}" class="crossings-delete-form" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false">
+                <div class="crossing-actions">
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_crossing_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
+                    <form method="post" action="{{ path('app_crossing_delete', { id: c.id }) }}" class="d-inline m-0" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete-crossing-' ~ c.id) }}">
-                        <button type="submit" class="btn btn-danger btn-sm" title="Smazat přechod">Smazat</button>
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Smazat přechod">Smazat</button>
                     </form>
                 </div>
             {% endif %}

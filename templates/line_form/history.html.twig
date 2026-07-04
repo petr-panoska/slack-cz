@@ -18,10 +18,10 @@
             {% for entry in entries %}
                 {% set edit = entry.edit %}
                 {% set status = edit.status.value %}
-                <li class="proposals-item panel">
-                    <header class="panel-header">
-                        <div class="panel-title">
-                            <span class="panel-dot panel-dot-crossings"></span>
+                <li class="proposals-item card">
+                    <header class="card-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="card-dot card-dot-crossings"></span>
                             <h2>
                                 #{{ edit.id }}
                                 {% if status == 'applied' %}

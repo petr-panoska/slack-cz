@@ -19,7 +19,7 @@
         </div>
     </header>
 
-    <section class="panel hl-photo-frame">
+    <section class="card hl-photo-frame">
         <a class="hl-photo-original-link" href="{{ vich_uploader_asset(photo, 'file') | imagine_filter('line_full') }}" target="_blank" rel="noopener" title="Otevřít v plné velikosti">
             <img
                 class="hl-photo-main"
@@ -31,7 +31,7 @@
         </a>
     </section>
 
-    <section class="panel hl-photo-meta-panel">
+    <section class="card hl-photo-meta-panel">
         {% if photo.caption %}<p class="hl-photo-caption">{{ photo.caption }}</p>{% endif %}
         <p class="hl-photo-byline">
             {% if photo.uploadedBy %}
@@ -82,11 +82,11 @@
         </div>
     </section>
 
-    <section class="panel hl-photo-comments-panel">
-        <header class="panel-header">
-            <div class="panel-title">
-                <span class="panel-dot panel-dot-crossings"></span>
-                <h2>Komentáře <span class="hl-crossings-count">{{ comments|length }}</span></h2>
+    <section class="card hl-photo-comments-panel">
+        <header class="card-header">
+            <div class="d-flex align-items-center gap-2">
+                <span class="card-dot card-dot-crossings"></span>
+                <h2>Komentáře <span class="count-badge">{{ comments|length }}</span></h2>
             </div>
         </header>
 

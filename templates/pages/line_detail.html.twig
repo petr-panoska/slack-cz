@@ -64,7 +64,7 @@
 
     <div class="hl-detail-body">
         <div class="hl-detail-grid">
-            <aside class="hl-stats panel">
+            <aside class="hl-stats card">
                 <div class="hl-stats-row">
                     <div class="hl-stat">
                         <span class="hl-stat-icon" aria-hidden="true">↔</span>
@@ -84,7 +84,7 @@
                 {% endif %}
             </aside>
 
-            <section class="hl-info panel">
+            <section class="hl-info card">
                 {% if line.description %}
                     <div class="hl-info-block hl-richtext">
                         <h2>Popis</h2>
@@ -141,10 +141,10 @@
                 likedIds: likedIds,
             }) }}
 
-            <section class="panel hl-map-panel">
-                <header class="panel-header">
-                    <div class="panel-title">
-                        <span class="panel-dot panel-dot-map"></span>
+            <section class="card overflow-hidden hl-map-panel">
+                <header class="card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="card-dot card-dot-map"></span>
                         <h2>Mapa</h2>
                     </div>
                 </header>
@@ -172,11 +172,11 @@
                 </div>
             </section>
 
-            <section class="panel hl-crossings-panel">
-                <header class="panel-header">
-                    <div class="panel-title">
-                        <span class="panel-dot panel-dot-crossings"></span>
-                        <h2>Přechody <span class="hl-crossings-count">{{ crossings|length }}</span></h2>
+            <section class="card hl-crossings-panel">
+                <header class="card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="card-dot card-dot-crossings"></span>
+                        <h2>Přechody <span class="count-badge">{{ crossings|length }}</span></h2>
                     </div>
                     {% if app.user %}
                         <a class="btn btn-primary btn-sm" href="{{ path('app_crossing_new', { slug: line.slug }) }}">+ Přidat přechod</a>
@@ -185,9 +185,9 @@
                     {% endif %}
                 </header>
                 {% if crossings|length > 0 %}
-                    {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, layout: 'panel', show_line: false }) }}
+                    {{ include('_partials/_recent_crossings.html.twig', { crossings: crossings, show_line: false }) }}
                 {% else %}
-                    <p class="hl-empty">Zatím žádný zaznamenaný přechod.</p>
+                    <p class="text-body-secondary fst-italic p-3 mb-0">Zatím žádný zaznamenaný přechod.</p>
                 {% endif %}
             </section>
         </div>

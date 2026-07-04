@@ -1,0 +1,123 @@
+// --- Seznam přechodů (Bootstrap list-group) ---------------------------
+// Sdílená komponenta: deníček, detail lajny, homepage panel. Grid drží
+// datum/styl/uživatele/hodnocení kompaktně i v úzkém sloupci na mobilu.
+@use 'variables' as *;
+
+.crossing-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        'date    style'
+        'user    rating'
+        'line    line'
+        'comment comment'
+        'actions actions';
+    gap: 2px 10px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+}
+
+// Varianta bez autora — na uživatelově vlastním deníčku.
+.crossing-item--nouser {
+    grid-template-areas:
+        'date    style'
+        'rating  rating'
+        'line    line'
+        'comment comment'
+        'actions actions';
+}
+
+// Varianta bez lajny — na detailu lajny (je zřejmá z kontextu).
+.crossing-item--noline {
+    grid-template-areas:
+        'date    style'
+        'user    rating'
+        'comment comment';
+}
+
+.crossing-date {
+    grid-area: date;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.crossing-user {
+    grid-area: user;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+a.crossing-user:hover {
+    color: $brand;
+    text-decoration: underline;
+}
+
+.crossing-line {
+    grid-area: line;
+    color: var(--bs-body-color);
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+a.crossing-line:hover {
+    color: $brand;
+    text-decoration: underline;
+}
+
+.crossing-rating {
+    grid-area: rating;
+    font-size: 0.7rem;
+    letter-spacing: -0.05em;
+    color: var(--bs-border-color);
+    white-space: nowrap;
+}
+
+.crossing-star.on {
+    color: $brand;
+}
+
+// Štítek stylu přechodu — sedí na Bootstrap .badge základu.
+.crossing-style {
+    grid-area: style;
+    align-self: center;
+    justify-self: end;
+    background: rgba($brand, 0.08);
+    color: $brand;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+}
+
+.crossing-comment {
+    grid-area: comment;
+    margin: 6px 0 0;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    font-style: italic;
+    background: var(--bs-tertiary-bg);
+    border-left: 2px solid $brand;
+    border-radius: 0 3px 3px 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.crossing-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}

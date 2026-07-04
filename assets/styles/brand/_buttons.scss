@@ -1,0 +1,22 @@
+// --- Tlačítka (Bootstrap komponentní proměnné) -----------------------
+@use 'variables' as *;
+
+.btn-primary {
+    --bs-btn-bg: #{$brand};
+    --bs-btn-border-color: #{$brand};
+    --bs-btn-hover-bg: #{$brand-dark};
+    --bs-btn-hover-border-color: #{$brand-dark};
+    --bs-btn-active-bg: #{$brand-dark};
+    --bs-btn-active-border-color: #{$brand-dark};
+    --bs-btn-disabled-bg: #{$brand};
+    --bs-btn-disabled-border-color: #{$brand};
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #{$brand};
+    --bs-btn-border-color: #{$brand};
+    --bs-btn-hover-bg: #{$brand};
+    --bs-btn-hover-border-color: #{$brand};
+    --bs-btn-active-bg: #{$brand};
+    --bs-btn-active-border-color: #{$brand};
+}

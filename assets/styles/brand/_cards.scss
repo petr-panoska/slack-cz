@@ -1,0 +1,71 @@
+// --- Karty (Bootstrap .card = nástupce legacy .panel) -----------------
+@use 'variables' as *;
+
+// Hlavička karty: titulek vlevo, akce/odkaz vpravo. Jednotný vzor všech
+// karet (mapa, přechody, galerie, TV…) — proto flex globálně.
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+// Titulky v hlavičkách karet — stejná řeč jako legacy panel headery.
+.card-header h2 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0;
+}
+
+// Barevná tečka před titulkem karty (port legacy .panel-dot).
+.card-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.card-dot-map       { background: #2e7d32; }
+.card-dot-crossings { background: #f5a300; }
+.card-dot-gallery   { background: $brand; }
+
+.card-dot-tv {
+    background: $brand;
+    animation: tv-pulse 2s infinite;
+}
+
+@keyframes tv-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba($brand, 0.6); }
+    70%  { box-shadow: 0 0 0 8px rgba($brand, 0); }
+    100% { box-shadow: 0 0 0 0 rgba($brand, 0); }
+}
+
+// Odkaz vpravo v hlavičce karty („Otevřít →").
+.card-header-link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+
+    &:hover {
+        color: $brand;
+    }
+}
+
+// Počet záznamů za titulkem karty („Přechody 12").
+.card-header .count-badge {
+    color: var(--bs-secondary-color);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
+// Popisek v metadatech („Město", „Ročník", „První přechod"…).
+.meta-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--bs-secondary-color);
+    margin-right: 0.25rem;
+}

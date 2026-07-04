@@ -1,9 +1,9 @@
 {# Galerie fotek pro detail lajny. Vstup: line, photos (list<LinePhoto>) #}
-<section class="panel hl-gallery-panel">
-    <header class="panel-header">
-        <div class="panel-title">
-            <span class="panel-dot panel-dot-gallery"></span>
-            <h2>Fotky <span class="hl-crossings-count">{{ photos|length }}</span></h2>
+<section class="card hl-gallery-panel">
+    <header class="card-header">
+        <div class="d-flex align-items-center gap-2">
+            <span class="card-dot card-dot-gallery"></span>
+            <h2>Fotky <span class="count-badge">{{ photos|length }}</span></h2>
         </div>
         {% if app.user %}
             <a class="btn btn-primary btn-sm" href="{{ path('app_line_photo_new', { slug: line.slug }) }}">+ Přidat fotku</a>

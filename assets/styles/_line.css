@@ -502,12 +502,6 @@
     transform: translateY(1px);
 }
 
-.hl-crossings-count {
-    color: var(--color-muted);
-    font-weight: 400;
-    font-variant-numeric: tabular-nums;
-}
-
 .hl-empty {
     padding: 22px 24px;
     margin: 0;

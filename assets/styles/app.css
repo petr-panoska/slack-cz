@@ -5,8 +5,6 @@
 @import "_buttons.css";
 @import "_flash.css";
 @import "_layout.css";
-@import "_panel.css";
-@import "_crossings.css";
 @import "_tabs.css";
 @import "_intro.css";
 @import "_homepage.css";
@@ -18,7 +16,6 @@
 @import "_auth.css";
 @import "_profile.css";
 @import "_crossing-form.css";
-@import "_diary.css";
 @import "_article.css";
 @import "_people.css";
 @import "_preface.css";

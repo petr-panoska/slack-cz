@@ -18,16 +18,16 @@
     font-size: 0.85rem;
 }
 
-.crossings-item.hp-crossing {
+.crossing-item.hp-crossing {
     cursor: pointer;
     transition: background 0.15s;
 }
 
-.crossings-item.hp-crossing:hover {
+.crossing-item.hp-crossing:hover {
     background: #fafafa;
 }
 
-.crossings-item.hp-crossing.is-active {
+.crossing-item.hp-crossing.is-active {
     background: rgba(225, 0, 91, 0.06);
     box-shadow: inset 3px 0 0 var(--color-accent);
 }

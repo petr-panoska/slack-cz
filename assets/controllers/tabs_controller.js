@@ -50,6 +50,9 @@ export default class extends Controller {
     activate(index) {
         this.tabTargets.forEach((tab, i) => {
             tab.setAttribute('aria-selected', i === index ? 'true' : 'false');
+            // Bootstrap nav styly (.nav-link) se řídí třídou .active; legacy
+            // .tab styly aria-selected. Přepínáme obojí, ať CSS zůstává volné.
+            tab.classList.toggle('active', i === index);
         });
         this.panelTargets.forEach((panel, i) => {
             panel.hidden = i !== index;

@@ -1,0 +1,28 @@
+// --- Deníček uživatele -------------------------------------------------
+@use '../breakpoints' as *;
+@use 'variables' as *;
+
+.diary-map-wrapper {
+    height: 420px;
+
+    @include media-down(md) {
+        height: 300px;
+    }
+}
+
+.diary-map-canvas {
+    height: 100%;
+    width: 100%;
+}
+
+// Odkaz v Leaflet popupu na mapě deníčku (třídu vkládá
+// user_diary_map_controller.js).
+.diary-map-popup {
+    color: $brand;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

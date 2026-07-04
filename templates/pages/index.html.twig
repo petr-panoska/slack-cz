@@ -6,26 +6,26 @@
 <div class="page-grid">
     <div class="page-main">
         <section
-            class="panel panel-hpmap"
+            class="card overflow-hidden"
             data-controller="hp-map"
             data-hp-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
             data-hp-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
             data-hp-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
         >
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-map"></span>
+            <header class="card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="card-dot card-dot-map"></span>
                     <h2>Mapa</h2>
                 </div>
-                <a href="{{ path('app_line_map') }}" class="panel-link">Otevřít →</a>
+                <a href="{{ path('app_line_map') }}" class="card-header-link">Otevřít →</a>
             </header>
             <div class="hp-map-body">
                 <aside class="hp-crossings" aria-label="Poslední přechody">
                     {% if recent_crossings|length > 0 %}
-                    <ul class="crossings-list crossings-list-panel">
+                    <ul class="list-group list-group-flush">
                         {% for c in recent_crossings %}
                         <li
-                            class="crossings-item hp-crossing{{ loop.first ? ' is-active' : '' }}"
+                            class="list-group-item crossing-item hp-crossing{{ loop.first ? ' is-active' : '' }}"
                             data-hp-map-target="item"
                             data-action="click->hp-map#select"
                             data-name="{{ c.line.name }}"
@@ -38,21 +38,21 @@
                             data-user-id="{{ c.user.id }}"
                             data-comment="{{ c.comment }}"
                         >
-                            <time datetime="{{ c.crossedAt|date('c') }}" class="crossings-date">{{ c.crossedAt|date('j. n. Y') }}</time>
+                            <time datetime="{{ c.crossedAt|date('c') }}" class="crossing-date">{{ c.crossedAt|date('j. n. Y') }}</time>
                             {% if c.style %}
-                                <span class="crossings-style" title="Styl přechodu">{{ c.style.label }}</span>
+                                <span class="badge crossing-style" title="Styl přechodu">{{ c.style.label }}</span>
                             {% endif %}
-                            <span class="crossings-user">{{ c.user.displayName }}</span>
-                            <span class="crossings-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
+                            <span class="crossing-user">{{ c.user.displayName }}</span>
+                            <span class="crossing-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
                                 {% if c.rating %}
                                     {% for s in 1..5 %}
-                                        <span class="crossings-star{% if s <= c.rating %} on{% endif %}">★</span>
+                                        <span class="crossing-star{% if s <= c.rating %} on{% endif %}">★</span>
                                     {% endfor %}
                                 {% else %}
-                                    <span class="crossings-rating-none">–</span>
+                                    <span>–</span>
                                 {% endif %}
                             </span>
-                            <a class="crossings-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
+                            <a class="crossing-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
                         </li>
                         {% endfor %}
                     </ul>
@@ -67,10 +67,10 @@
         </section>
 
         {% if recent_photos|length > 0 %}
-        <aside class="panel panel-photos">
-            <header class="panel-header">
-                <div class="panel-title">
-                    <span class="panel-dot panel-dot-gallery"></span>
+        <aside class="card panel-photos">
+            <header class="card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="card-dot card-dot-gallery"></span>
                     <h2>Z galerie</h2>
                 </div>
             </header>
@@ -101,13 +101,13 @@
     </div>
 
     {% if feed_items|length > 0 %}
-    <aside class="panel panel-tv panel-tv-strip">
-        <header class="panel-header">
-            <div class="panel-title">
-                <span class="panel-dot panel-dot-tv"></span>
+    <aside class="card">
+        <header class="card-header">
+            <div class="d-flex align-items-center gap-2">
+                <span class="card-dot card-dot-tv"></span>
                 <h2>slackTV</h2>
             </div>
-            <a href="{{ path('app_tv') }}" class="panel-link">Otevřít →</a>
+            <a href="{{ path('app_tv') }}" class="card-header-link">Otevřít →</a>
         </header>
         <ul class="tv-strip">
             {% for item in feed_items %}
