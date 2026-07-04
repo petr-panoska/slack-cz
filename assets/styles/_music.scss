@@ -1,3 +1,7 @@
+// --- Hudební přehrávač (slackvibes, zatím vypnutý) ---
+// Portnuto 1:1 z legacy app.css vrstvy (Fáze 3); vzhled beze změny.
+@use 'breakpoints' as *;
+
 .music-panel {
     position: fixed;
     bottom: 80px;
@@ -471,7 +475,7 @@
     pointer-events: none;
 }
 
-@media (max-width: 640px) {
+@include media-down(sm) {
     .music-panel:not(.is-compact) {
         width: calc(100vw - 32px);
         left: 16px;

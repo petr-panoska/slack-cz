@@ -1,0 +1,42 @@
+// =====================================================================
+//  slack.cz — kompletní styl vrstva (Bootstrap 5, light theme, magenta)
+// ---------------------------------------------------------------------
+//  Bootstrap base CSS se načítá z importmapy (`bootstrap.min.css`, viz
+//  app.js); tohle je JEDINÝ vlastní stylesheet appky.
+//
+//  Tenhle soubor je JEN manifest — žádné selektory sem nepatří.
+//  Obsah žije v partialech vedle (paleta v `_variables.scss`, jedna
+//  komponenta = jeden soubor). Breakpointy VŽDY přes mixiny
+//  z `_breakpoints.scss` (Bootstrap škála), žádné hardcoded px v @media.
+//
+//  Pořadí: shell (tokeny+base) → porty legacy stránek → Bootstrap theme
+//  vrstvy (zrcadlí kaskádu původního smíšeného stavu).
+// =====================================================================
+
+@use 'shell';
+
+// --- Porty legacy stránkových stylů (1:1, vzhled beze změny) ----------
+@use 'search';
+@use 'footer';
+@use 'intro';
+@use 'music';
+@use 'homepage';
+@use 'tv';
+@use 'photo';
+@use 'about';
+@use 'markdown';
+@use 'admin';
+@use 'proposals';
+@use 'map';
+
+// --- Bootstrap theme + nové komponenty --------------------------------
+@use 'header';
+@use 'buttons';
+@use 'forms';
+@use 'line-form';
+@use 'line-detail';
+@use 'cards';
+@use 'tables';
+@use 'crossings';
+@use 'tabs';
+@use 'diary';

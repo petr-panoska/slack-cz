@@ -1,0 +1,212 @@
+// --- Formulář lajny: GPS map picker + specifika --------------------------
+// Jen to, co Bootstrap nepokryje: overlay tlačítka nad Leafletem, výpočet
+// délky, fullscreen, panely bodů, živý URL panel. Layout/inputy řeší
+// Bootstrap (row/col, form-control) + _forms.scss.
+@use 'breakpoints' as *;
+@use 'variables' as *;
+
+.hl-form-lock {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.85em;
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+
+    &:hover,
+    &:focus {
+        opacity: 1;
+        outline: none;
+    }
+}
+
+// Živý náhled URL (nezverifikovaná lajna, live-slug controller).
+.hl-form-url-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    background: rgba($brand, 0.06);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.hl-form-url-label {
+    color: var(--bs-secondary-color);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hl-form-url {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--bs-body-color);
+    font-weight: 600;
+    background: transparent;
+    padding: 0;
+}
+
+.hl-form-url-hint {
+    flex-basis: 100%;
+    color: var(--bs-secondary-color);
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
+// --- Mapa s výběrem bodů ---------------------------------------------
+.hl-form-map {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.hl-form-map-canvas {
+    height: 320px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+// Badge s vypočtenou délkou (pravý dolní roh mapy).
+.hl-form-distance {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 500;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.hl-form-distance-label {
+    color: var(--bs-secondary-color);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hl-form-distance-value {
+    color: var(--bs-body-color);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+
+    &.is-empty {
+        color: var(--bs-secondary-color);
+        font-weight: 400;
+        font-style: italic;
+    }
+}
+
+// Overlay tlačítka „Přidat bod 1/2 / parkování" (pravý horní roh).
+.hl-form-map-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.hl-form-map-toggle {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+
+    &.is-active {
+        background: $brand;
+        color: #fff;
+        border-color: $brand;
+    }
+}
+
+.hl-form-map-toggle.hl-form-parking-toggle.is-active {
+    background: #1b6cf3;
+    border-color: #1b6cf3;
+}
+
+.hl-form-map-controls-bl {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.hl-form-map-btn {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+}
+
+.hl-form-fullscreen-toggle.is-active {
+    background: #1b1b1b;
+    color: #fff;
+    border-color: #1b1b1b;
+}
+
+.hl-form-map:fullscreen,
+.hl-form-map:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    background: var(--bs-body-bg);
+}
+
+.hl-form-map:fullscreen .hl-form-map-canvas,
+.hl-form-map:-webkit-full-screen .hl-form-map-canvas {
+    height: 100%;
+    border: none;
+    border-radius: 0;
+}
+
+// --- Panely bodů (Bod 1 / Bod 2 / Parkování) ---------------------------
+.hl-form-points {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 14px;
+
+    @include media-down(md) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.hl-form-point {
+    padding: 14px;
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+
+    h3 {
+        margin: 0 0 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $brand;
+    }
+}
+
+.hl-form-point-parking {
+    grid-column: 1 / -1;
+}
+
+.hl-form-optional {
+    color: var(--bs-secondary-color);
+    font-weight: 400;
+    font-size: 0.85em;
+}

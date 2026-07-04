@@ -1,5 +1,5 @@
 {# Galerie fotek pro detail lajny. Vstup: line, photos (list<LinePhoto>) #}
-<section class="card hl-gallery-panel">
+<section class="card">
     <header class="card-header">
         <div class="d-flex align-items-center gap-2">
             <span class="card-dot card-dot-gallery"></span>
@@ -8,7 +8,7 @@
         {% if app.user %}
             <a class="btn btn-primary btn-sm" href="{{ path('app_line_photo_new', { slug: line.slug }) }}">+ Přidat fotku</a>
         {% else %}
-            <a class="btn btn-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
         {% endif %}
     </header>
 
@@ -56,6 +56,6 @@
             {% endfor %}
         </ul>
     {% else %}
-        <p class="hl-empty">Zatím žádné fotky.</p>
+        <p class="text-body-secondary fst-italic p-3 mb-0">Zatím žádné fotky.</p>
     {% endif %}
 </section>

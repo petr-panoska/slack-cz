@@ -31,10 +31,10 @@
                     {% if show_actions %}
                         <td class="text-end text-nowrap">
                             {% if app.user and c.user.id == app.user.id %}
-                                <a class="btn btn-secondary btn-sm" href="{{ path('app_longline_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
+                                <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_longline_edit', { id: c.id }) }}" title="Upravit přechod">Upravit</a>
                                 <form method="post" action="{{ path('app_longline_delete', { id: c.id }) }}" onsubmit="return confirm('Opravdu smazat tento přechod?');" data-turbo="false" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete-longline-' ~ c.id) }}">
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Smazat přechod">Smazat</button>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Smazat přechod">Smazat</button>
                                 </form>
                             {% endif %}
                         </td>

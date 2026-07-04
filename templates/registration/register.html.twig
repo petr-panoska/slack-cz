@@ -3,40 +3,28 @@
 {% block title %}Registrace{% endblock %}
 
 {% block body %}
-    <div class="auth-page">
-        <div class="auth-card">
-            <h1>Registrace</h1>
+    <div class="form-page">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Registrace</h1>
 
-            {% for flash_error in app.flashes('verify_email_error') %}
-                <div class="auth-alert" role="alert">{{ flash_error }}</div>
-            {% endfor %}
+                {% for flash_error in app.flashes('verify_email_error') %}
+                    <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+                {% endfor %}
 
-            {{ form_errors(registrationForm) }}
+                {{ form_errors(registrationForm) }}
 
-            {{ form_start(registrationForm) }}
-                <div class="form-group">
-                    {{ form_label(registrationForm.email, 'Email') }}
-                    {{ form_widget(registrationForm.email) }}
-                    {{ form_errors(registrationForm.email) }}
+                {{ form_start(registrationForm) }}
+                    {{ form_row(registrationForm.email, { label: 'Email' }) }}
+                    {{ form_row(registrationForm.password, { label: false }) }}
+                    {{ form_row(registrationForm.agreeTerms) }}
+
+                    <button type="submit" class="btn btn-primary w-100">Vytvořit účet</button>
+                {{ form_end(registrationForm) }}
+
+                <div class="d-flex justify-content-between small mt-4 pt-3 border-top">
+                    <a href="{{ path('app_login') }}">Mám účet — přihlásit</a>
                 </div>
-
-                <div class="form-group">
-                    {{ form_label(registrationForm.password, 'Heslo') }}
-                    {{ form_widget(registrationForm.password) }}
-                    {{ form_errors(registrationForm.password) }}
-                </div>
-
-                <div class="form-group checkbox-row">
-                    {{ form_widget(registrationForm.agreeTerms) }}
-                    {{ form_label(registrationForm.agreeTerms) }}
-                    {{ form_errors(registrationForm.agreeTerms) }}
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block">Vytvořit účet</button>
-            {{ form_end(registrationForm) }}
-
-            <div class="auth-links">
-                <a href="{{ path('app_login') }}">Mám účet — přihlásit</a>
             </div>
         </div>
     </div>

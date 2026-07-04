@@ -3,49 +3,27 @@
 {% block title %}{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }} – slack.cz{% endblock %}
 
 {% block body %}
-<div class="auth-page">
-    <div class="auth-card crossing-form-card">
-        <a class="hl-back" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">← Longline deník</a>
-        <h1>{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }}</h1>
+<div class="form-page form-page--md">
+    <div class="card">
+        <div class="card-body p-4">
+            <a class="hl-back" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">← Longline deník</a>
+            <h1 class="h4 mb-4">{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }}</h1>
 
-        {{ form_errors(form) }}
+            {{ form_errors(form) }}
 
-        {{ form_start(form, { attr: { 'data-turbo': 'false' } }) }}
-            <div class="form-group">
-                {{ form_label(form.crossedAt) }}
-                {{ form_widget(form.crossedAt) }}
-                {{ form_errors(form.crossedAt) }}
-            </div>
+            {{ form_start(form, { attr: { 'data-turbo': 'false' } }) }}
+                {{ form_row(form.crossedAt) }}
+                {{ form_row(form.length) }}
+                {{ form_row(form.place) }}
+                {{ form_row(form.style) }}
+                {{ form_row(form.comment) }}
 
-            <div class="form-group">
-                {{ form_label(form.length) }}
-                {{ form_widget(form.length) }}
-                {{ form_errors(form.length) }}
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.place) }}
-                {{ form_widget(form.place) }}
-                {{ form_errors(form.place) }}
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.style) }}
-                {{ form_widget(form.style) }}
-                {{ form_errors(form.style) }}
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.comment) }}
-                {{ form_widget(form.comment) }}
-                {{ form_errors(form.comment) }}
-            </div>
-
-            <div class="crossing-form-actions">
-                <button type="submit" class="btn btn-primary">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
-                <a class="btn btn-secondary" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">Zrušit</a>
-            </div>
-        {{ form_end(form) }}
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary flex-fill">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
+                    <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">Zrušit</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
     </div>
 </div>
 {% endblock %}

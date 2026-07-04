@@ -1,0 +1,62 @@
+// --- Globální shell: CSS proměnné + overflow guardy -------------------
+@use 'variables' as *;
+
+:root {
+    // Výška fixní hlavičky — drží ji i legacy map wrapper (calc(100vh - var(--header-height))).
+    --slack-header-h: 72px;
+    --header-height: 72px;
+
+    // Legacy tokeny (bývalé _tokens.css) — pořád je čtou portnuté partialy
+    // (_map, _homepage, _tv…). Nové styly berou --bs-* / $brand.
+    // (Webbing theme přepínače smazány s app.css — picker odložen na neurčito,
+    //  kdyžtak jsou v git historii _tokens.css.)
+    --color-bg: #ffffff;
+    --color-fg: #1a1a1a;
+    --color-muted: #6b6b6b;
+    --color-line: #e5e5e5;
+    --color-accent: #{$brand};
+    --color-accent-hover: #{$brand-dark};
+    --color-accent-muted: #fce4ef;
+    --color-header-bg: #ffffff;
+    --color-header-fg: #1a1a1a;
+
+    --bs-primary: #{$brand};
+    --bs-primary-rgb: 225, 0, 91;
+
+    --bs-link-color: #{$brand};
+    --bs-link-color-rgb: 225, 0, 91;
+    --bs-link-hover-color: #{$brand-dark};
+    --bs-link-hover-color-rgb: 184, 0, 74;
+}
+
+// --- Konec bočního scrollu + prostor pod fixní hlavičkou -------------
+//  overflow-x: clip zabíjí přetečení do stran (mobil i desktop) bez
+//  vedlejších efektů na position:sticky. Hlavní příčina (mobilní nav)
+//  je vyřešena offcanvasem v _header.scss; tohle je guard proti
+//  zbytkovým únikům.
+// Základní typografie (bývalé _base.css) — přebíjí Bootstrap reboot.
+// Pozor: MUSÍ být před overflow/padding blokem níž — `padding: 0` by
+// jinak sestřelilo `padding-top` pod fixní hlavičkou.
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font: 16px/1.5 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html {
+    overflow-x: clip;
+}
+
+body {
+    overflow-x: clip;
+    padding-top: var(--slack-header-h);
+}
+
+// Odkazy dědí barvu kontextu (komponenty si akcent řeší samy) — stejné
+// chování jako legacy _base.css; Bootstrap link modrou/brand nechceme plošně.
+a {
+    color: inherit;
+}

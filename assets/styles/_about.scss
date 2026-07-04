@@ -1,0 +1,239 @@
+// --- O projektu: článek, úvodní slovo, lidé ---
+// Portnuto 1:1 z legacy app.css vrstvy (Fáze 3); vzhled beze změny.
+@use 'breakpoints' as *;
+
+.article {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    color: var(--color-fg);
+}
+
+.article-head {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.article h1 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin: 0 0 12px;
+}
+
+.article-lead {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--color-muted);
+}
+
+.article section {
+    margin-bottom: 32px;
+}
+
+.article h2 {
+    font-size: 1.3rem;
+    margin: 0 0 12px;
+    color: var(--color-fg);
+}
+
+.article p {
+    margin: 0 0 14px;
+    line-height: 1.7;
+}
+
+.article-figure {
+    margin: 0 0 18px;
+}
+
+.article-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.article-figure-retro {
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.article-figure-retro img {
+    border-radius: 0;
+}
+
+.article-figure-banner {
+    margin: 8px 0 24px;
+}
+
+.article-figure-banner img {
+    border-radius: 6px;
+    aspect-ratio: 5 / 1;
+    object-fit: cover;
+    object-position: center;
+}
+
+.article-figure figcaption {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    background: #fafafa;
+    border-top: 1px solid var(--color-line);
+    text-align: center;
+    font-style: italic;
+}
+
+.article blockquote {
+    margin: 0 0 14px;
+    padding: 12px 18px;
+    border-left: 3px solid var(--color-accent);
+    background: #fafafa;
+    color: var(--color-fg);
+    font-style: italic;
+}
+
+.article em {
+    font-style: italic;
+    color: var(--color-fg);
+}
+
+.article a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.article a:hover {
+    text-decoration: underline;
+}
+
+.preface {
+    position: relative;
+    margin: 32px 0;
+    padding: 0;
+    background: #fbfafa;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.preface-content {
+    padding: 24px 32px 28px;
+    border-left: 3px solid var(--color-accent);
+}
+
+.preface-figure {
+    margin: 0;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.preface-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    max-height: 280px;
+}
+
+.preface h2 {
+    margin: 0 0 4px;
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+}
+
+.preface-note {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    margin: 0 0 20px;
+}
+
+.preface-body {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--color-fg);
+}
+
+.preface-body p {
+    margin: 0 0 14px;
+}
+
+.preface-body p:last-of-type {
+    margin-bottom: 0;
+}
+
+.preface-greeting {
+    margin-top: 20px !important;
+    margin-bottom: 4px !important;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+.preface-sign {
+    text-align: left;
+    font-style: italic;
+    color: var(--color-muted);
+    margin-top: 0 !important;
+}
+
+.people-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.person {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    padding: 22px 18px;
+    background: #fff;
+}
+
+.person-photo {
+    flex: 0 0 auto;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center 25%;
+    border: 3px solid var(--color-accent);
+}
+
+.person-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.person-name {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.person-role {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+.person-bio {
+    margin: 6px 0 0 !important;
+    font-size: 0.85rem;
+    line-height: 1.5 !important;
+    color: var(--color-muted);
+}
+
+@include media-down(sm) {
+    .people-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -27,23 +27,23 @@ class NewPasswordType extends AbstractType
                 'first_options' => [
                     'constraints' => [
                         new NotBlank([
-                            'message' => 'Please enter a password',
+                            'message' => 'Zadej heslo.',
                         ]),
                         new Length([
                             'min' => 6,
-                            'minMessage' => 'Your password should be at least {{ limit }} characters',
+                            'minMessage' => 'Heslo musí mít aspoň {{ limit }} znaků.',
                             // max length allowed by Symfony for security reasons
                             'max' => 4096,
                         ]),
                         // new PasswordStrength(),
                         // new NotCompromisedPassword(),
                     ],
-                    'label' => 'New password',
+                    'label' => 'Heslo',
                 ],
                 'second_options' => [
-                    'label' => 'Repeat Password',
+                    'label' => 'Heslo znovu',
                 ],
-                'invalid_message' => 'The password fields must match.',
+                'invalid_message' => 'Hesla se neshodují.',
                 // Instead of being set onto the object directly,
                 // this is read and encoded in the controller
                 'mapped' => false,

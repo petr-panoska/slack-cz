@@ -3,48 +3,31 @@
 {% block title %}{{ mode == 'edit' ? 'Upravit přechod' : 'Nový přechod' }} – {{ line.name }} – slack.cz{% endblock %}
 
 {% block body %}
-<div class="auth-page">
-    <div class="auth-card crossing-form-card">
-        <a class="hl-back" href="{{ path('app_line_detail', { slug: line.slug }) }}">← {{ line.name }}</a>
-        <h1>{{ mode == 'edit' ? 'Upravit přechod' : 'Nový přechod' }}</h1>
-        <p class="crossing-form-line">Lajna: <strong>{{ line.name }}</strong></p>
+<div class="form-page form-page--md">
+    <div class="card">
+        <div class="card-body p-4">
+            <a class="hl-back" href="{{ path('app_line_detail', { slug: line.slug }) }}">← {{ line.name }}</a>
+            <h1 class="h4 mb-1">{{ mode == 'edit' ? 'Upravit přechod' : 'Nový přechod' }}</h1>
+            <p class="text-body-secondary mb-4">Lajna: <strong>{{ line.name }}</strong></p>
 
-        {{ form_errors(form) }}
+            {{ form_errors(form) }}
 
-        {{ form_start(form) }}
-            <div class="form-group">
-                {{ form_label(form.crossedAt) }}
-                {{ form_widget(form.crossedAt) }}
-                {{ form_errors(form.crossedAt) }}
-            </div>
+            {{ form_start(form) }}
+                {{ form_row(form.crossedAt) }}
+                {{ form_row(form.style) }}
+                {{ form_row(form.rating) }}
+                {{ form_row(form.comment) }}
 
-            <div class="form-group">
-                {{ form_label(form.style) }}
-                {{ form_widget(form.style) }}
-                {{ form_errors(form.style) }}
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.rating) }}
-                {{ form_widget(form.rating) }}
-                {{ form_errors(form.rating) }}
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.comment) }}
-                {{ form_widget(form.comment) }}
-                {{ form_errors(form.comment) }}
-            </div>
-
-            <div class="crossing-form-actions">
-                <button type="submit" class="btn btn-primary">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
-                {% if mode == 'edit' %}
-                    <a class="btn btn-secondary" href="{{ path('app_user_diary', { id: crossing.user.id }) }}">Zrušit</a>
-                {% else %}
-                    <a class="btn btn-secondary" href="{{ path('app_line_detail', { slug: line.slug }) }}">Zrušit</a>
-                {% endif %}
-            </div>
-        {{ form_end(form) }}
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary flex-fill">{{ mode == 'edit' ? 'Uložit' : 'Přidat přechod' }}</button>
+                    {% if mode == 'edit' %}
+                        <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_user_diary', { id: crossing.user.id }) }}">Zrušit</a>
+                    {% else %}
+                        <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_line_detail', { slug: line.slug }) }}">Zrušit</a>
+                    {% endif %}
+                </div>
+            {{ form_end(form) }}
+        </div>
     </div>
 </div>
 {% endblock %}

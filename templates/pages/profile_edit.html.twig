@@ -3,26 +3,24 @@
 {% block title %}Upravit profil{% endblock %}
 
 {% block body %}
-    <div class="auth-page profile-page">
-        <div class="auth-card">
-            <h1>Upravit profil</h1>
+    <div class="form-page form-page--md">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Upravit profil</h1>
 
-            {{ form_errors(form) }}
+                {{ form_errors(form) }}
 
-            {{ form_start(form) }}
-                {% for field in [form.nick, form.firstName, form.lastName, form.city, form.birthYear, form.phone] %}
-                    <div class="form-group">
-                        {{ form_label(field) }}
-                        {{ form_widget(field) }}
-                        {{ form_errors(field) }}
+                {{ form_start(form) }}
+                    {% for field in [form.nick, form.firstName, form.lastName, form.city, form.birthYear, form.phone] %}
+                        {{ form_row(field) }}
+                    {% endfor %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">Uložit</button>
+                        <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_profile') }}">Zrušit</a>
                     </div>
-                {% endfor %}
-
-                <div class="profile-actions">
-                    <button type="submit" class="btn btn-primary">Uložit</button>
-                    <a class="btn btn-secondary" href="{{ path('app_profile') }}">Zrušit</a>
-                </div>
-            {{ form_end(form) }}
+                {{ form_end(form) }}
+            </div>
         </div>
     </div>
 {% endblock %}

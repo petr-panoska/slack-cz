@@ -10,7 +10,7 @@
     </header>
 
     {% if pending|length == 0 %}
-        <p class="hl-empty">Žádné návrhy ve frontě.</p>
+        <p class="text-body-secondary fst-italic p-3 mb-0">Žádné návrhy ve frontě.</p>
     {% else %}
         <ul class="proposals-list">
             {% for edit in pending %}
@@ -35,7 +35,7 @@
                     </header>
 
                     {% if diff is empty %}
-                        <p class="hl-empty">Žádné změny — návrh nemění žádná pole.</p>
+                        <p class="text-body-secondary fst-italic p-3 mb-0">Žádné změny — návrh nemění žádná pole.</p>
                     {% else %}
                         <table class="proposals-diff">
                             <thead>
@@ -60,7 +60,7 @@
                         </form>
                         <form method="post" action="{{ path('app_admin_proposal_reject', { id: edit.id }) }}" onsubmit="return confirm('Opravdu zamítnout?');" data-turbo="false">
                             <input type="hidden" name="_token" value="{{ csrf_token('proposal-reject-' ~ edit.id) }}">
-                            <button type="submit" class="btn btn-secondary btn-sm">Zamítnout</button>
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Zamítnout</button>
                         </form>
                     </footer>
                 </li>

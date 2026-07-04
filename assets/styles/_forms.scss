@@ -1,0 +1,66 @@
+// --- Formuláře (Bootstrap form-control + bootstrap_5_layout theme) ----
+@use 'variables' as *;
+
+// Úzká formulářová stránka (login, registrace, obnova hesla…).
+// Širší varianta --md pro obsahovější formuláře (přechod, profil).
+.form-page {
+    max-width: 420px;
+    margin: 3rem auto 4rem;
+    padding: 0 1.5rem;
+}
+
+.form-page--md {
+    max-width: 540px;
+}
+
+// Brand focus ring místo Bootstrap modré.
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba($brand, 0.5);
+    box-shadow: 0 0 0 0.25rem rgba($brand, 0.15);
+}
+
+.form-check-input:checked {
+    background-color: $brand;
+    border-color: $brand;
+}
+
+.form-check-input:focus {
+    border-color: rgba($brand, 0.5);
+    box-shadow: 0 0 0 0.25rem rgba($brand, 0.15);
+}
+
+// Upozornění nad formulářem (proposal flow apod.) — brand akcent,
+// Bootstrap .alert-* nejde přebarvit přes CSS proměnné (precompiled).
+.form-notice {
+    margin-bottom: 1.25rem;
+    padding: 10px 14px;
+    border-left: 3px solid $brand;
+    background: rgba($brand, 0.06);
+    font-size: 0.9em;
+    line-height: 1.5;
+    border-radius: 0 4px 4px 0;
+}
+
+// Sekce dlouhého formuláře (formulář lajny) — verzálkový titulek
+// ve stejné řeči jako hlavičky karet.
+.form-section {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--bs-border-color);
+
+    &:last-of-type {
+        border-bottom: none;
+    }
+
+    > legend,
+    > h2 {
+        margin: 0 0 0.875rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--bs-secondary-color);
+        float: none; // reset Bootstrap legend floatu
+    }
+}

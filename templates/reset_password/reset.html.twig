@@ -3,27 +3,20 @@
 {% block title %}Nové heslo{% endblock %}
 
 {% block body %}
-    <div class="auth-page">
-        <div class="auth-card">
-            <h1>Nastav nové heslo</h1>
+    <div class="form-page">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Nastav nové heslo</h1>
 
-            {{ form_start(resetForm) }}
-                <div class="form-group">
-                    {{ form_label(resetForm.password.plainPassword.first, 'Nové heslo') }}
-                    {{ form_widget(resetForm.password.plainPassword.first) }}
-                    {{ form_errors(resetForm.password.plainPassword.first) }}
-                </div>
+                {{ form_start(resetForm) }}
+                    {{ form_row(resetForm.password.plainPassword.first, { label: 'Nové heslo' }) }}
+                    {{ form_row(resetForm.password.plainPassword.second, { label: 'Heslo znovu' }) }}
 
-                <div class="form-group">
-                    {{ form_label(resetForm.password.plainPassword.second, 'Heslo znovu') }}
-                    {{ form_widget(resetForm.password.plainPassword.second) }}
-                    {{ form_errors(resetForm.password.plainPassword.second) }}
-                </div>
+                    {{ form_errors(resetForm) }}
 
-                {{ form_errors(resetForm) }}
-
-                <button type="submit" class="btn btn-primary btn-block">Uložit heslo</button>
-            {{ form_end(resetForm) }}
+                    <button type="submit" class="btn btn-primary w-100">Uložit heslo</button>
+                {{ form_end(resetForm) }}
+            </div>
         </div>
     </div>
 {% endblock %}

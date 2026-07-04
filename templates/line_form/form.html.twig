@@ -3,156 +3,158 @@
 {% block title %}{{ mode == 'edit' ? 'Upravit lajnu' : 'Nová lajna' }} – slack.cz{% endblock %}
 
 {% block body %}
-<div class="auth-page hl-form-page">
-    <div class="auth-card hl-form-card">
-        {% if mode == 'edit' %}
-            <a class="hl-back" href="{{ path('app_line_detail', { slug: line.slug }) }}">← {{ line.name }}</a>
-        {% else %}
-            <a class="hl-back" href="{{ path('app_line_map') }}">← Mapa</a>
-        {% endif %}
-        <h1>{{ mode == 'edit' ? 'Upravit lajnu' : 'Nová lajna' }}</h1>
-
-        {% if queueProposal %}
-            <div class="hl-form-notice">
-                Změny u téhle lajny jdou přes schválení adminem → tvůj návrh uvidí admin a po schválení se projeví na detailu.
-            </div>
-        {% elseif mode == 'new' %}
-            <p class="hl-form-help">Lajnu po vytvoření vidí všichni. Aby se na ní mohly podílet i ostatní userové, požádej admina o verifikaci.</p>
-        {% endif %}
-
-        {{ form_errors(form) }}
-
-        {{ form_start(form, { attr: { class: 'hl-form', novalidate: 'novalidate' } }) }}
-            {% if mode == 'edit' and not line.isVerified %}
-                <div
-                    class="hl-form-url-panel"
-                    data-controller="live-slug"
-                    data-live-slug-name-input-value="{{ form.name.vars.id }}"
-                >
-                    <span class="hl-form-url-label">URL lajny</span>
-                    <code class="hl-form-url" data-live-slug-target="urlPath">/lajna/{{ line.slug }}</code>
-                    <span class="hl-form-url-hint">Lajna ještě není verifikovaná — při změně názvu se aktualizuje i URL.</span>
-                </div>
+<div class="container-xl my-4">
+    <div class="card">
+        <div class="card-body p-4">
+            {% if mode == 'edit' %}
+                <a class="hl-back" href="{{ path('app_line_detail', { slug: line.slug }) }}">← {{ line.name }}</a>
+            {% else %}
+                <a class="hl-back" href="{{ path('app_line_map') }}">← Mapa</a>
             {% endif %}
-            <div class="hl-form-section">
-                <h2>Základní info</h2>
-                <div class="form-group">
-                    <label for="{{ form.name.vars.id }}">
-                        Název{% if line.isVerified %} <span class="hl-form-lock" tabindex="0" aria-label="Název je pevný" title="URL: /lajna/{{ line.slug }}&#10;Název je pevný, aby existující odkazy nepřestaly fungovat.">🔒</span>{% endif %}
-                    </label>
-                    {{ form_widget(form.name) }}
-                    {{ form_errors(form.name) }}
-                </div>
-                <div class="form-grid-2">
-                    <div class="form-group">{{ form_label(form.type) }}{{ form_widget(form.type) }}{{ form_errors(form.type) }}</div>
-                    <div class="form-group">{{ form_label(form.height) }}{{ form_widget(form.height) }}{{ form_errors(form.height) }}</div>
-                </div>
-                <div class="form-group">{{ form_label(form.description) }}{{ form_widget(form.description) }}{{ form_errors(form.description) }}</div>
-                <div class="form-grid-2">
-                    <div class="form-group">{{ form_label(form.approachMinutes) }}{{ form_widget(form.approachMinutes) }}{{ form_errors(form.approachMinutes) }}</div>
-                    <div class="form-group">{{ form_label(form.tensioningMinutes) }}{{ form_widget(form.tensioningMinutes) }}{{ form_errors(form.tensioningMinutes) }}</div>
-                </div>
-            </div>
+            <h1 class="h4 mb-4">{{ mode == 'edit' ? 'Upravit lajnu' : 'Nová lajna' }}</h1>
 
-            <div class="hl-form-section">
-                <h2>Historie</h2>
-                <div class="form-group">{{ form_label(form.firstAscentBy) }}{{ form_widget(form.firstAscentBy) }}{{ form_errors(form.firstAscentBy) }}</div>
-                <div class="form-group">{{ form_label(form.firstAscentDate) }}{{ form_widget(form.firstAscentDate) }}{{ form_errors(form.firstAscentDate) }}</div>
-                <div class="form-group">{{ form_label(form.nameHistory) }}{{ form_widget(form.nameHistory) }}{{ form_errors(form.nameHistory) }}</div>
-            </div>
-
-            <div class="hl-form-section">
-                <h2>Kotvící body</h2>
-                <p class="hl-form-help hl-form-help-tight">Klikni na <strong>Přidat bod 1/2</strong> a pak do mapy, nebo markery táhni. Délka lajny se počítá automaticky z těch dvou bodů.</p>
-                <div
-                    class="hl-form-map"
-                    data-controller="line-form-map"
-                    data-line-form-map-p1-lat-input-value="{{ form.point1Latitude.vars.id }}"
-                    data-line-form-map-p1-lng-input-value="{{ form.point1Longitude.vars.id }}"
-                    data-line-form-map-p2-lat-input-value="{{ form.point2Latitude.vars.id }}"
-                    data-line-form-map-p2-lng-input-value="{{ form.point2Longitude.vars.id }}"
-                    data-line-form-map-parking-lat-input-value="{{ form.parkingLatitude.vars.id }}"
-                    data-line-form-map-parking-lng-input-value="{{ form.parkingLongitude.vars.id }}"
-                    data-line-form-map-init-lat-value="{{ form.point1Latitude.vars.value ?: '50.0598' }}"
-                    data-line-form-map-init-lng-value="{{ form.point1Longitude.vars.value ?: '14.4656' }}"
-                >
-                    <div class="hl-form-map-canvas" data-line-form-map-target="canvas"></div>
-                    <div class="hl-form-map-overlay">
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm hl-form-map-toggle"
-                            data-line-form-map-target="p1Toggle"
-                            data-action="click->line-form-map#toggle"
-                            data-line-form-map-mode-param="p1"
-                        >Přidat bod 1</button>
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm hl-form-map-toggle"
-                            data-line-form-map-target="p2Toggle"
-                            data-action="click->line-form-map#toggle"
-                            data-line-form-map-mode-param="p2"
-                        >Přidat bod 2</button>
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm hl-form-map-toggle hl-form-parking-toggle"
-                            data-line-form-map-target="parkingToggle"
-                            data-action="click->line-form-map#toggle"
-                            data-line-form-map-mode-param="parking"
-                        >Přidat parkování</button>
-                    </div>
-                    <div class="hl-form-map-controls-bl">
-                        <button
-                            type="button"
-                            class="btn btn-secondary btn-sm hl-form-map-btn hl-form-fullscreen-toggle"
-                            data-line-form-map-target="fullscreenToggle"
-                            data-action="click->line-form-map#toggleFullscreen"
-                        >⛶ Celá obrazovka</button>
-                    </div>
-                    <div class="hl-form-distance">
-                        <span class="hl-form-distance-label">Délka</span>
-                        <span class="hl-form-distance-value is-empty" data-line-form-map-target="distance">Nastav oba body</span>
-                    </div>
+            {% if queueProposal %}
+                <div class="form-notice">
+                    Změny u téhle lajny jdou přes schválení adminem → tvůj návrh uvidí admin a po schválení se projeví na detailu.
                 </div>
-                <div class="hl-form-points">
-                    <div class="hl-form-point">
-                        <h3>Bod 1</h3>
-                        <div class="form-grid-2">
-                            <div class="form-group">{{ form_label(form.point1Latitude) }}{{ form_widget(form.point1Latitude) }}{{ form_errors(form.point1Latitude) }}</div>
-                            <div class="form-group">{{ form_label(form.point1Longitude) }}{{ form_widget(form.point1Longitude) }}{{ form_errors(form.point1Longitude) }}</div>
-                        </div>
-                        <div class="form-group">{{ form_label(form.pointOneInfo) }}{{ form_widget(form.pointOneInfo) }}{{ form_errors(form.pointOneInfo) }}</div>
-                    </div>
-                    <div class="hl-form-point">
-                        <h3>Bod 2</h3>
-                        <div class="form-grid-2">
-                            <div class="form-group">{{ form_label(form.point2Latitude) }}{{ form_widget(form.point2Latitude) }}{{ form_errors(form.point2Latitude) }}</div>
-                            <div class="form-group">{{ form_label(form.point2Longitude) }}{{ form_widget(form.point2Longitude) }}{{ form_errors(form.point2Longitude) }}</div>
-                        </div>
-                        <div class="form-group">{{ form_label(form.pointTwoInfo) }}{{ form_widget(form.pointTwoInfo) }}{{ form_errors(form.pointTwoInfo) }}</div>
-                    </div>
-                    <div class="hl-form-point hl-form-point-parking">
-                        <h3>Parkování <span class="hl-form-optional">(volitelné)</span></h3>
-                        <div class="form-grid-2">
-                            <div class="form-group">{{ form_label(form.parkingLatitude) }}{{ form_widget(form.parkingLatitude) }}{{ form_errors(form.parkingLatitude) }}</div>
-                            <div class="form-group">{{ form_label(form.parkingLongitude) }}{{ form_widget(form.parkingLongitude) }}{{ form_errors(form.parkingLongitude) }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% elseif mode == 'new' %}
+                <p class="form-text mb-4">Lajnu po vytvoření vidí všichni. Aby se na ní mohly podílet i ostatní userové, požádej admina o verifikaci.</p>
+            {% endif %}
 
-            <div class="hl-form-actions">
-                <button type="submit" class="btn btn-primary">
-                    {% if queueProposal %}Odeslat návrh
-                    {% elseif mode == 'edit' %}Uložit
-                    {% else %}Přidat lajnu{% endif %}
-                </button>
-                {% if mode == 'edit' %}
-                    <a class="btn btn-secondary" href="{{ path('app_line_detail', { slug: line.slug }) }}">Zrušit</a>
-                {% else %}
-                    <a class="btn btn-secondary" href="{{ path('app_line_map') }}">Zrušit</a>
+            {{ form_errors(form) }}
+
+            {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+                {% if mode == 'edit' and not line.isVerified %}
+                    <div
+                        class="hl-form-url-panel"
+                        data-controller="live-slug"
+                        data-live-slug-name-input-value="{{ form.name.vars.id }}"
+                    >
+                        <span class="hl-form-url-label">URL lajny</span>
+                        <code class="hl-form-url" data-live-slug-target="urlPath">/lajna/{{ line.slug }}</code>
+                        <span class="hl-form-url-hint">Lajna ještě není verifikovaná — při změně názvu se aktualizuje i URL.</span>
+                    </div>
                 {% endif %}
-            </div>
-        {{ form_end(form) }}
+                <div class="form-section">
+                    <h2>Základní info</h2>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.name.vars.id }}">
+                            Název{% if line.isVerified %} <span class="hl-form-lock" tabindex="0" aria-label="Název je pevný" title="URL: /lajna/{{ line.slug }}&#10;Název je pevný, aby existující odkazy nepřestaly fungovat.">🔒</span>{% endif %}
+                        </label>
+                        {{ form_widget(form.name) }}
+                        {{ form_errors(form.name) }}
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">{{ form_row(form.type) }}</div>
+                        <div class="col-sm-6">{{ form_row(form.height) }}</div>
+                    </div>
+                    {{ form_row(form.description) }}
+                    <div class="row">
+                        <div class="col-sm-6">{{ form_row(form.approachMinutes) }}</div>
+                        <div class="col-sm-6">{{ form_row(form.tensioningMinutes) }}</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Historie</h2>
+                    {{ form_row(form.firstAscentBy) }}
+                    {{ form_row(form.firstAscentDate) }}
+                    {{ form_row(form.nameHistory) }}
+                </div>
+
+                <div class="form-section">
+                    <h2>Kotvící body</h2>
+                    <p class="form-text mb-3">Klikni na <strong>Přidat bod 1/2</strong> a pak do mapy, nebo markery táhni. Délka lajny se počítá automaticky z těch dvou bodů.</p>
+                    <div
+                        class="hl-form-map"
+                        data-controller="line-form-map"
+                        data-line-form-map-p1-lat-input-value="{{ form.point1Latitude.vars.id }}"
+                        data-line-form-map-p1-lng-input-value="{{ form.point1Longitude.vars.id }}"
+                        data-line-form-map-p2-lat-input-value="{{ form.point2Latitude.vars.id }}"
+                        data-line-form-map-p2-lng-input-value="{{ form.point2Longitude.vars.id }}"
+                        data-line-form-map-parking-lat-input-value="{{ form.parkingLatitude.vars.id }}"
+                        data-line-form-map-parking-lng-input-value="{{ form.parkingLongitude.vars.id }}"
+                        data-line-form-map-init-lat-value="{{ form.point1Latitude.vars.value ?: '50.0598' }}"
+                        data-line-form-map-init-lng-value="{{ form.point1Longitude.vars.value ?: '14.4656' }}"
+                    >
+                        <div class="hl-form-map-canvas" data-line-form-map-target="canvas"></div>
+                        <div class="hl-form-map-overlay">
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary btn-sm hl-form-map-toggle"
+                                data-line-form-map-target="p1Toggle"
+                                data-action="click->line-form-map#toggle"
+                                data-line-form-map-mode-param="p1"
+                            >Přidat bod 1</button>
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary btn-sm hl-form-map-toggle"
+                                data-line-form-map-target="p2Toggle"
+                                data-action="click->line-form-map#toggle"
+                                data-line-form-map-mode-param="p2"
+                            >Přidat bod 2</button>
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary btn-sm hl-form-map-toggle hl-form-parking-toggle"
+                                data-line-form-map-target="parkingToggle"
+                                data-action="click->line-form-map#toggle"
+                                data-line-form-map-mode-param="parking"
+                            >Přidat parkování</button>
+                        </div>
+                        <div class="hl-form-map-controls-bl">
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary btn-sm hl-form-map-btn hl-form-fullscreen-toggle"
+                                data-line-form-map-target="fullscreenToggle"
+                                data-action="click->line-form-map#toggleFullscreen"
+                            >⛶ Celá obrazovka</button>
+                        </div>
+                        <div class="hl-form-distance">
+                            <span class="hl-form-distance-label">Délka</span>
+                            <span class="hl-form-distance-value is-empty" data-line-form-map-target="distance">Nastav oba body</span>
+                        </div>
+                    </div>
+                    <div class="hl-form-points">
+                        <div class="hl-form-point">
+                            <h3>Bod 1</h3>
+                            <div class="row">
+                                <div class="col-sm-6">{{ form_row(form.point1Latitude) }}</div>
+                                <div class="col-sm-6">{{ form_row(form.point1Longitude) }}</div>
+                            </div>
+                            {{ form_row(form.pointOneInfo) }}
+                        </div>
+                        <div class="hl-form-point">
+                            <h3>Bod 2</h3>
+                            <div class="row">
+                                <div class="col-sm-6">{{ form_row(form.point2Latitude) }}</div>
+                                <div class="col-sm-6">{{ form_row(form.point2Longitude) }}</div>
+                            </div>
+                            {{ form_row(form.pointTwoInfo) }}
+                        </div>
+                        <div class="hl-form-point hl-form-point-parking">
+                            <h3>Parkování <span class="hl-form-optional">(volitelné)</span></h3>
+                            <div class="row">
+                                <div class="col-sm-6">{{ form_row(form.parkingLatitude) }}</div>
+                                <div class="col-sm-6">{{ form_row(form.parkingLongitude) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        {% if queueProposal %}Odeslat návrh
+                        {% elseif mode == 'edit' %}Uložit
+                        {% else %}Přidat lajnu{% endif %}
+                    </button>
+                    {% if mode == 'edit' %}
+                        <a class="btn btn-outline-secondary" href="{{ path('app_line_detail', { slug: line.slug }) }}">Zrušit</a>
+                    {% else %}
+                        <a class="btn btn-outline-secondary" href="{{ path('app_line_map') }}">Zrušit</a>
+                    {% endif %}
+                </div>
+            {{ form_end(form) }}
+        </div>
     </div>
 </div>
 {% endblock %}

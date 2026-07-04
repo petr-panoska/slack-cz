@@ -3,26 +3,23 @@
 {% block title %}Přidat fotku – {{ line.name }} – slack.cz{% endblock %}
 
 {% block body %}
-<article class="hl-form-page">
-    <header class="hl-form-page-header">
-        <a href="{{ path('app_line_detail', { slug: line.slug }) }}" class="hl-back">← {{ line.name }}</a>
-        <h1>Přidat fotku</h1>
-    </header>
+<div class="form-page form-page--md">
+    <div class="card">
+        <div class="card-body p-4">
+            <a class="hl-back" href="{{ path('app_line_detail', { slug: line.slug }) }}">← {{ line.name }}</a>
+            <h1 class="h4 mb-4">Přidat fotku</h1>
 
-    <section class="card">
-        {{ form_start(form, { attr: { enctype: 'multipart/form-data', novalidate: 'novalidate' } }) }}
-        <div class="form-row">
-            {{ form_row(form.file) }}
+            {{ form_start(form, { attr: { enctype: 'multipart/form-data', novalidate: 'novalidate' } }) }}
+                {{ form_row(form.file) }}
+                {{ form_row(form.caption) }}
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary flex-fill">Nahrát</button>
+                    <a href="{{ path('app_line_detail', { slug: line.slug }) }}" class="btn btn-outline-secondary flex-fill">Zrušit</a>
+                </div>
+                <p class="form-text mt-3 mb-0">JPG, PNG nebo WebP, max 4 MB. Z fotky odstraníme EXIF (vč. GPS) a srovnáme orientaci.</p>
+            {{ form_end(form) }}
         </div>
-        <div class="form-row">
-            {{ form_row(form.caption) }}
-        </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Nahrát</button>
-            <a href="{{ path('app_line_detail', { slug: line.slug }) }}" class="btn btn-secondary">Zrušit</a>
-        </div>
-        <p class="form-hint">JPG, PNG nebo WebP, max 4 MB. Z fotky odstraníme EXIF (vč. GPS) a srovnáme orientaci.</p>
-        {{ form_end(form) }}
-    </section>
-</article>
+    </div>
+</div>
 {% endblock %}

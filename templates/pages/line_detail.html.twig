@@ -18,6 +18,7 @@
         {% endif %}
         <div class="hl-cover-shade"></div>
         <div class="hl-cover-content">
+            <div class="container-xl">
             <a href="{{ path('app_line_map') }}" class="hl-back">← Mapa</a>
             <h1>
                 {{ line.name }}
@@ -38,33 +39,35 @@
                 {% set isOwner = line.isOwnedBy(app.user) %}
                 {% set canEditDirect = isAdmin or (isOwner and not line.isVerified) %}
                 {% set canDelete = canEditDirect %}
-                <div class="hl-detail-actions">
-                    <a class="btn btn-secondary btn-sm" href="{{ path('app_line_edit', { slug: line.slug }) }}">
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_line_edit', { slug: line.slug }) }}">
                         {{ canEditDirect ? 'Upravit' : 'Navrhnout úpravu' }}
                     </a>
                     {% if historyCount > 0 %}
-                        <a class="btn btn-secondary btn-sm" href="{{ path('app_line_history', { slug: line.slug }) }}">Historie ({{ historyCount }})</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_line_history', { slug: line.slug }) }}">Historie ({{ historyCount }})</a>
                     {% endif %}
                     {% if isAdmin and not line.isVerified %}
-                        <form method="post" action="{{ path('app_line_verify', { slug: line.slug }) }}" class="hl-action-form" data-turbo="false">
+                        <form method="post" action="{{ path('app_line_verify', { slug: line.slug }) }}" class="d-inline m-0" data-turbo="false">
                             <input type="hidden" name="_token" value="{{ csrf_token('verify-line-' ~ line.id) }}">
                             <button type="submit" class="btn btn-primary btn-sm">Verifikovat</button>
                         </form>
                     {% endif %}
                     {% if canDelete %}
-                        <form method="post" action="{{ path('app_line_delete', { slug: line.slug }) }}" class="hl-action-form" onsubmit="return confirm('Opravdu smazat lajnu „{{ line.name|e('js') }}"?');" data-turbo="false">
+                        <form method="post" action="{{ path('app_line_delete', { slug: line.slug }) }}" class="d-inline m-0" onsubmit="return confirm('Opravdu smazat lajnu „{{ line.name|e('js') }}"?');" data-turbo="false">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete-line-' ~ line.id) }}">
-                            <button type="submit" class="btn btn-danger btn-sm">Smazat</button>
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Smazat</button>
                         </form>
                     {% endif %}
                 </div>
             {% endif %}
+            </div>
         </div>
     </header>
 
-    <div class="hl-detail-body">
-        <div class="hl-detail-grid">
-            <aside class="hl-stats card">
+    <div class="container-xl py-4 py-lg-5">
+        <div class="row g-4 align-items-start">
+            <aside class="col-lg-4 order-lg-2">
+            <div class="hl-stats card p-4 text-center">
                 <div class="hl-stats-row">
                     <div class="hl-stat">
                         <span class="hl-stat-icon" aria-hidden="true">↔</span>
@@ -82,12 +85,15 @@
                         {% for s in 1..5 %}<span class="hl-star{% if s <= line.rating %} on{% endif %}">★</span>{% endfor %}
                     </div>
                 {% endif %}
+            </div>
             </aside>
 
-            <section class="hl-info card">
+            <div class="col-lg-8 order-lg-1 vstack gap-4">
+            <section class="card">
+                <div class="card-body">
                 {% if line.description %}
-                    <div class="hl-info-block hl-richtext">
-                        <h2>Popis</h2>
+                    <div class="hl-richtext mb-4">
+                        <h2 class="h6 fw-semibold mb-2">Popis</h2>
                         {{ line.description|nl2br }}
                     </div>
                 {% endif %}
@@ -131,6 +137,7 @@
                         </tr>
                     {% endif %}
                 </table>
+                </div>
             </section>
 
             {{ include('_partials/_line_gallery.html.twig', {
@@ -141,7 +148,7 @@
                 likedIds: likedIds,
             }) }}
 
-            <section class="card overflow-hidden hl-map-panel">
+            <section class="card overflow-hidden">
                 <header class="card-header">
                     <div class="d-flex align-items-center gap-2">
                         <span class="card-dot card-dot-map"></span>
@@ -172,7 +179,7 @@
                 </div>
             </section>
 
-            <section class="card hl-crossings-panel">
+            <section class="card">
                 <header class="card-header">
                     <div class="d-flex align-items-center gap-2">
                         <span class="card-dot card-dot-crossings"></span>
@@ -181,7 +188,7 @@
                     {% if app.user %}
                         <a class="btn btn-primary btn-sm" href="{{ path('app_crossing_new', { slug: line.slug }) }}">+ Přidat přechod</a>
                     {% else %}
-                        <a class="btn btn-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_login') }}">Přihlásit pro přidání</a>
                     {% endif %}
                 </header>
                 {% if crossings|length > 0 %}
@@ -190,6 +197,7 @@
                     <p class="text-body-secondary fst-italic p-3 mb-0">Zatím žádný zaznamenaný přechod.</p>
                 {% endif %}
             </section>
+            </div>
         </div>
     </div>
 </article>

@@ -11,9 +11,8 @@
 //      .foo { @include media-down(md) { ... } }   // < 768px
 //      .bar { @include media-up(lg)   { ... } }   // ≥ 992px
 //
-//  Legacy CSS partialy (app.css manifest) mají ještě staré hardcoded
-//  640/768/900 — NEpřidávat další; ty soubory postupně umírají s Fází 3
-//  (migrace na Bootstrap). Nové styly = vždy tyhle mixiny.
+//  Legacy app.css manifest zemřel s Fází 3 — všechny styly žijí
+//  v brand/ partialech a používají VÝHRADNĚ tyhle mixiny.
 // =====================================================================
 
 @use 'sass:map';

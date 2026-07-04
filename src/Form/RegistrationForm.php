@@ -20,10 +20,11 @@ class RegistrationForm extends AbstractType
         $builder
             ->add('email')
             ->add('agreeTerms', CheckboxType::class, [
+                'label' => 'Souhlasím s podmínkami používání',
                 'mapped' => false,
                 'constraints' => [
                     new IsTrue([
-                        'message' => 'You should agree to our terms.',
+                        'message' => 'Pro registraci musíš souhlasit s podmínkami.',
                     ]),
                 ],
             ])

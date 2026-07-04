@@ -12,7 +12,7 @@
     </header>
 
     {% if entries|length == 0 %}
-        <p class="hl-empty">Žádné historické úpravy.</p>
+        <p class="text-body-secondary fst-italic p-3 mb-0">Žádné historické úpravy.</p>
     {% else %}
         <ul class="proposals-list">
             {% for entry in entries %}
@@ -61,7 +61,7 @@
                             </tbody>
                         </table>
                     {% elseif entry.diff is empty and status == 'rejected' %}
-                        <p class="hl-empty">Návrh zamítnut — pole z návrhu se neaplikovala.</p>
+                        <p class="text-body-secondary fst-italic p-3 mb-0">Návrh zamítnut — pole z návrhu se neaplikovala.</p>
                     {% else %}
                         <table class="proposals-diff">
                             <thead>
@@ -86,7 +86,7 @@
                         <footer class="proposals-actions">
                             <form method="post" action="{{ path('app_line_history_delete', { slug: line.slug, editId: edit.id }) }}" data-turbo="false" onsubmit="return confirm('Smazat poslední revizi? Lajna se vrátí do předchozího stavu.');">
                                 <input type="hidden" name="_token" value="{{ csrf_token('history-delete-' ~ edit.id) }}">
-                                <button type="submit" class="btn btn-danger btn-sm">Smazat poslední revizi</button>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Smazat poslední revizi</button>
                             </form>
                         </footer>
                     {% endif %}

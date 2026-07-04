@@ -1,3 +1,7 @@
+// --- Homepage: mapa s přechody, galerie, walker animace ---
+// Portnuto 1:1 z legacy app.css vrstvy (Fáze 3); vzhled beze změny.
+@use 'breakpoints' as *;
+
 /* ---------- Homepage map panel (merged map + crossings) ---------- */
 
 .hp-map-body {
@@ -43,7 +47,7 @@
     inset: 0;
 }
 
-@media (max-width: 768px) {
+@include media-down(md) {
     .hp-map-body {
         flex-direction: column;
         height: auto;

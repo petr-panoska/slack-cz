@@ -3,31 +3,29 @@
 {% block title %}Obnova hesla{% endblock %}
 
 {% block body %}
-    <div class="auth-page">
-        <div class="auth-card">
-            <h1>Obnova hesla</h1>
+    <div class="form-page">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Obnova hesla</h1>
 
-            {% for flash_error in app.flashes('reset_password_error') %}
-                <div class="auth-alert" role="alert">{{ flash_error }}</div>
-            {% endfor %}
+                {% for flash_error in app.flashes('reset_password_error') %}
+                    <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+                {% endfor %}
 
-            {{ form_start(requestForm) }}
-                <div class="form-group">
-                    {{ form_label(requestForm.email, 'Email') }}
-                    {{ form_widget(requestForm.email) }}
-                    {{ form_errors(requestForm.email) }}
+                {{ form_start(requestForm) }}
+                    {{ form_row(requestForm.email, { label: 'Email' }) }}
+
+                    <p class="form-text mb-3">
+                        Zadej email, na který je účet registrovaný — pošleme ti odkaz pro nastavení nového hesla.
+                    </p>
+
+                    <button type="submit" class="btn btn-primary w-100">Poslat odkaz</button>
+                {{ form_end(requestForm) }}
+
+                <div class="d-flex justify-content-between small mt-4 pt-3 border-top">
+                    <a href="{{ path('app_login') }}">Zpět na přihlášení</a>
+                    <a href="{{ path('app_register') }}">Vytvořit účet</a>
                 </div>
-
-                <small class="auth-help">
-                    Zadej email, na který je účet registrovaný — pošleme ti odkaz pro nastavení nového hesla.
-                </small>
-
-                <button type="submit" class="btn btn-primary btn-block">Poslat odkaz</button>
-            {{ form_end(requestForm) }}
-
-            <div class="auth-links">
-                <a href="{{ path('app_login') }}">Zpět na přihlášení</a>
-                <a href="{{ path('app_register') }}">Vytvořit účet</a>
             </div>
         </div>
     </div>

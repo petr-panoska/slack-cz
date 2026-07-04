@@ -11,10 +11,10 @@
         <a href="{{ path('app_line_detail', { slug: line.slug }) }}" class="hl-back">← {{ line.name }}</a>
         <div class="hl-photo-nav">
             {% if prev %}
-                <a class="btn btn-secondary btn-sm" href="{{ path('app_line_photo_detail', { slug: line.slug, id: prev.id }) }}">← Předchozí</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_line_photo_detail', { slug: line.slug, id: prev.id }) }}">← Předchozí</a>
             {% endif %}
             {% if next %}
-                <a class="btn btn-secondary btn-sm" href="{{ path('app_line_photo_detail', { slug: line.slug, id: next.id }) }}">Další →</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_line_photo_detail', { slug: line.slug, id: next.id }) }}">Další →</a>
             {% endif %}
         </div>
     </header>
@@ -76,7 +76,7 @@
                     onsubmit="return confirm('Opravdu smazat fotku?');"
                 >
                     <input type="hidden" name="_token" value="{{ csrf_token('delete-photo-' ~ photo.id) }}">
-                    <button type="submit" class="btn btn-danger btn-sm">Smazat fotku</button>
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Smazat fotku</button>
                 </form>
             {% endif %}
         </div>
@@ -122,7 +122,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p class="hl-empty">Zatím žádný komentář.</p>
+            <p class="text-body-secondary fst-italic p-3 mb-0">Zatím žádný komentář.</p>
         {% endif %}
 
         {% if app.user %}
@@ -135,7 +135,7 @@
                 {{ form_end(commentForm) }}
             </div>
         {% else %}
-            <p class="hl-empty"><a href="{{ path('app_login') }}">Přihlas se</a> pro přidání komentáře.</p>
+            <p class="text-body-secondary fst-italic p-3 mb-0"><a href="{{ path('app_login') }}">Přihlas se</a> pro přidání komentáře.</p>
         {% endif %}
     </section>
 </article>

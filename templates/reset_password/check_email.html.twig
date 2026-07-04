@@ -3,21 +3,23 @@
 {% block title %}Email odeslán{% endblock %}
 
 {% block body %}
-    <div class="auth-page">
-        <div class="auth-card">
-            <h1>Zkontroluj schránku</h1>
+    <div class="form-page">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Zkontroluj schránku</h1>
 
-            <p>
-                Pokud na zadaný email existuje účet, právě jsme poslali zprávu s odkazem pro obnovu hesla.
-                Odkaz je platný {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
-            </p>
-            <p>
-                Email nepřišel? Mrkni do spamu, nebo
-                <a href="{{ path('app_forgot_password_request') }}">zkus to znovu</a>.
-            </p>
+                <p>
+                    Pokud na zadaný email existuje účet, právě jsme poslali zprávu s odkazem pro obnovu hesla.
+                    Odkaz je platný {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+                </p>
+                <p>
+                    Email nepřišel? Mrkni do spamu, nebo
+                    <a href="{{ path('app_forgot_password_request') }}">zkus to znovu</a>.
+                </p>
 
-            <div class="auth-links">
-                <a href="{{ path('app_login') }}">Zpět na přihlášení</a>
+                <div class="d-flex justify-content-between small mt-4 pt-3 border-top">
+                    <a href="{{ path('app_login') }}">Zpět na přihlášení</a>
+                </div>
             </div>
         </div>
     </div>
