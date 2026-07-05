@@ -64,10 +64,13 @@ export function addLocateControl(map, { position = 'topright' } = {}) {
         active = true;
         setPressed(true);
         btn.classList.add('is-locating');
-        // `timeout: Infinity`: the first GPS fix on a phone routinely takes longer
-        // than Leaflet's 10s default (the iOS permission dialog alone can eat it),
-        // and a watch should simply keep waiting — we pulse until the fix lands.
-        map.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: Infinity });
+        // Long-but-FINITE timeout: the first GPS fix on a phone routinely takes
+        // longer than Leaflet's 10s default (the iOS permission dialog alone can
+        // eat it), and a watch should simply keep waiting — we pulse until the
+        // fix lands. Never pass Infinity here: Safari converts it to a 32-bit
+        // int without clamping, ends up with timeout=0 and fails every attempt
+        // instantly (Chrome clamps, which hides the bug in testing).
+        map.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 600000 });
     };
 
     map.on('locationfound', (e) => {
