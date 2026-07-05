@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
+import { addLocateControl } from '../map_locate.js';
 
 // Mirrors App\Enum\LineType (legacy "Top Highline"/"Urban Line" were collapsed
 // into Highline at import — they don't exist as live values anymore).
@@ -155,6 +156,7 @@ export default class extends Controller {
         // Fullscreen the whole wrapper, not just the canvas, so the crossing feed and
         // time-travel controls stay on screen.
         addFullscreenToggle(this.map, { element: this.element });
+        addLocateControl(this.map);
 
         this.map.on('moveend zoomend', () => {
             writeSavedView(this.map);
