@@ -52,10 +52,13 @@ export function applyBasemap(map, layers, id) {
     });
 }
 
+// Google-Maps-style stacked-layers glyph for the picker toggle.
+const LAYERS_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27-7.38 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>';
+
 /**
- * Adds the three base layers to `map` plus an expandable picker control: a pill
- * button showing the current layer that opens a small list (Mapa / Ortofoto /
- * Hybrid). Used on every read-only map and on the highline form.
+ * Adds the three base layers to `map` plus an expandable picker control: an
+ * icon-only layers button that opens a small list (Mapa / Ortofoto / Hybrid).
+ * Used on every read-only map and on the highline form.
  *
  * @param {L.Map} map
  * @param {{position?: string, maxZoom?: number, initial?: string, ortho?: boolean}} [opts]
@@ -94,9 +97,11 @@ export function addBasemapPicker(map, { position = 'topright', maxZoom = 19, ini
             btn.setAttribute('aria-expanded', 'true');
         };
 
+        btn.innerHTML = LAYERS_ICON;
+
         const renderToggle = () => {
-            btn.textContent = `${labelFor(current)} ▾`;
             btn.setAttribute('aria-label', `Vrstva mapy: ${labelFor(current)}`);
+            btn.title = `Vrstva mapy: ${labelFor(current)}`;
         };
 
         BASEMAPS.forEach(({ id, label }) => {

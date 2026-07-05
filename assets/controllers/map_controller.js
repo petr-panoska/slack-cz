@@ -162,6 +162,21 @@ export default class extends Controller {
         });
         this.map.on('zoomend', () => this._updateLinesVisibility());
 
+        // The canvas shares the page with the lines box (no overlap), so its size
+        // changes when the box expands/collapses (animated) — keep Leaflet's
+        // internal size in sync per frame and republish the viewport lines once
+        // the resize settles. `pan: false` keeps invalidateSize from firing
+        // moveend, which would masquerade as a user interaction.
+        if ('ResizeObserver' in window) {
+            this._canvasResize = new ResizeObserver(() => {
+                if (!this.map) return;
+                this.map.invalidateSize({ animate: false, pan: false });
+                clearTimeout(this._resizePublish);
+                this._resizePublish = setTimeout(() => this._publishViewportLines('resize'), 120);
+            });
+            this._canvasResize.observe(this.canvasTarget);
+        }
+
         // Static mode = highlines (always visible) + recent users emoji (toggleable via sidebar eye)
         this.staticLayer = L.layerGroup().addTo(this.map);
         // Polyline per highline (the line between its two anchors); only shown once
@@ -213,6 +228,8 @@ export default class extends Controller {
             cancelAnimationFrame(this.rafHandle);
             this.rafHandle = null;
         }
+        this._canvasResize?.disconnect();
+        clearTimeout(this._resizePublish);
         if (this._onUsersVisibility) {
             document.removeEventListener('slack:users-visibility', this._onUsersVisibility);
         }
@@ -293,14 +310,17 @@ export default class extends Controller {
 
     // Broadcast the lines inside the current viewport (alphabetical) for the sidebar
     // list. Cheap enough to run on every moveend/zoomend — max ~254 lines.
-    _publishViewportLines() {
+    // `reason` tells the list what triggered the update: 'interaction' (user moved
+    // the map) may re-fit the box height, 'resize' (the box itself resized the map)
+    // must not — that distinction is what breaks the height↔viewport feedback loop.
+    _publishViewportLines(reason = 'interaction') {
         if (!this.map || !this.lineIndex) return;
         const bounds = this.map.getBounds();
         const lines = this.lineIndex
             .filter((r) => bounds.contains([r.lat, r.lng]))
             .map(({ marker, ...data }) => data)
             .sort((a, b) => a.name.localeCompare(b.name, 'cs'));
-        document.dispatchEvent(new CustomEvent('slack:viewport-lines', { detail: { lines } }));
+        document.dispatchEvent(new CustomEvent('slack:viewport-lines', { detail: { lines, reason } }));
     }
 
     // Sidebar list click → center the picked line and open its popup. In time-travel

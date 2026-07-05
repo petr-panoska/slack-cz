@@ -13,10 +13,9 @@
     data-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
     data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
 >
-    <div class="line-map" data-map-target="canvas"></div>
-
-    {# Levý sloupec (sreality styl): nahoře lajny aktuálně ve výřezu mapy
-       (default otevřený), dole přechody (default zavřený, podružná info).
+    {# Sloupec vedle mapy (desktop) / pruh nad mapou (mobil) — s mapou se
+       nepřekrývá, aby seznam nepočítal lajny schované pod boxem. Nahoře lajny
+       ve výřezu (default otevřené), dole přechody (default zavřené).
        Oba boxy sdílí vizuál .crossing-feed. #}
     <div class="map-side">
         <aside
@@ -24,23 +23,20 @@
             aria-label="Lajny ve výřezu mapy"
             data-controller="line-feed"
         >
-            <header class="crossing-feed-header">
+            {# Celá hlavička = toggle sbalení/rozbalení (počet lajn přímo v titulku). #}
+            <header
+                class="crossing-feed-header crossing-feed-header--toggle"
+                role="button"
+                tabindex="0"
+                aria-expanded="true"
+                data-line-feed-target="header"
+                data-action="click->line-feed#toggle keydown.enter->line-feed#toggle keydown.space->line-feed#toggle"
+            >
                 <span class="crossing-feed-dot crossing-feed-dot--lines" aria-hidden="true"></span>
-                <div class="crossing-feed-titles">
-                    <h2 class="crossing-feed-title">Lajny</h2>
-                    <span class="crossing-feed-caption crossing-feed-caption--static" data-line-feed-target="caption">—</span>
-                </div>
-                <button
-                    type="button"
-                    class="crossing-feed-toggle"
-                    data-action="click->line-feed#toggle"
-                    aria-label="Sbalit panel"
-                    title="Sbalit panel"
-                >
-                    <span class="crossing-feed-toggle-icon" aria-hidden="true">▾</span>
-                </button>
+                <h2 class="crossing-feed-title">Lajny<span class="line-feed-count" data-line-feed-target="count"></span></h2>
+                <span class="crossing-feed-toggle-icon" aria-hidden="true">▾</span>
             </header>
-            <div class="crossing-feed-body-wrap">
+            <div class="crossing-feed-body-wrap" data-line-feed-target="body">
                 <ul class="line-feed-list" data-line-feed-target="list"></ul>
                 <p class="crossing-feed-empty" data-line-feed-target="empty" hidden>Ve výřezu žádná lajna.</p>
             </div>
@@ -155,12 +151,18 @@
         </aside>
     </div>
 
+    <div class="line-map" data-map-target="canvas"></div>
+
+    {# TODO(mapa-mobile): „Přehrát historii" dočasně skryto — time-travel se vrátí
+       až s mobilním redesignem ovládání (docs/todo.md § Mapa). map_controller má
+       target guardovaný (hasTtToggleTarget), odkomentování ho zase oživí.
     <button
         type="button"
         class="map-tt-toggle"
         data-map-target="ttToggle"
         data-action="click->map#toggleTimeTravel"
     >Přehrát historii</button>
+    #}
 
     <div class="map-tt-panel" data-map-target="ttPanel">
         <div class="map-tt-row">

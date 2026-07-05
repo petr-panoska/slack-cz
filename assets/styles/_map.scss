@@ -2,15 +2,20 @@
 
 /* ---------- Map page ---------- */
 
+/* Sidebar and map are isolated (no overlap): the viewport list counts lines in
+   the whole visible map, so nothing may cover it. Desktop = side column + map,
+   mobile = lines box on top, map below (see the media-down block). */
 .line-map-wrapper {
     position: relative;
     height: calc(100vh - var(--header-height));
     width: 100%;
+    display: flex;
 }
 
 .line-map {
-    height: 100%;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
 }
 
 /* ---------- Map control pills: basemap + fullscreen (shared across all maps) ---------- */
@@ -44,9 +49,15 @@
     border-color: #1b1b1b;
 }
 
-/* Basemap picker: pill toggle that expands a small radio-like list below it. */
+/* Basemap picker: icon toggle that expands a small radio-like list below it. */
 .map-layers {
     position: relative;
+}
+
+/* Each .leaflet-control is its own stacking context — lift the whole control
+   while open so the panel paints above sibling controls (fullscreen, legend). */
+.map-layers.is-open {
+    z-index: 1000;
 }
 
 .map-layers.is-open .map-layers-toggle {
@@ -111,9 +122,10 @@
     color: #fff;
 }
 
-/* Icon-only pills (fullscreen ⛶, legend ?) → square buttons, slightly larger glyph. */
+/* Icon-only pills (fullscreen ⛶, legend ?, layers) → square buttons, slightly larger glyph. */
 .map-fullscreen-toggle,
-.map-legend-toggle {
+.map-legend-toggle,
+.map-layers-toggle {
     padding: 0;
     width: 34px;
     height: 34px;
@@ -124,10 +136,12 @@
     justify-content: center;
 }
 
-/* On /mapa the top-right corner already holds the "Přehrát historii" toggle. */
+/* TODO(mapa-mobile): offset uvolňoval roh pro „Přehrát historii" — vrátit,
+   až se time-travel toggle vrátí (viz templates/pages/map.html.twig).
 .line-map-wrapper .leaflet-top.leaflet-right {
     top: 44px;
 }
+*/
 
 /* "Podrž Ctrl a otoč kolečkem" hint — shown by enableCtrlScrollZoom. */
 .map-zoom-hint {
@@ -172,29 +186,17 @@
 
 /* ---------- Left column: lines-in-viewport box + crossings box ---------- */
 
-/* Sreality-style stack over the map: lines box on top (primary, default open),
-   crossings below (secondary, default collapsed). Boxes size to content and
-   shrink/scroll when the column runs out of height. */
+/* Sreality-style column next to the map: lines box on top (primary, default
+   open), crossings below (secondary, default collapsed). Boxes size to content
+   and shrink/scroll when the column runs out of height. */
 .map-side {
-    position: absolute;
-    top: 14px;
-    bottom: 14px;
-    left: 14px;
-    z-index: 500;
-    width: 320px;
+    flex: 0 0 320px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* The column spans full height — let clicks in the empty space reach the map. */
-    pointer-events: none;
-}
-
-.map-side > * {
-    pointer-events: auto;
-}
-
-.time-travel-active .map-side {
-    bottom: 110px;
+    padding: 14px 10px 14px 14px;
+    overflow: hidden;
 }
 
 .crossing-feed {
@@ -548,17 +550,26 @@
 
 /* ---------- Lines-in-viewport box (shares the .crossing-feed shell) ---------- */
 
-/* Caption is a plain counter here, not a filter toggle. */
-.crossing-feed-caption--static {
-    cursor: default;
+/* The whole header is the collapse/expand toggle (no separate button). */
+.crossing-feed-header--toggle {
+    cursor: pointer;
+    user-select: none;
 }
 
-.crossing-feed-caption--static::after {
-    content: none;
+.crossing-feed-header--toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
 }
 
-.crossing-feed-caption--static:hover,
-.crossing-feed-caption--static:focus-visible {
+.crossing-feed-header--toggle .crossing-feed-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Viewport count right in the title: "LAJNY – 254". */
+.line-feed-count {
+    margin-left: 7px;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.65);
 }
 
@@ -646,19 +657,51 @@
         animation: none;
     }
     .crossing-feed,
-    .crossing-feed-toggle-icon {
+    .crossing-feed-toggle-icon,
+    .crossing-feed-body-wrap {
         transition: none;
     }
 }
 
-/* Overlay strip on top of the map; height grows with content up to half the
-   screen, boxes scroll inside. Collapse (header-only) to see the map. */
+/* Mobile: lines box on top, map below — stacked, never overlapping. The box
+   starts collapsed to its header bar (see line_feed_controller); expanded it
+   sizes to content, at most a third of the screen, and scrolls inside. The map
+   canvas resizes with it (map_controller invalidates Leaflet's size). */
 @include media-down(md) {
+    .line-map-wrapper {
+        flex-direction: column;
+    }
+
     .map-side {
-        bottom: auto;
-        width: calc(100% - 28px);
-        max-width: 320px;
-        max-height: 55%;
+        flex: 0 0 auto;
+        max-height: 33vh;
+        padding: 10px;
+    }
+
+    /* Body height is JS-driven on mobile (fit-to-content after the map rests,
+       see line_feed_controller._fitHeight) — this just animates the changes. */
+    .crossing-feed--lines .crossing-feed-body-wrap {
+        transition: height 0.25s ease;
+    }
+
+    /* TODO(mapa-mobile): přechody na mobilu zatím schované — až vymyslíme,
+       jak je zakomponovat do mobilního ovládání (docs/todo.md § Mapa). */
+    .crossing-feed:not(.crossing-feed--lines) {
+        display: none;
+    }
+
+    /* Compact rows: name only. */
+    .line-feed-list {
+        gap: 4px;
+    }
+
+    .line-feed-item {
+        padding: 6px 10px;
+    }
+
+    .line-feed-dot,
+    .line-feed-meta {
+        display: none;
     }
 }
 
