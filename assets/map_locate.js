@@ -17,15 +17,28 @@ const DOT_HTML = '<span class="map-locate-dot"></span>';
  * @param {{position?: string}} [opts]
  */
 export function addLocateControl(map, { position = 'topright' } = {}) {
-    // No API (or insecure context, where the browser hides it) → no dead button.
-    if (!('geolocation' in navigator)) return;
+    // No API or insecure (http) context → geolocation can't work, no dead button.
+    if (!('geolocation' in navigator) || !window.isSecureContext) return;
 
     let btn = null;
     let active = false;
     let centered = false;
     let marker = null;
     let circle = null;
-    let errorTimer = null;
+    let toast = null;
+    let toastTimer = null;
+
+    // `title` is useless on touch devices — failures get a visible map toast.
+    const showToast = (text) => {
+        toast?.remove();
+        toast = L.DomUtil.create('div', 'map-locate-toast', map.getContainer());
+        toast.textContent = text;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast?.remove();
+            toast = null;
+        }, 4000);
+    };
 
     const setPressed = (on) => {
         btn.classList.toggle('is-active', on);
@@ -51,7 +64,10 @@ export function addLocateControl(map, { position = 'topright' } = {}) {
         active = true;
         setPressed(true);
         btn.classList.add('is-locating');
-        map.locate({ watch: true, setView: false, enableHighAccuracy: true });
+        // `timeout: Infinity`: the first GPS fix on a phone routinely takes longer
+        // than Leaflet's 10s default (the iOS permission dialog alone can eat it),
+        // and a watch should simply keep waiting — we pulse until the fix lands.
+        map.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: Infinity });
     };
 
     map.on('locationfound', (e) => {
@@ -85,22 +101,20 @@ export function addLocateControl(map, { position = 'topright' } = {}) {
 
     map.on('locationerror', (e) => {
         if (!active) return;
-        // A running watch emits transient errors (signal lost, timeout) — keep
-        // watching and keep the last known dot. Bail out only when permission
-        // was denied (code 1) or the very first fix already failed.
-        if (e.code !== 1 && marker) return;
+        // A running watch emits transient errors (no fix yet, signal lost,
+        // timeout) — keep watching, the pulse shows we're still trying. Only
+        // denied permission (code 1) is final.
+        if (e.code !== 1) return;
         stop();
-        // Brief visual feedback on the button (denied permission / no fix).
         btn.classList.add('is-error');
-        btn.title = 'Polohu se nepodařilo zjistit';
-        clearTimeout(errorTimer);
-        errorTimer = setTimeout(() => btn.classList.remove('is-error'), 1600);
+        setTimeout(() => btn.classList.remove('is-error'), 1600);
+        showToast('Poloha je zablokovaná — povol ji webu v nastavení prohlížeče.');
     });
 
     // Turbo navigation removes the map — don't leave the geolocation watch running.
     map.on('unload', () => {
         if (active) map.stopLocate();
-        clearTimeout(errorTimer);
+        clearTimeout(toastTimer);
     });
 
     const control = L.control({ position });

@@ -153,6 +153,24 @@
     color: #d33;
 }
 
+/* Transient failure message (title tooltips don't exist on touch devices). */
+.map-locate-toast {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    max-width: calc(100% - 28px);
+    padding: 8px 14px;
+    background: rgba(20, 0, 12, 0.92);
+    color: #fff;
+    font-size: 0.82rem;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    text-align: center;
+}
+
 /* Blue device-position dot (deliberately not brand magenta — that's for lines). */
 .map-locate-marker {
     background: transparent;
