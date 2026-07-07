@@ -214,10 +214,11 @@ export default class extends Controller {
         this.speedMultiplier = 1;
         this._lastEmittedDate = null;
 
+        // Markers are hidden by default — '0' means the user explicitly showed them.
         try {
-            this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) !== '1';
+            this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) === '0';
         } catch {
-            this.usersVisible = true;
+            this.usersVisible = false;
         }
         if (this.usersVisible) this.usersLayer.addTo(this.map);
 

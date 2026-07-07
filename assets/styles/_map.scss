@@ -285,9 +285,8 @@
 
 /* ---------- Left column: lines-in-viewport box + crossings box ---------- */
 
-/* Sreality-style column next to the map: lines box on top (primary, default
-   open), crossings below (secondary, default collapsed). Boxes size to content
-   and shrink/scroll when the column runs out of height. */
+/* Sreality-style column next to the map, holding the tabbed .map-panel
+   (Lajny / Přechody). */
 .map-side {
     flex: 0 0 320px;
     min-height: 0;
@@ -301,65 +300,20 @@
     z-index: 900;
 }
 
-.crossing-feed {
-    flex: 0 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid var(--color-line);
-    border-radius: 12px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
-    overflow: hidden;
-}
+/* ---------- Crossings pane (.crossing-feed, mixed onto a .map-panel__pane) ---------- */
 
-.crossing-feed.is-collapsed {
-    flex: 0 0 auto;
-}
-
-.crossing-feed-header {
+/* Filter bar at the pane top: the caption toggles the filter panel, the eye
+   hides the map's emoji markers. */
+.crossing-feed__bar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 8px 12px;
     border-bottom: 1px solid var(--color-line);
-    background: rgba(20, 0, 12, 0.92);
-    color: #fff;
-    flex-shrink: 0;
 }
 
-.crossing-feed-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--color-accent);
-    box-shadow: 0 0 8px rgba(225, 0, 91, 0.8);
-    animation: crossing-feed-dot-pulse 1.8s ease-in-out infinite;
-    flex-shrink: 0;
-}
-
-@keyframes crossing-feed-dot-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
-}
-
-.crossing-feed-titles {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-
-.crossing-feed-title {
-    margin: 0;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.crossing-feed-caption {
+.crossing-feed__caption {
     appearance: none;
     border: 0;
     background: transparent;
@@ -368,8 +322,8 @@
     text-align: left;
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.78rem;
+    color: var(--color-muted);
     letter-spacing: 0.02em;
     white-space: nowrap;
     overflow: hidden;
@@ -381,101 +335,29 @@
     transition: color 0.15s;
 }
 
-.crossing-feed-caption::after {
+.crossing-feed__caption::after {
     content: '▾';
     font-size: 0.6rem;
     flex-shrink: 0;
     transition: transform 0.2s ease;
 }
 
-.crossing-feed.filter-open .crossing-feed-caption::after {
+.crossing-feed__caption--open::after {
     transform: rotate(180deg);
 }
 
-.crossing-feed-caption:hover,
-.crossing-feed-caption:focus-visible {
-    color: #fff;
+.crossing-feed__caption:hover,
+.crossing-feed__caption:focus-visible {
+    color: var(--color-fg);
     outline: none;
 }
 
-.crossing-feed-filter {
-    flex-shrink: 0;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--color-line);
-    background: rgba(20, 0, 12, 0.92);
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.78rem;
-}
-
-.crossing-feed-filter[hidden] {
-    display: none;
-}
-
-.crossing-feed-filter-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-}
-
-.crossing-feed-filter-row input[type="radio"] {
-    accent-color: var(--color-accent);
-    margin: 0;
-    flex-shrink: 0;
-}
-
-.crossing-feed-filter-num {
-    width: 56px;
-    padding: 2px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    font-family: inherit;
-    font-size: 0.78rem;
-}
-
-.crossing-feed-filter-range {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding-left: 22px;
-}
-
-.crossing-feed-filter-range input[type="date"] {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 2px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    font-family: inherit;
-    font-size: 0.72rem;
-    color-scheme: dark;
-}
-
-.crossing-feed-filter input:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.crossing-feed-filter-num:focus-visible,
-.crossing-feed-filter-range input[type="date"]:focus-visible {
-    border-color: rgba(255, 255, 255, 0.6);
-    outline: none;
-}
-
-.crossing-feed-toggle,
-.crossing-feed-eye {
+.crossing-feed__eye {
     width: 24px;
     height: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--color-line);
     background: transparent;
-    color: #fff;
+    color: var(--color-fg);
     border-radius: 6px;
     cursor: pointer;
     display: flex;
@@ -483,65 +365,111 @@
     justify-content: center;
     padding: 0;
     flex-shrink: 0;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    transition: border-color 0.15s, color 0.15s;
 }
 
-.crossing-feed-toggle:hover,
-.crossing-feed-toggle:focus-visible,
-.crossing-feed-eye:hover,
-.crossing-feed-eye:focus-visible {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.55);
+.crossing-feed__eye:hover,
+.crossing-feed__eye:focus-visible {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
     outline: none;
 }
 
-.crossing-feed-eye-off { display: none; }
-.crossing-feed.users-hidden .crossing-feed-eye-on { display: none; }
-.crossing-feed.users-hidden .crossing-feed-eye-off { display: block; }
-.crossing-feed.users-hidden .crossing-feed-eye {
-    color: rgba(255, 255, 255, 0.55);
-}
-
-.crossing-feed-toggle-icon {
-    font-size: 1rem;
-    line-height: 1;
-    transition: transform 0.25s ease;
-}
-
-.crossing-feed.is-collapsed .crossing-feed-toggle-icon {
-    transform: rotate(180deg);
-}
-
-.crossing-feed.is-collapsed .crossing-feed-caption,
-.crossing-feed.is-collapsed .crossing-feed-filter,
-.crossing-feed.is-collapsed .crossing-feed-body-wrap {
+/* Eye state: markers hidden on the map → crossed-out icon, dimmed. */
+.crossing-feed__eye-off {
     display: none;
 }
 
-.crossing-feed.is-collapsed .crossing-feed-header {
-    border-bottom: none;
+.crossing-feed__eye--off .crossing-feed__eye-on {
+    display: none;
 }
 
-.crossing-feed-body-wrap {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 10px;
+.crossing-feed__eye--off .crossing-feed__eye-off {
+    display: block;
+}
+
+.crossing-feed__eye--off {
+    color: var(--color-muted);
+}
+
+.crossing-feed__filter {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-line);
     display: flex;
     flex-direction: column;
     gap: 8px;
+    font-size: 0.78rem;
 }
 
-.crossing-feed-list {
+.crossing-feed__filter[hidden] {
+    display: none;
+}
+
+.crossing-feed__filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.crossing-feed__filter-row input[type="radio"] {
+    accent-color: var(--color-accent);
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.crossing-feed__filter-num {
+    width: 56px;
+    padding: 2px 6px;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--color-fg);
+    font-family: inherit;
+    font-size: 0.78rem;
+}
+
+.crossing-feed__filter-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 22px;
+}
+
+.crossing-feed__filter-range input[type="date"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 2px 6px;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--color-fg);
+    font-family: inherit;
+    font-size: 0.72rem;
+}
+
+.crossing-feed__filter input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.crossing-feed__filter-num:focus-visible,
+.crossing-feed__filter-range input[type="date"]:focus-visible {
+    border-color: var(--color-accent);
+    outline: none;
+}
+
+.crossing-feed__list {
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.crossing-feed-item {
+.crossing-feed__item {
     background: #fff;
     border: 1px solid var(--color-line);
     border-left: 3px solid var(--color-accent);
@@ -557,16 +485,7 @@
     to { opacity: 1; transform: none; }
 }
 
-.crossing-feed-empty {
-    margin: 8px 0 0;
-    padding: 16px 8px;
-    text-align: center;
-    color: var(--color-muted);
-    font-size: 0.82rem;
-    font-style: italic;
-}
-
-.crossing-feed-head {
+.crossing-feed__head {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -575,13 +494,13 @@
     color: var(--color-muted);
 }
 
-.crossing-feed-date {
+.crossing-feed__date {
     font-weight: 600;
     color: var(--color-fg);
     letter-spacing: 0.02em;
 }
 
-.crossing-feed-style {
+.crossing-feed__style {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.65rem;
@@ -591,22 +510,23 @@
     color: var(--color-accent);
 }
 
-.crossing-feed-rating {
+.crossing-feed__rating {
     display: inline-flex;
     gap: 1px;
     font-size: 0.72rem;
     line-height: 1;
 }
 
-.crossing-feed-star {
+.crossing-feed__star {
     color: rgba(0, 0, 0, 0.18);
 }
 
-.crossing-feed-star.on {
+.crossing-feed__star--on {
     color: var(--color-accent);
 }
 
-.crossing-feed-body {
+/* One line of "who on what": user na lajna. */
+.crossing-feed__crossing {
     margin-top: 4px;
     font-size: 0.85rem;
     line-height: 1.35;
@@ -616,31 +536,31 @@
     align-items: baseline;
 }
 
-.crossing-feed-user {
+.crossing-feed__user {
     color: var(--color-fg);
     font-weight: 600;
     text-decoration: none;
 }
 
-.crossing-feed-user:hover {
+.crossing-feed__user:hover {
     color: var(--color-accent);
 }
 
-.crossing-feed-on {
+.crossing-feed__on {
     color: var(--color-muted);
 }
 
-.crossing-feed-line {
+.crossing-feed__line {
     color: var(--color-accent);
     font-weight: 500;
     text-decoration: none;
 }
 
-.crossing-feed-line:hover {
+.crossing-feed__line:hover {
     text-decoration: underline;
 }
 
-.crossing-feed-comment {
+.crossing-feed__comment {
     margin: 6px 0 0;
     padding-top: 6px;
     border-top: 1px dashed var(--color-line);
@@ -650,14 +570,14 @@
     font-style: italic;
 }
 
-/* ---------- Lines-in-viewport box (.line-feed) ---------- */
+/* ---------- Tabbed panel over the map (.map-panel) ---------- */
 
-/* Flat box: the header (all of it a toggle) with a separator and an arrow,
-   below it a dense row list divided by hairlines. The body has a FIXED,
-   user-dragged height (bottom-edge handle) — it must never derive from the
-   content: box height resizes the map, that changes the lines in the
-   viewport, that would change the content height again — a feedback loop. */
-.line-feed {
+/* Lajny / Přechody in one flat panel. Collapsed = a single bar with the active
+   tab; expanded = both tab headers, below them the active pane. The body has a
+   FIXED, user-dragged height (bottom-edge handle) — it must never derive from
+   the content: panel height resizes the map, that changes the viewport, that
+   would change the content height again — a feedback loop. */
+.map-panel {
     position: relative;
     flex: 0 1 auto;
     min-height: 0;
@@ -665,31 +585,60 @@
     flex-direction: column;
 }
 
-.line-feed.is-collapsed {
+.map-panel--collapsed {
     flex: 0 0 auto;
 }
 
-.line-feed-header {
+.map-panel__tabs {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 18px;
     border-bottom: 1px solid rgba(20, 0, 12, 0.75);
-    cursor: pointer;
     user-select: none;
-    flex-shrink: 0;
 }
 
-.line-feed-header:focus-visible {
+.map-panel--collapsed .map-panel__tabs {
+    border-bottom: none;
+}
+
+/* Collapsed bar shows only the active tab (+ the arrow). */
+.map-panel--collapsed .map-panel__tab:not(.map-panel__tab--active) {
+    display: none;
+}
+
+.map-panel__tab {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    transition: color 0.15s;
+}
+
+.map-panel__tab--active {
+    color: var(--color-fg);
+}
+
+.map-panel__tab:hover {
+    color: var(--color-fg);
+}
+
+.map-panel__tab:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: -2px;
 }
 
-.line-feed.is-collapsed .line-feed-header {
-    border-bottom: none;
-}
-
-/* Static accent dot (unlike the pulsing one on the crossings box). */
-.line-feed-header-dot {
+/* Accent dot in the tab label; the crossings one pulses (live feed). */
+.map-panel__dot {
     width: 8px;
     height: 8px;
     border-radius: 999px;
@@ -698,37 +647,51 @@
     flex-shrink: 0;
 }
 
-.line-feed-title {
-    flex: 1 1 auto;
-    min-width: 0;
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 10px 0;
-    text-transform: uppercase;
+.map-panel__dot--pulse {
+    animation: map-panel-dot-pulse 1.8s ease-in-out infinite;
 }
 
-/* Viewport count right in the title: "LAJNY – 254" (bold = the accent). */
-.line-feed-count {
+@keyframes map-panel-dot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+/* Viewport count right in the tab label: "LAJNY – 254" (bold = the accent). */
+.map-panel__count {
     margin-left: 7px;
     font-weight: 700;
 }
 
-/* Šipka na konci hlavičky — otočí se při sbalení. */
-.line-feed-toggle-icon {
+/* Collapse/expand arrow at the row's end. */
+.map-panel__toggle {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    margin-left: auto;
+    padding: 10px 2px;
+    cursor: pointer;
+    color: var(--color-fg);
+}
+
+.map-panel__toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+}
+
+.map-panel__arrow {
+    display: inline-block;
     font-size: 1rem;
     line-height: 1;
-    flex-shrink: 0;
     transition: transform 0.25s ease;
 }
 
-.line-feed.is-collapsed .line-feed-toggle-icon {
+.map-panel--collapsed .map-panel__arrow {
     transform: rotate(180deg);
 }
 
-/* Sbalení = výška 0, ne display:none (to by zabilo transition). Bez paddingu:
-   hustotu dělají řádky samy. */
-.line-feed-body {
+/* Collapse = height 0, not display:none (that would kill the transition).
+   No padding of its own: density comes from the pane content. */
+.map-panel__body {
     flex: 0 0 auto;
     min-height: 0;
     overflow-y: auto;
@@ -736,12 +699,12 @@
     transition: height 0.3s ease;
 }
 
-/* Při dragu úchytem musí výška sledovat kurzor okamžitě. */
-.line-feed.is-resizing .line-feed-body {
+/* While dragging the handle the height must follow the cursor instantly. */
+.map-panel--resizing .map-panel__body {
     transition: none;
 }
 
-.line-feed-empty {
+.map-panel__empty {
     margin: 0;
     padding: 16px 12px;
     text-align: center;
@@ -750,9 +713,9 @@
     font-style: italic;
 }
 
-/* Gradient přes nakousnutý šestý řádek — „dole je toho víc". has-overflow
-   shazuje controller po doscrollování na konec seznamu. */
-.line-feed::after {
+/* "More below" gradient over the cut-off list end; --overflow is dropped by
+   map_panel_controller once the pane is scrolled to its end. */
+.map-panel::after {
     content: '';
     position: absolute;
     left: 0;
@@ -766,12 +729,12 @@
     transition: opacity 0.2s ease;
 }
 
-.line-feed.has-overflow::after {
+.map-panel--overflow::after {
     opacity: 1;
 }
 
-/* Kulatý úchyt na spodní hraně — tažením mění výšku seznamu. */
-.line-feed-resize {
+/* Round handle straddling the bottom edge — dragging resizes the panel. */
+.map-panel__resize {
     position: absolute;
     left: 50%;
     bottom: 0;
@@ -788,26 +751,29 @@
     align-items: center;
     justify-content: center;
     cursor: ns-resize;
-    /* Drag si odbavujeme pointer eventy sami — browser nesmí gesto přebrat na scroll. */
+    /* We run the drag through pointer events ourselves — the browser must not
+       claim the gesture for scrolling. */
     touch-action: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     transition: background-color 0.15s, color 0.15s, border-color 0.15s, opacity 0.2s;
 }
 
-.line-feed-resize:hover,
-.line-feed-resize:focus-visible {
+.map-panel__resize:hover,
+.map-panel__resize:focus-visible {
     background: var(--color-accent);
     color: #fff;
     border-color: var(--color-accent);
     outline: none;
 }
 
-.line-feed.is-collapsed .line-feed-resize {
+.map-panel--collapsed .map-panel__resize {
     opacity: 0;
     pointer-events: none;
 }
 
-.line-feed-list {
+/* ---------- Lines-in-viewport list (.line-feed, a .map-panel pane content) ---------- */
+
+.line-feed {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -817,7 +783,7 @@
 
 /* Flat rows with hairline separators (no card borders — density over chrome).
    Row click centers the map on the line (the name is a link to its detail). */
-.line-feed-item {
+.line-feed__item {
     display: flex;
     align-items: center;
     gap: 9px;
@@ -827,16 +793,16 @@
     transition: background-color 0.12s;
 }
 
-.line-feed-item:last-child {
+.line-feed__item:last-child {
     border-bottom: 0;
 }
 
-.line-feed-item:hover {
+.line-feed__item:hover {
     background: rgba(225, 0, 91, 0.06);
 }
 
 /* Type dot — same colours as the map markers (line_feed_controller ← typeColor). */
-.line-feed-dot {
+.line-feed__dot {
     flex: none;
     width: 11px;
     height: 11px;
@@ -845,14 +811,14 @@
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
 }
 
-.line-feed-main {
+.line-feed__main {
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1px;
 }
 
-.line-feed-name {
+.line-feed__name {
     color: var(--color-fg);
     font-weight: 600;
     font-size: 0.85rem;
@@ -862,11 +828,11 @@
     text-overflow: ellipsis;
 }
 
-.line-feed-name:hover {
+.line-feed__name:hover {
     color: var(--color-accent);
 }
 
-.line-feed-meta {
+.line-feed__meta {
     font-size: 0.72rem;
     color: var(--color-muted);
     white-space: nowrap;
@@ -880,27 +846,24 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .crossing-feed-item {
+    .crossing-feed__item {
         animation: none;
     }
-    .crossing-feed-dot {
+    .map-panel__dot--pulse {
         animation: none;
     }
-    .crossing-feed,
-    .crossing-feed-toggle-icon,
-    .crossing-feed-body-wrap,
-    .line-feed,
-    .line-feed-toggle-icon,
-    .line-feed-body {
+    .map-panel,
+    .map-panel__arrow,
+    .map-panel__body {
         transition: none;
     }
 }
 
-/* Mobile: lines box on top, map below — stacked, never overlapping. The box
-   starts collapsed to its header bar (see line_feed_controller); expanded it
-   opens to the fixed user height (drag handle, JS clamp ≤ ½ viewportu) and
-   scrolls inside. The map canvas resizes with it (map_controller invalidates
-   Leaflet's size). */
+/* Mobile: panel on top, map below — stacked, never overlapping. The panel
+   starts collapsed to its tab bar (see map_panel_controller); expanded it
+   opens to the fixed user height (drag handle, JS clamps the bottom edge to
+   the middle of the wrapper) and scrolls inside. The map canvas resizes with
+   it (map_controller invalidates Leaflet's size). */
 @include media-down(md) {
     .line-map-wrapper {
         flex-direction: column;
@@ -910,25 +873,19 @@
         flex: 0 0 auto;
     }
 
-    /* TODO(mapa-mobile): přechody na mobilu zatím schované — až vymyslíme,
-       jak je zakomponovat do mobilního ovládání (docs/todo.md § Mapa). */
-    .crossing-feed {
-        display: none;
-    }
-
     /* Compact rows: name only. */
-    .line-feed-item {
+    .line-feed__item {
         padding: 6px 12px;
     }
 
-    .line-feed-dot,
-    .line-feed-meta {
+    .line-feed__dot,
+    .line-feed__meta {
         display: none;
     }
 
-    /* Kompaktní řádky (jen jméno) jsou nižší — plný gradient by nakousnutý
-       šestý řádek úplně schoval a stmavil i pátý. */
-    .line-feed::after {
+    /* Compact rows (name only) are lower — the full-height gradient would
+       swallow the cut-off row completely and dim the one above it. */
+    .map-panel::after {
         height: 22px;
     }
 }

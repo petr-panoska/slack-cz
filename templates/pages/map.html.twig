@@ -17,39 +17,178 @@
     data-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
 >
     {# Sloupec vedle mapy (desktop) / pruh nad mapou (mobil) — s mapou se
-       nepřekrývá, aby seznam nepočítal lajny schované pod boxem. Nahoře lajny
-       ve výřezu (default otevřené), dole přechody (default zavřené).
-       Oba boxy sdílí vizuál .crossing-feed. #}
+       nepřekrývá, aby seznam nepočítal lajny schované pod boxem. Jeden panel
+       s taby Lajny/Přechody: sbalený = jen lišta aktivního tabu, rozbalený =
+       oba taby + obsah aktivního. Výšku panelu táhne uživatel úchytem.
+       Obsah tabů renderují line-feed / crossing-feed controllery na témže
+       elementu; panel jim sbalování a výšku řídí přes map-panel controller. #}
     <div class="map-side">
         <aside
-            class="line-feed"
-            aria-label="Lajny na mapě"
-            data-controller="line-feed"
+            class="map-panel"
+            aria-label="Lajny a přechody na mapě"
+            data-controller="map-panel line-feed crossing-feed"
+            data-crossing-feed-url-value="{{ path('app_line_map_feed') }}"
+            data-action="line-feed:collapse->map-panel#collapse line-feed:rendered->map-panel#refreshOverflow crossing-feed:rendered->map-panel#refreshOverflow"
         >
-            {# Celá hlavička = toggle sbalení/rozbalení (počet lajn přímo v titulku). #}
-            <header
-                class="line-feed-header"
-                role="button"
-                tabindex="0"
-                aria-expanded="true"
-                data-line-feed-target="header"
-                data-action="click->line-feed#toggle keydown.enter->line-feed#toggle keydown.space->line-feed#toggle"
-            >
-                <span class="line-feed-header-dot" aria-hidden="true"></span>
-                <h2 class="line-feed-title">Lajny<span class="line-feed-count" data-line-feed-target="count"></span></h2>
-                <span class="line-feed-toggle-icon" aria-hidden="true">▾</span>
+            <header class="map-panel__tabs" role="tablist">
+                <button
+                    type="button"
+                    class="map-panel__tab map-panel__tab--active"
+                    id="map-panel-tab-lines"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="map-panel-pane-lines"
+                    data-map-panel-target="linesTab"
+                    data-map-panel-tab-param="lines"
+                    data-action="map-panel#selectTab"
+                >
+                    <span class="map-panel__dot" aria-hidden="true"></span>
+                    Lajny<span class="map-panel__count" data-line-feed-target="count"></span>
+                </button>
+                <button
+                    type="button"
+                    class="map-panel__tab"
+                    id="map-panel-tab-crossings"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="map-panel-pane-crossings"
+                    data-map-panel-target="crossingsTab"
+                    data-map-panel-tab-param="crossings"
+                    data-action="map-panel#selectTab"
+                >
+                    <span class="map-panel__dot map-panel__dot--pulse" aria-hidden="true"></span>
+                    Přechody
+                </button>
+                <button
+                    type="button"
+                    class="map-panel__toggle"
+                    data-map-panel-target="toggle"
+                    data-action="map-panel#toggle"
+                    aria-expanded="true"
+                    aria-label="Sbalit panel"
+                    title="Sbalit panel"
+                >
+                    <span class="map-panel__arrow" aria-hidden="true">▾</span>
+                </button>
             </header>
-            <div class="line-feed-body" data-line-feed-target="body">
-                <ul class="line-feed-list" data-line-feed-target="list"></ul>
-                <p class="line-feed-empty" data-line-feed-target="empty" hidden>Na mapě není žádná lajna :-(</p>
+
+            <div class="map-panel__body" data-map-panel-target="body">
+                <section
+                    class="map-panel__pane"
+                    id="map-panel-pane-lines"
+                    role="tabpanel"
+                    aria-labelledby="map-panel-tab-lines"
+                    data-map-panel-target="linesPane"
+                >
+                    <ul class="line-feed" data-line-feed-target="list"></ul>
+                    <p class="map-panel__empty" data-line-feed-target="empty" hidden>Na mapě není žádná lajna :-(</p>
+                </section>
+
+                <section
+                    class="map-panel__pane crossing-feed"
+                    id="map-panel-pane-crossings"
+                    role="tabpanel"
+                    aria-labelledby="map-panel-tab-crossings"
+                    data-map-panel-target="crossingsPane"
+                    hidden
+                >
+                    {# Lišta filtru: caption rozbaluje filtr, oko schovává markery na mapě. #}
+                    <div class="crossing-feed__bar">
+                        <button
+                            type="button"
+                            class="crossing-feed__caption"
+                            data-crossing-feed-target="caption"
+                            data-action="crossing-feed#toggleFilter"
+                            aria-expanded="false"
+                            aria-controls="crossing-feed-filter"
+                            title="Změnit filtr přechodů"
+                        >Posledních 10 přechodů</button>
+                        <button
+                            type="button"
+                            class="crossing-feed__eye"
+                            data-crossing-feed-target="eye"
+                            data-action="crossing-feed#toggleUsers"
+                            aria-label="Skrýt přechody na mapě"
+                            title="Skrýt přechody na mapě"
+                        >
+                            <svg class="crossing-feed__eye-on" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="crossing-feed__eye-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 3l18 18"/>
+                                <path d="M10.6 6.2A10.1 10.1 0 0 1 12 6c6 0 9.5 7 9.5 7a14.7 14.7 0 0 1-3.3 4.1"/>
+                                <path d="M6.2 7.8C3.9 9.6 2.5 12 2.5 12s3.5 7 9.5 7c1.6 0 3-.4 4.2-1"/>
+                                <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div
+                        class="crossing-feed__filter"
+                        id="crossing-feed-filter"
+                        data-crossing-feed-target="filter"
+                        hidden
+                    >
+                        <label class="crossing-feed__filter-row">
+                            <input
+                                type="radio"
+                                name="feed-filter-mode"
+                                value="count"
+                                checked
+                                data-crossing-feed-target="modeCount"
+                                data-action="change->crossing-feed#changeMode"
+                            >
+                            <span>Posledních</span>
+                            <input
+                                type="number"
+                                min="1"
+                                max="200"
+                                value="10"
+                                class="crossing-feed__filter-num"
+                                aria-label="Počet posledních přechodů"
+                                data-crossing-feed-target="count"
+                                data-action="input->crossing-feed#changeCount"
+                            >
+                            <span>přechodů</span>
+                        </label>
+                        <label class="crossing-feed__filter-row">
+                            <input
+                                type="radio"
+                                name="feed-filter-mode"
+                                value="range"
+                                data-crossing-feed-target="modeRange"
+                                data-action="change->crossing-feed#changeMode"
+                            >
+                            <span>Rozsah dat</span>
+                        </label>
+                        <div class="crossing-feed__filter-range">
+                            <input
+                                type="date"
+                                aria-label="Datum od"
+                                data-crossing-feed-target="from"
+                                data-action="change->crossing-feed#changeRange"
+                            >
+                            <span aria-hidden="true">–</span>
+                            <input
+                                type="date"
+                                aria-label="Datum do"
+                                data-crossing-feed-target="to"
+                                data-action="change->crossing-feed#changeRange"
+                            >
+                        </div>
+                    </div>
+                    <ul class="crossing-feed__list" data-crossing-feed-target="list"></ul>
+                    <p class="map-panel__empty" data-crossing-feed-target="empty" hidden>Zatím žádný přechod.</p>
+                </section>
             </div>
-            {# Úchyt obkročmo na spodní hraně — tažením (nebo šipkami ↑/↓) mění výšku seznamu. #}
+
+            {# Úchyt obkročmo na spodní hraně — tažením (nebo šipkami ↑/↓) mění výšku panelu. #}
             <button
                 type="button"
-                class="line-feed-resize"
-                data-action="pointerdown->line-feed#resizeStart keydown.up->line-feed#resizeKey keydown.down->line-feed#resizeKey"
-                aria-label="Změnit výšku seznamu"
-                title="Tažením změníš výšku seznamu"
+                class="map-panel__resize"
+                data-action="pointerdown->map-panel#resizeStart keydown.up->map-panel#resizeKey keydown.down->map-panel#resizeKey"
+                aria-label="Změnit výšku panelu"
+                title="Tažením změníš výšku panelu"
             >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19"/>
@@ -57,114 +196,6 @@
                     <polyline points="8 15 12 19 16 15"/>
                 </svg>
             </button>
-        </aside>
-
-        <aside
-            class="crossing-feed"
-            aria-label="Přechody"
-            data-controller="crossing-feed"
-            data-crossing-feed-url-value="{{ path('app_line_map_feed') }}"
-        >
-        <header class="crossing-feed-header">
-            <span class="crossing-feed-dot" aria-hidden="true"></span>
-            <div class="crossing-feed-titles">
-                <h2 class="crossing-feed-title">Přechody</h2>
-                <button
-                    type="button"
-                    class="crossing-feed-caption"
-                    data-crossing-feed-target="caption"
-                    data-action="click->crossing-feed#toggleFilter"
-                    aria-expanded="false"
-                    aria-controls="crossing-feed-filter"
-                    title="Změnit filtr přechodů"
-                >Posledních 10 přechodů</button>
-            </div>
-            <button
-                type="button"
-                class="crossing-feed-eye"
-                data-action="click->crossing-feed#toggleUsers"
-                aria-label="Skrýt přechody na mapě"
-                title="Skrýt přechody na mapě"
-            >
-                <svg class="crossing-feed-eye-on" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg class="crossing-feed-eye-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 3l18 18"/>
-                    <path d="M10.6 6.2A10.1 10.1 0 0 1 12 6c6 0 9.5 7 9.5 7a14.7 14.7 0 0 1-3.3 4.1"/>
-                    <path d="M6.2 7.8C3.9 9.6 2.5 12 2.5 12s3.5 7 9.5 7c1.6 0 3-.4 4.2-1"/>
-                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
-                </svg>
-            </button>
-            <button
-                type="button"
-                class="crossing-feed-toggle"
-                data-action="click->crossing-feed#toggle"
-                aria-label="Sbalit panel"
-                title="Sbalit panel"
-            >
-                <span class="crossing-feed-toggle-icon" aria-hidden="true">▾</span>
-            </button>
-        </header>
-        <div
-            class="crossing-feed-filter"
-            id="crossing-feed-filter"
-            data-crossing-feed-target="filter"
-            hidden
-        >
-            <label class="crossing-feed-filter-row">
-                <input
-                    type="radio"
-                    name="feed-filter-mode"
-                    value="count"
-                    checked
-                    data-crossing-feed-target="modeCount"
-                    data-action="change->crossing-feed#changeMode"
-                >
-                <span>Posledních</span>
-                <input
-                    type="number"
-                    min="1"
-                    max="200"
-                    value="10"
-                    class="crossing-feed-filter-num"
-                    aria-label="Počet posledních přechodů"
-                    data-crossing-feed-target="count"
-                    data-action="input->crossing-feed#changeCount"
-                >
-                <span>přechodů</span>
-            </label>
-            <label class="crossing-feed-filter-row">
-                <input
-                    type="radio"
-                    name="feed-filter-mode"
-                    value="range"
-                    data-crossing-feed-target="modeRange"
-                    data-action="change->crossing-feed#changeMode"
-                >
-                <span>Rozsah dat</span>
-            </label>
-            <div class="crossing-feed-filter-range">
-                <input
-                    type="date"
-                    aria-label="Datum od"
-                    data-crossing-feed-target="from"
-                    data-action="change->crossing-feed#changeRange"
-                >
-                <span aria-hidden="true">–</span>
-                <input
-                    type="date"
-                    aria-label="Datum do"
-                    data-crossing-feed-target="to"
-                    data-action="change->crossing-feed#changeRange"
-                >
-            </div>
-        </div>
-        <div class="crossing-feed-body-wrap">
-            <ul class="crossing-feed-list" data-crossing-feed-target="list"></ul>
-            <p class="crossing-feed-empty" data-crossing-feed-target="empty" hidden>Zatím žádný přechod.</p>
-        </div>
         </aside>
     </div>
 

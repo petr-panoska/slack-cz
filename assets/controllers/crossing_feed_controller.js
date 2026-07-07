@@ -27,9 +27,9 @@ function renderStars(rating) {
     if (!rating) return '';
     let s = '';
     for (let i = 1; i <= 5; i++) {
-        s += `<span class="crossing-feed-star${i <= rating ? ' on' : ''}">★</span>`;
+        s += `<span class="crossing-feed__star${i <= rating ? ' crossing-feed__star--on' : ''}">★</span>`;
     }
-    return `<span class="crossing-feed-rating" title="${rating}/5">${s}</span>`;
+    return `<span class="crossing-feed__rating" title="${rating}/5">${s}</span>`;
 }
 
 function isoDate(d) {
@@ -39,18 +39,21 @@ function isoDate(d) {
     return `${y}-${m}-${day}`;
 }
 
-const COLLAPSED_KEY = 'slack.cz:map:feed-collapsed';
 const USERS_HIDDEN_KEY = 'slack.cz:map:users-hidden';
 const DEFAULT_COUNT = 10;
 const MAX_COUNT = 200;
 const DEFAULT_RANGE_DAYS = 30;
 
+// Crossings pane of .map-panel: the filter (last N / date range), the eye
+// toggling the map's emoji markers, and the list itself. Collapsing lives in
+// map_panel_controller; we dispatch `rendered` so the panel refreshes its
+// "more below" gradient.
 export default class extends Controller {
     static values = {
         url: String,
     };
     static targets = [
-        'list', 'empty', 'caption',
+        'list', 'empty', 'caption', 'eye',
         'filter', 'count', 'from', 'to', 'modeCount', 'modeRange',
     ];
 
@@ -74,13 +77,8 @@ export default class extends Controller {
         this.fetchTimer = null;
         this.abortController = null;
 
-        // Default = collapsed (map redesign 2026-07: lines list is the primary box,
-        // crossings are secondary info). '0' = user explicitly expanded it before.
-        if (sessionStorage.getItem(COLLAPSED_KEY) !== '0') {
-            this.element.classList.add('is-collapsed');
-        }
-
-        this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) !== '1';
+        // Markers are hidden by default — '0' means the user explicitly showed them.
+        this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) === '0';
         this._applyUsersVisibility();
 
         this._onModeChange = (e) => this._handleMode(e.detail);
@@ -97,16 +95,6 @@ export default class extends Controller {
         this.abortController?.abort();
     }
 
-    toggle(event) {
-        event?.preventDefault();
-        const collapsed = this.element.classList.toggle('is-collapsed');
-        try {
-            sessionStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
-        } catch {
-            /* sessionStorage may be unavailable; non-fatal */
-        }
-    }
-
     toggleUsers(event) {
         event?.preventDefault();
         this.usersVisible = !this.usersVisible;
@@ -119,12 +107,11 @@ export default class extends Controller {
     }
 
     _applyUsersVisibility() {
-        this.element.classList.toggle('users-hidden', !this.usersVisible);
-        const eye = this.element.querySelector('.crossing-feed-eye');
-        if (eye) {
+        if (this.hasEyeTarget) {
+            this.eyeTarget.classList.toggle('crossing-feed__eye--off', !this.usersVisible);
             const label = this.usersVisible ? 'Skrýt přechody na mapě' : 'Zobrazit přechody na mapě';
-            eye.setAttribute('aria-label', label);
-            eye.setAttribute('title', label);
+            this.eyeTarget.setAttribute('aria-label', label);
+            this.eyeTarget.setAttribute('title', label);
         }
         document.dispatchEvent(new CustomEvent('slack:users-visibility', {
             detail: { visible: this.usersVisible },
@@ -136,8 +123,8 @@ export default class extends Controller {
         event?.preventDefault();
         const willOpen = this.filterTarget.hidden;
         this.filterTarget.hidden = !willOpen;
-        this.element.classList.toggle('filter-open', willOpen);
         if (this.hasCaptionTarget) {
+            this.captionTarget.classList.toggle('crossing-feed__caption--open', willOpen);
             this.captionTarget.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
     }
@@ -286,6 +273,7 @@ export default class extends Controller {
                 else if (detail.mode === 'range') this.emptyTarget.textContent = 'V tomto období žádný přechod.';
                 else this.emptyTarget.textContent = 'Zatím žádný přechod.';
             }
+            this.dispatch('rendered');
             return;
         }
         if (this.hasEmptyTarget) this.emptyTarget.hidden = true;
@@ -297,33 +285,34 @@ export default class extends Controller {
             frag.appendChild(node);
         });
         this.listTarget.appendChild(frag);
+        this.dispatch('rendered');
     }
 
     _render(item) {
         const li = document.createElement('li');
-        li.className = 'crossing-feed-item';
+        li.className = 'crossing-feed__item';
 
         const userHref = `/denik/${item.userId}`;
         const lineHref = `/lajna/${encodeURIComponent(item.lineSlug)}`;
         const dateStr = escapeHtml(formatDate(item.crossedAt));
         const styleHtml = item.styleLabel
-            ? `<span class="crossing-feed-style">${escapeHtml(item.styleLabel)}</span>`
+            ? `<span class="crossing-feed__style">${escapeHtml(item.styleLabel)}</span>`
             : '';
         const ratingHtml = renderStars(item.rating);
         const commentHtml = item.comment
-            ? `<p class="crossing-feed-comment">${escapeHtml(item.comment)}</p>`
+            ? `<p class="crossing-feed__comment">${escapeHtml(item.comment)}</p>`
             : '';
 
         li.innerHTML = `
-            <header class="crossing-feed-head">
-                <time class="crossing-feed-date" datetime="${escapeHtml(item.crossedAt)}">${dateStr}</time>
+            <header class="crossing-feed__head">
+                <time class="crossing-feed__date" datetime="${escapeHtml(item.crossedAt)}">${dateStr}</time>
                 ${styleHtml}
                 ${ratingHtml}
             </header>
-            <div class="crossing-feed-body">
-                <a class="crossing-feed-user" href="${userHref}">${escapeHtml(item.userDisplayName)}</a>
-                <span class="crossing-feed-on">na</span>
-                <a class="crossing-feed-line" href="${lineHref}">${escapeHtml(item.lineName)}</a>
+            <div class="crossing-feed__crossing">
+                <a class="crossing-feed__user" href="${userHref}">${escapeHtml(item.userDisplayName)}</a>
+                <span class="crossing-feed__on">na</span>
+                <a class="crossing-feed__line" href="${lineHref}">${escapeHtml(item.lineName)}</a>
             </div>
             ${commentHtml}
         `;
