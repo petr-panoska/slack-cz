@@ -6,6 +6,37 @@ const LOCATE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
 
 const DOT_HTML = '<span class="map-locate-dot"></span>';
 
+// Where to send the user when geolocation permission is denied. The fix lives
+// in a different place per platform, and iOS is a two-level trap: Safari has
+// its own per-site setting AND a system-wide "Safari Websites" entry under
+// Location Services — the system one silently wins, so the message must point
+// there. iPadOS masquerades as Macintosh, hence the maxTouchPoints check.
+// Chrome/Firefox/Edge on iOS brand their UA (CriOS/FxiOS/EdgiOS) but are
+// WebKit underneath with their own app-level location permission.
+function deniedHelp() {
+    const ua = navigator.userAgent;
+    const ios = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Macintosh') && navigator.maxTouchPoints > 1);
+    if (ios) {
+        const safari = !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+        return {
+            text: safari
+                ? 'Safari nemá přístup k poloze. Zkontroluj Nastavení → Soukromí a zabezpečení → Polohové služby → Weby v Safari.'
+                : 'Prohlížeč nemá přístup k poloze. Povol mu ji v Nastavení → Soukromí a zabezpečení → Polohové služby.',
+            href: 'https://support.apple.com/cs-cz/102515',
+        };
+    }
+    if (/Android/.test(ua)) {
+        return {
+            text: 'Poloha je pro tento web zablokovaná. Povol ji ťuknutím na ikonu vlevo od adresy → Oprávnění → Poloha.',
+            href: 'https://support.google.com/chrome/answer/142065?hl=cs',
+        };
+    }
+    return {
+        text: 'Poloha je pro tento web zablokovaná — povol ji přes ikonu vlevo v adresním řádku prohlížeče.',
+        href: null,
+    };
+}
+
 /**
  * Adds a toggleable "my location" button to the map's control corner. First
  * click starts a geolocation watch (the browser shows its permission dialog),
@@ -26,18 +57,31 @@ export function addLocateControl(map, { position = 'topright' } = {}) {
     let marker = null;
     let circle = null;
     let toast = null;
-    let toastTimer = null;
 
     // `title` is useless on touch devices — failures get a visible map toast.
-    const showToast = (text) => {
+    // It carries a link the user has to be able to read and tap, so it stays
+    // until dismissed instead of auto-hiding.
+    const showToast = (text, href) => {
         toast?.remove();
         toast = L.DomUtil.create('div', 'map-locate-toast', map.getContainer());
-        toast.textContent = text;
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
+        L.DomEvent.disableClickPropagation(toast);
+        const body = L.DomUtil.create('span', '', toast);
+        body.textContent = text;
+        if (href) {
+            const link = L.DomUtil.create('a', '', body);
+            link.href = href;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'Podrobný návod';
+        }
+        const close = L.DomUtil.create('button', 'map-locate-toast-close', toast);
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Zavřít');
+        close.innerHTML = '&times;';
+        L.DomEvent.on(close, 'click', () => {
             toast?.remove();
             toast = null;
-        }, 4000);
+        });
     };
 
     const setPressed = (on) => {
@@ -111,13 +155,14 @@ export function addLocateControl(map, { position = 'topright' } = {}) {
         stop();
         btn.classList.add('is-error');
         setTimeout(() => btn.classList.remove('is-error'), 1600);
-        showToast('Poloha je zablokovaná — povol ji webu v nastavení prohlížeče.');
+        const help = deniedHelp();
+        showToast(help.text, help.href);
     });
 
-    // Turbo navigation removes the map — don't leave the geolocation watch running.
+    // Turbo navigation removes the map — don't leave the geolocation watch
+    // running. The toast lives inside the map container, so it goes with it.
     map.on('unload', () => {
         if (active) map.stopLocate();
-        clearTimeout(toastTimer);
     });
 
     const control = L.control({ position });

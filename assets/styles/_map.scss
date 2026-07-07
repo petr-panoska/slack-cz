@@ -153,22 +153,56 @@
     color: #d33;
 }
 
-/* Transient failure message (title tooltips don't exist on touch devices). */
+/* Failure message (title tooltips don't exist on touch devices). Carries a
+   help link, so it's interactive and stays until the × dismisses it. */
 .map-locate-toast {
     position: absolute;
     top: 14px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 900;
-    max-width: calc(100% - 28px);
-    padding: 8px 14px;
+    width: max-content;
+    max-width: min(340px, calc(100% - 28px));
+    padding: 10px 36px 10px 14px;
     background: rgba(20, 0, 12, 0.92);
     color: #fff;
     font-size: 0.82rem;
-    border-radius: 999px;
+    line-height: 1.45;
+    border-radius: 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-    pointer-events: none;
-    text-align: center;
+}
+
+.map-locate-toast a {
+    display: block;
+    margin-top: 2px;
+    color: #9ec3ff;
+    font-weight: 600;
+    text-decoration: underline;
+
+    &:hover,
+    &:focus {
+        color: #c3daff;
+    }
+}
+
+.map-locate-toast-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+        color: #fff;
+    }
 }
 
 /* Blue device-position dot (deliberately not brand magenta — that's for lines). */
