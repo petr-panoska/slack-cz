@@ -7,9 +7,17 @@
    mobile = lines box on top, map below (see the media-down block). */
 .line-map-wrapper {
     position: relative;
+    /* dvh = skutečně viditelný viewport (mobilní URL bar schovaný/vysunutý);
+       s vh stránka na mobilu o výšku baru přetékala a svisle scrollovala.
+       Řádek s vh je fallback pro prohlížeče bez dvh. */
     height: calc(100vh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
     width: 100%;
     display: flex;
+    /* Schovaný time-travel panel (translateY pod spodní hranu) jinak vytváří
+       scrollable overflow → stránka jde svisle scrollovat. Nic legitimního
+       z wrapperu nepřetéká (Leaflet i .map-side si klipují samy). */
+    overflow: clip;
 }
 
 .line-map {

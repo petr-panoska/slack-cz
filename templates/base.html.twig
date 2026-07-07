@@ -54,6 +54,7 @@
         {% block body %}{% endblock %}
     </main>
 
+    {% block footer %}
     <footer class="site-footer">
         <div class="site-footer-bg" style="background-image: url('{{ asset('images/slack-banner-2017.jpg') }}');"></div>
         <div class="site-footer-vignette"></div>
@@ -64,6 +65,7 @@
             <p class="site-footer-copy">© {{ "now"|date('Y') }}</p>
         </div>
     </footer>
+    {% endblock %}
 </body>
 
 </html>
