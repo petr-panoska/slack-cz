@@ -1,6 +1,10 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+// Attaches L.markerClusterGroup; the base CSS carries only the cluster
+// zoom animations — the cluster icon itself is ours (.map-cluster).
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.min.css';
 import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
@@ -179,8 +183,25 @@ export default class extends Controller {
             this._canvasResize.observe(this.canvasTarget);
         }
 
-        // Static mode = highlines (always visible) + recent users emoji (toggleable via sidebar eye)
-        this.staticLayer = L.layerGroup().addTo(this.map);
+        // Static mode = highline markers, clustered in dense areas (Tisá, Ostrov).
+        // Clustering stops at LINE_MIN_ZOOM — where the actual lines draw, every
+        // marker stands on its own anchor. Recent users emoji live in usersLayer
+        // (toggleable via the sidebar eye) and stay unclustered.
+        this.staticLayer = L.markerClusterGroup({
+            maxClusterRadius: 50,
+            disableClusteringAtZoom: LINE_MIN_ZOOM,
+            showCoverageOnHover: false,
+            // Click = zoom towards the cluster, nothing else. Spiderfy (the
+            // default at the last clustered zoom) fans markers out on legs to
+            // fake positions — nonsense for real-world anchors.
+            spiderfyOnMaxZoom: false,
+            iconCreateFunction: (cluster) => L.divIcon({
+                className: 'map-cluster',
+                html: `<span class="map-cluster__count">${cluster.getChildCount()}</span>`,
+                iconSize: [34, 34],
+                iconAnchor: [17, 17],
+            }),
+        }).addTo(this.map);
         // Polyline per highline (the line between its two anchors); only shown once
         // zoomed in past LINE_MIN_ZOOM — see _updateLinesVisibility.
         this.linesLayer = L.layerGroup();
@@ -332,7 +353,9 @@ export default class extends Controller {
         const rec = this.lineIndex?.find((r) => r.id === id);
         if (!rec) return;
         this.map.setView([rec.lat, rec.lng], Math.max(this.map.getZoom(), LINE_MIN_ZOOM));
-        rec.marker.openPopup();
+        // Right after setView the marker may still sit inside a cluster — let
+        // the cluster group unfold it first, then open the popup.
+        this.staticLayer.zoomToShowLayer(rec.marker, () => rec.marker.openPopup());
     }
 
     // Type legend as a collapsible top-right control: a "?" pill that toggles a panel

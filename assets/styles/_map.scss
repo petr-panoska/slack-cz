@@ -295,11 +295,8 @@
     flex-direction: column;
     gap: 10px;
     padding: 0 10px;
-    /* Viditelný overflow kvůli sbalovacímu tlačítku obkročmo na hraně boxu
-       lajn; svislý přetok hlídá overflow: clip na .line-map-wrapper. */
-    overflow: visible;
-    /* Nad leafletí panes i controls (z-index 1000) — přesah sbalovacího
-       tlačítka přes mapu jinak mapa překreslí. */
+    /* Above Leaflet's panes — the resize handle straddles the lines box's
+       bottom edge and pokes over the map, which would repaint over it. */
     position: relative;
     z-index: 900;
 }
@@ -655,19 +652,17 @@
 
 /* ---------- Lines-in-viewport box (.line-feed) ---------- */
 
-/* Flat box: hlavička (celá = toggle) s oddělovačem a šipkou, pod ní hustý
-   výpis řádků dělený hairlines. Tělo má PEVNOU výšku řízenou JS (default
-   ~5 řádků, uživatel ji mění tažením úchytu na spodní hraně) — výška nikdy
-   nesmí vycházet z obsahu: měnila by velikost mapy, tím lajny ve výřezu,
-   tím zase obsah = nekonečná smyčka. Úchyt sedí obkročmo na spodní hraně,
-   proto viditelný overflow. */
+/* Flat box: the header (all of it a toggle) with a separator and an arrow,
+   below it a dense row list divided by hairlines. The body has a FIXED,
+   user-dragged height (bottom-edge handle) — it must never derive from the
+   content: box height resizes the map, that changes the lines in the
+   viewport, that would change the content height again — a feedback loop. */
 .line-feed {
     position: relative;
     flex: 0 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: visible;
 }
 
 .line-feed.is-collapsed {
@@ -682,20 +677,18 @@
     cursor: pointer;
     user-select: none;
     flex-shrink: 0;
-    transition: background-color 0.15s;
 }
 
-.line-feed-header:hover,
 .line-feed-header:focus-visible {
-    outline: none;
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
 }
 
 .line-feed.is-collapsed .line-feed-header {
     border-bottom: none;
-    border-radius: 12px;
 }
 
-/* Statická akcentová tečka (na rozdíl od pulzující u přechodů). */
+/* Static accent dot (unlike the pulsing one on the crossings box). */
 .line-feed-header-dot {
     width: 8px;
     height: 8px;
@@ -1175,6 +1168,30 @@
     border-radius: 50%;
     border: 2px solid #fff;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Cluster of line markers in dense areas (leaflet.markercluster, icon built in
+   map_controller's iconCreateFunction). Same white ring + shadow language as
+   .line-marker so clusters read as "many dots". Click zooms into the cluster. */
+.map-cluster {
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--color-accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Centered absolutely — flex on .map-cluster loses to leaflet.css
+   (`.leaflet-marker-icon { display: block }` comes later in link order). */
+.map-cluster__count {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1;
 }
 
 /* Type legend: a popout that drops below the top-right "?" toggle (.map-legend-toggle).
