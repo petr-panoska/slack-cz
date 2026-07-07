@@ -108,7 +108,7 @@ Stav přežívá Turbo navigaci přes `sessionStorage` (`slack.cz:map:feed-colla
   - **jedna komponenta = jeden flat `_*.scss`** v `assets/styles/` + řádek v manifestu (pořadí = kaskáda)
   - **breakpointy VŽDY přes mixiny** `media-up($bp)`/`media-down($bp)` z `_breakpoints.scss` (Bootstrap škála sm 576 / md 768 / lg 992 / xl 1200 / xxl 1400) — žádné hardcoded px v `@media`
   - **žádný surový Bootstrap vzhled** — default je polotovar; komponenty dostávají brand theme (paleta v `_variables.scss`: `$brand` `#e1005b`, theming přes Bootstrap CSS proměnné v `_shell.scss`, ne přes Sass `$primary`)
-  - `_shell.scss` drží `--slack-header-h` (72 px fixní hlavička) + legacy `--color-*` tokeny, které ještě čtou portnuté partialy
+  - `_shell.scss` drží `--header-height` (72 px fixní hlavička) + legacy `--color-*` tokeny, které ještě čtou portnuté partialy
   - build: `make dcSassBuild` (jednorázově) / `make dcSassWatch` (dev); **v dev pozor na `public/assets/`** — zkompilované assety z `asset-map:compile` stínují živé soubory, po změně assetů je přegenerovat nebo smazat
 - Obrázky v `assets/images/` (logo, leaflet ikony, archivní artefakty)
 - Audio v `public/audio/` (12 stop, 128 kbps stereo). Originály v `var/audio-original/` (gitignored).

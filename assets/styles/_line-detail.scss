@@ -182,7 +182,7 @@
 @include media-up(lg) {
     .hl-stats {
         position: sticky;
-        top: calc(var(--slack-header-h) + 16px);
+        top: calc(var(--header-height) + 16px);
     }
 }
 
@@ -440,4 +440,10 @@
 .hl-point-marker > span {
     display: block;
     transform: translateY(1px);
+}
+
+@include media-down(md) {
+    .hl-cover {
+        height: calc(50dvh - var(--header-height));
+    }
 }

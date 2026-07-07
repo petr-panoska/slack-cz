@@ -22,27 +22,41 @@
        Oba boxy sdílí vizuál .crossing-feed. #}
     <div class="map-side">
         <aside
-            class="crossing-feed crossing-feed--lines"
-            aria-label="Lajny ve výřezu mapy"
+            class="line-feed"
+            aria-label="Lajny na mapě"
             data-controller="line-feed"
         >
             {# Celá hlavička = toggle sbalení/rozbalení (počet lajn přímo v titulku). #}
             <header
-                class="crossing-feed-header crossing-feed-header--toggle"
+                class="line-feed-header"
                 role="button"
                 tabindex="0"
                 aria-expanded="true"
                 data-line-feed-target="header"
                 data-action="click->line-feed#toggle keydown.enter->line-feed#toggle keydown.space->line-feed#toggle"
             >
-                <span class="crossing-feed-dot crossing-feed-dot--lines" aria-hidden="true"></span>
-                <h2 class="crossing-feed-title">Lajny<span class="line-feed-count" data-line-feed-target="count"></span></h2>
-                <span class="crossing-feed-toggle-icon" aria-hidden="true">▾</span>
+                <span class="line-feed-header-dot" aria-hidden="true"></span>
+                <h2 class="line-feed-title">Lajny<span class="line-feed-count" data-line-feed-target="count"></span></h2>
+                <span class="line-feed-toggle-icon" aria-hidden="true">▾</span>
             </header>
-            <div class="crossing-feed-body-wrap" data-line-feed-target="body">
+            <div class="line-feed-body" data-line-feed-target="body">
                 <ul class="line-feed-list" data-line-feed-target="list"></ul>
-                <p class="crossing-feed-empty" data-line-feed-target="empty" hidden>Ve výřezu žádná lajna.</p>
+                <p class="line-feed-empty" data-line-feed-target="empty" hidden>Na mapě není žádná lajna :-(</p>
             </div>
+            {# Úchyt obkročmo na spodní hraně — tažením (nebo šipkami ↑/↓) mění výšku seznamu. #}
+            <button
+                type="button"
+                class="line-feed-resize"
+                data-action="pointerdown->line-feed#resizeStart keydown.up->line-feed#resizeKey keydown.down->line-feed#resizeKey"
+                aria-label="Změnit výšku seznamu"
+                title="Tažením změníš výšku seznamu"
+            >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <polyline points="8 9 12 5 16 9"/>
+                    <polyline points="8 15 12 19 16 15"/>
+                </svg>
+            </button>
         </aside>
 
         <aside

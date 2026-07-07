@@ -1,8 +1,9 @@
 // --- Header / navbar ---------------------------------------------------
 @use 'variables' as *;
+@use 'breakpoints' as *;
 
 .site-navbar {
-    min-height: var(--slack-header-h);
+    min-height: var(--header-height);
     padding-top: 0;
     padding-bottom: 0;
     background: var(--color-header-bg, #fff);
@@ -78,3 +79,9 @@
         overflow: hidden;
     }
 }
+
+@include media-down(lg) {
+    .site-navbar-logo {
+        max-height: 32px;
+    }
+}   

@@ -1,9 +1,8 @@
 // --- Globální shell: CSS proměnné + overflow guardy -------------------
 @use 'variables' as *;
+@use 'breakpoints' as *;
 
 :root {
-    // Výška fixní hlavičky — drží ji i legacy map wrapper (calc(100vh - var(--header-height))).
-    --slack-header-h: 72px;
     --header-height: 72px;
 
     // Legacy tokeny (bývalé _tokens.css) — pořád je čtou portnuté partialy
@@ -52,11 +51,17 @@ html {
 
 body {
     overflow-x: clip;
-    padding-top: var(--slack-header-h);
+    padding-top: var(--header-height);
 }
 
 // Odkazy dědí barvu kontextu (komponenty si akcent řeší samy) — stejné
 // chování jako legacy _base.css; Bootstrap link modrou/brand nechceme plošně.
 a {
     color: inherit;
+}
+
+@include media-down(lg) {
+    :root {
+        --header-height: 64px;
+    }
 }

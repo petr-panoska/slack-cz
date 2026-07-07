@@ -8,7 +8,7 @@
 
 .gallery-years {
     position: sticky;
-    top: var(--slack-header-h);
+    top: var(--header-height);
     z-index: 10;
     display: flex;
     gap: 0.25rem;
@@ -44,7 +44,7 @@
 .gallery-section {
     margin-bottom: 2rem;
     // Kotva #rok-YYYY nesmí zajet pod fixní hlavičku + sticky lištu roků.
-    scroll-margin-top: calc(var(--slack-header-h) + 3.25rem);
+    scroll-margin-top: calc(var(--header-height) + 3.25rem);
 }
 
 .gallery-year-heading {

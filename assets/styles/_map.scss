@@ -294,8 +294,14 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px 10px 14px 14px;
-    overflow: hidden;
+    padding: 0 10px;
+    /* Viditelný overflow kvůli sbalovacímu tlačítku obkročmo na hraně boxu
+       lajn; svislý přetok hlídá overflow: clip na .line-map-wrapper. */
+    overflow: visible;
+    /* Nad leafletí panes i controls (z-index 1000) — přesah sbalovacího
+       tlačítka přes mapu jinak mapa překreslí. */
+    position: relative;
+    z-index: 900;
 }
 
 .crossing-feed {
@@ -647,33 +653,165 @@
     font-style: italic;
 }
 
-/* ---------- Lines-in-viewport box (shares the .crossing-feed shell) ---------- */
+/* ---------- Lines-in-viewport box (.line-feed) ---------- */
 
-/* The whole header is the collapse/expand toggle (no separate button). */
-.crossing-feed-header--toggle {
+/* Flat box: hlavička (celá = toggle) s oddělovačem a šipkou, pod ní hustý
+   výpis řádků dělený hairlines. Tělo má PEVNOU výšku řízenou JS (default
+   ~5 řádků, uživatel ji mění tažením úchytu na spodní hraně) — výška nikdy
+   nesmí vycházet z obsahu: měnila by velikost mapy, tím lajny ve výřezu,
+   tím zase obsah = nekonečná smyčka. Úchyt sedí obkročmo na spodní hraně,
+   proto viditelný overflow. */
+.line-feed {
+    position: relative;
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.line-feed.is-collapsed {
+    flex: 0 0 auto;
+}
+
+.line-feed-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(20, 0, 12, 0.75);
     cursor: pointer;
     user-select: none;
+    flex-shrink: 0;
+    transition: background-color 0.15s;
 }
 
-.crossing-feed-header--toggle:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: -2px;
+.line-feed-header:hover,
+.line-feed-header:focus-visible {
+    outline: none;
 }
 
-.crossing-feed-header--toggle .crossing-feed-title {
+.line-feed.is-collapsed .line-feed-header {
+    border-bottom: none;
+    border-radius: 12px;
+}
+
+/* Statická akcentová tečka (na rozdíl od pulzující u přechodů). */
+.line-feed-header-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    box-shadow: 0 0 8px rgba(225, 0, 91, 0.8);
+    flex-shrink: 0;
+}
+
+.line-feed-title {
     flex: 1 1 auto;
     min-width: 0;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 10px 0;
+    text-transform: uppercase;
 }
 
-/* Viewport count right in the title: "LAJNY – 254". */
+/* Viewport count right in the title: "LAJNY – 254" (bold = the accent). */
 .line-feed-count {
     margin-left: 7px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.65);
+    font-weight: 700;
 }
 
-.crossing-feed-dot--lines {
-    animation: none;
+/* Šipka na konci hlavičky — otočí se při sbalení. */
+.line-feed-toggle-icon {
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.line-feed.is-collapsed .line-feed-toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Sbalení = výška 0, ne display:none (to by zabilo transition). Bez paddingu:
+   hustotu dělají řádky samy. */
+.line-feed-body {
+    flex: 0 0 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: height 0.3s ease;
+}
+
+/* Při dragu úchytem musí výška sledovat kurzor okamžitě. */
+.line-feed.is-resizing .line-feed-body {
+    transition: none;
+}
+
+.line-feed-empty {
+    margin: 0;
+    padding: 16px 12px;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    font-style: italic;
+}
+
+/* Gradient přes nakousnutý šestý řádek — „dole je toho víc". has-overflow
+   shazuje controller po doscrollování na konec seznamu. */
+.line-feed::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 44px;
+    border-radius: 0 0 12px 12px;
+    background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.97) 78%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.line-feed.has-overflow::after {
+    opacity: 1;
+}
+
+/* Kulatý úchyt na spodní hraně — tažením mění výšku seznamu. */
+.line-feed-resize {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 50%);
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    color: var(--color-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: ns-resize;
+    /* Drag si odbavujeme pointer eventy sami — browser nesmí gesto přebrat na scroll. */
+    touch-action: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s, opacity 0.2s;
+}
+
+.line-feed-resize:hover,
+.line-feed-resize:focus-visible {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+    outline: none;
+}
+
+.line-feed.is-collapsed .line-feed-resize {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .line-feed-list {
@@ -682,26 +820,26 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
 }
 
-/* Row click centers the map on the line (the name is a link to its detail). */
+/* Flat rows with hairline separators (no card borders — density over chrome).
+   Row click centers the map on the line (the name is a link to its detail). */
 .line-feed-item {
     display: flex;
     align-items: center;
     gap: 9px;
-    background: #fff;
-    border: 1px solid var(--color-line);
-    border-radius: 10px;
-    padding: 7px 10px;
+    padding: 7px 12px;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    transition: border-color 0.12s, background-color 0.12s;
+    border-bottom: 1px solid rgba(20, 0, 12, 0.08);
+    transition: background-color 0.12s;
+}
+
+.line-feed-item:last-child {
+    border-bottom: 0;
 }
 
 .line-feed-item:hover {
-    border-color: var(--color-accent);
-    background: rgba(225, 0, 91, 0.04);
+    background: rgba(225, 0, 91, 0.06);
 }
 
 /* Type dot — same colours as the map markers (line_feed_controller ← typeColor). */
@@ -757,15 +895,19 @@
     }
     .crossing-feed,
     .crossing-feed-toggle-icon,
-    .crossing-feed-body-wrap {
+    .crossing-feed-body-wrap,
+    .line-feed,
+    .line-feed-toggle-icon,
+    .line-feed-body {
         transition: none;
     }
 }
 
 /* Mobile: lines box on top, map below — stacked, never overlapping. The box
    starts collapsed to its header bar (see line_feed_controller); expanded it
-   sizes to content, at most a third of the screen, and scrolls inside. The map
-   canvas resizes with it (map_controller invalidates Leaflet's size). */
+   opens to the fixed user height (drag handle, JS clamp ≤ ½ viewportu) and
+   scrolls inside. The map canvas resizes with it (map_controller invalidates
+   Leaflet's size). */
 @include media-down(md) {
     .line-map-wrapper {
         flex-direction: column;
@@ -773,34 +915,28 @@
 
     .map-side {
         flex: 0 0 auto;
-        max-height: 33vh;
-        padding: 10px;
-    }
-
-    /* Body height is JS-driven on mobile (fit-to-content after the map rests,
-       see line_feed_controller._fitHeight) — this just animates the changes. */
-    .crossing-feed--lines .crossing-feed-body-wrap {
-        transition: height 0.25s ease;
     }
 
     /* TODO(mapa-mobile): přechody na mobilu zatím schované — až vymyslíme,
        jak je zakomponovat do mobilního ovládání (docs/todo.md § Mapa). */
-    .crossing-feed:not(.crossing-feed--lines) {
+    .crossing-feed {
         display: none;
     }
 
     /* Compact rows: name only. */
-    .line-feed-list {
-        gap: 4px;
-    }
-
     .line-feed-item {
-        padding: 6px 10px;
+        padding: 6px 12px;
     }
 
     .line-feed-dot,
     .line-feed-meta {
         display: none;
+    }
+
+    /* Kompaktní řádky (jen jméno) jsou nižší — plný gradient by nakousnutý
+       šestý řádek úplně schoval a stmavil i pátý. */
+    .line-feed::after {
+        height: 22px;
     }
 }
 
