@@ -568,10 +568,13 @@
 /* ---------- Tabbed panel over the map (.map-panel) ---------- */
 
 /* Lajny / Přechody in one flat panel. Collapsed = a single bar with the active
-   tab; expanded = both tab headers, below them the active pane. The body has a
-   FIXED, user-dragged height (bottom-edge handle) — it must never derive from
-   the content: panel height resizes the map, that changes the viewport, that
-   would change the content height again — a feedback loop. */
+   tab; expanded = both tab headers, below them the active pane. Mobile: the
+   body has a FIXED, user-dragged height (bottom-edge handle) — it must never
+   derive from the content, since panel height resizes the map, that changes
+   the viewport, that would change the content height again (feedback loop).
+   Desktop: no drag, no JS height — the panel just fills the sidebar column
+   (see the media-up(md) block below, and the isMobile() guards in
+   map_panel_controller.js). */
 .map-panel {
     position: relative;
     flex: 0 1 auto;
@@ -745,6 +748,24 @@
 .map-panel--collapsed .map-panel__resize {
     opacity: 0;
     pointer-events: none;
+}
+
+/* Desktop: no drag handle, no fixed height — the panel (and its body) just
+   fill the sidebar column. `:not(--collapsed)` keeps the collapsed bar its
+   own content size instead of stretching empty space below it; JS mirrors
+   this with isMobile() guards so it never sets an inline pixel height here. */
+@include media-up(md) {
+    .map-panel:not(.map-panel--collapsed) {
+        flex: 1 1 auto;
+    }
+
+    .map-panel__body {
+        flex: 1 1 auto;
+    }
+
+    .map-panel__resize {
+        display: none;
+    }
 }
 
 /* ---------- Lines-in-viewport list (.line-feed, a .map-panel pane content) ---------- */

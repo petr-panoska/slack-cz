@@ -19,9 +19,11 @@
     {# Sloupec vedle mapy (desktop) / pruh nad mapou (mobil) — s mapou se
        nepřekrývá, aby seznam nepočítal lajny schované pod boxem. Jeden panel
        s taby Lajny/Přechody: sbalený = jen lišta aktivního tabu, rozbalený =
-       oba taby + obsah aktivního. Výšku panelu táhne uživatel úchytem.
-       Obsah tabů renderují line-feed / crossing-feed controllery na témže
-       elementu; panel jim sbalování a výšku řídí přes map-panel controller. #}
+       oba taby + obsah aktivního. Výšku panelu táhne uživatel úchytem, ale jen
+       na mobilu — na desktopu panel prostě vyplní celý sloupec (žádný úchyt,
+       žádná JS výška, viz media-up(md) v _map.scss). Obsah tabů renderují
+       line-feed / crossing-feed controllery na témže elementu; panel jim
+       sbalování a výšku řídí přes map-panel controller. #}
     <div class="map-side">
         <aside
             class="map-panel"

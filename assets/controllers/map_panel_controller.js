@@ -5,11 +5,12 @@ const COLLAPSED_KEY = 'slack.cz:map:panel-collapsed';
 const HEIGHT_KEY = 'slack.cz:map:panel-height';
 const TAB_KEY = 'slack.cz:map:panel-tab';
 
-// Fixed default body heights (≈ 5 line rows). The height must NEVER derive
-// from the content: the panel height resizes the map, that changes what's in
-// the viewport, that would change the content height again — an endless
-// feedback loop. The user adjusts the height by dragging the bottom-edge handle.
-const DEFAULT_HEIGHT_DESKTOP = 280;
+// Fixed default body height (≈ 5 line rows), mobile only — the user adjusts
+// it by dragging the bottom-edge handle. The height must NEVER derive from
+// the content: the panel height resizes the map, that changes what's in the
+// viewport, that would change the content height again — an endless feedback
+// loop. Desktop has no JS height at all: the body just flex-fills the sidebar
+// column (media-up(md) in _map.scss) — see the isMobile() guards below.
 const DEFAULT_HEIGHT_MOBILE = 190;
 const MIN_HEIGHT = 60;
 const KEY_STEP = 40;
@@ -38,7 +39,7 @@ export default class extends Controller {
         const mobile = isMobile();
         this._height = Number.isFinite(height) && height > 0
             ? height
-            : (mobile ? DEFAULT_HEIGHT_MOBILE : DEFAULT_HEIGHT_DESKTOP);
+            : DEFAULT_HEIGHT_MOBILE;
         this._select(tab === 'crossings' ? 'crossings' : 'lines', { remember: false });
         this.setCollapsed(collapsed === '1' || (collapsed === null && mobile), { remember: false });
 
@@ -52,13 +53,20 @@ export default class extends Controller {
 
         // Viewport resize/rotation can shrink the half-of-map limit below the
         // current height — re-clamp (the stored height stays the user's).
-        // Debounced like map_controller's canvas ResizeObserver: a dragged
-        // window edge fires this dozens of times a tick, and _setHeight()
-        // triggers a layout read — no point doing that on every one.
+        // Also handles crossing the mobile/desktop breakpoint live (e.g. a
+        // tablet rotation): switch between the JS pixel height and the CSS
+        // flex-fill. Debounced like map_controller's canvas ResizeObserver: a
+        // dragged window edge fires this dozens of times a tick, and
+        // _setHeight() triggers a layout read — no point doing that on every one.
         this._onResize = () => {
             clearTimeout(this._resizeTimer);
             this._resizeTimer = setTimeout(() => {
-                if (!this._collapsed() && this.hasBodyTarget) this._setHeight(this._height);
+                if (this._collapsed() || !this.hasBodyTarget) return;
+                if (isMobile()) {
+                    this._setHeight(this._height);
+                } else {
+                    this.bodyTarget.style.height = '';
+                }
             }, 120);
         };
         window.addEventListener('resize', this._onResize);
@@ -110,9 +118,16 @@ export default class extends Controller {
         }
         if (this.hasBodyTarget) {
             // Collapse animates the body height to 0 — the body stays rendered,
-            // display:none would kill the transition. Expand goes back to the
-            // fixed user height.
-            this.bodyTarget.style.height = collapsed ? '0px' : `${this._clampHeight(this._height)}px`;
+            // display:none would kill the transition. Expand: mobile goes back
+            // to the fixed user height; desktop clears the inline style so
+            // `flex: 1 1 auto` (media-up(md) in _map.scss) fills the sidebar.
+            if (collapsed) {
+                this.bodyTarget.style.height = '0px';
+            } else if (isMobile()) {
+                this.bodyTarget.style.height = `${this._clampHeight(this._height)}px`;
+            } else {
+                this.bodyTarget.style.height = '';
+            }
         }
         this._applyTabState();
         this._updateOverflow();
@@ -125,9 +140,11 @@ export default class extends Controller {
     }
 
     // Bottom-edge handle drag = resize the panel. Pointer events cover mouse
-    // and touch (the handle has touch-action: none).
+    // and touch (the handle has touch-action: none). Mobile only — the handle
+    // is hidden on desktop (media-up(md) in _map.scss), this guard is belt
+    // and suspenders.
     resizeStart(event) {
-        if (this._collapsed() || !this.hasBodyTarget) return;
+        if (!isMobile() || this._collapsed() || !this.hasBodyTarget) return;
         event.preventDefault();
         const startY = event.clientY;
         const startHeight = this.bodyTarget.getBoundingClientRect().height;
@@ -145,10 +162,11 @@ export default class extends Controller {
         window.addEventListener('pointercancel', stop);
     }
 
-    // Keyboard fallback for the handle (↑ shrinks, ↓ grows — same directions as drag).
+    // Keyboard fallback for the handle (↑ shrinks, ↓ grows — same directions
+    // as drag). Mobile only, see resizeStart().
     resizeKey(event) {
         const step = event.key === 'ArrowUp' ? -KEY_STEP : event.key === 'ArrowDown' ? KEY_STEP : null;
-        if (step === null || this._collapsed() || !this.hasBodyTarget) return;
+        if (step === null || !isMobile() || this._collapsed() || !this.hasBodyTarget) return;
         event.preventDefault();
         this._setHeight(this.bodyTarget.getBoundingClientRect().height + step);
         this._rememberHeight();
