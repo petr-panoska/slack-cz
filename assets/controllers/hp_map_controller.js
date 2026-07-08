@@ -24,7 +24,8 @@ const CZECH_CENTER = [49.8, 15.5];
 const WALK_FRACTION = 0.4;
 const WALK_DURATION = 5000; // ms — deliberately slow, the athlete strolls the line
 const FLY_DURATION = 1.6;   // s — smooth glide between crossings (no jump/reload)
-const DWELL = 7000;         // ms — pause after a crossing finishes before auto-advancing
+const DWELL = 7000;         // ms — pause after a crossing finishes before auto-advancing (long enough to read a comment)
+const DWELL_NO_COMMENT = 2000; // ms — nothing to read, so don't make the viewer wait
 
 // Celebration played once the athlete reaches the far anchor — one picked at random.
 const CELEBRATIONS = ['bounce', 'flip', 'spin', 'pop', 'wobble'];
@@ -163,10 +164,10 @@ export default class extends Controller {
             this.showThought(marker, comment);
             if (animate && !sameView) {
                 this.map.flyTo(mid, 15, { duration: FLY_DURATION });
-                this.afterFly(gen, () => this.scheduleAdvance(gen));
+                this.afterFly(gen, () => this.scheduleAdvance(gen, comment));
             } else {
                 if (!sameView) this.map.setView(mid, 15, { animate: false });
-                this.scheduleAdvance(gen);
+                this.scheduleAdvance(gen, comment);
             }
         }
     }
@@ -200,7 +201,7 @@ export default class extends Controller {
                 // Reached the far anchor: flourish + reveal the comment (not during the walk).
                 this.celebrate(walker);
                 this.showThought(walker, comment);
-                this.scheduleAdvance(gen);
+                this.scheduleAdvance(gen, comment);
             }
         };
         this.rafHandle = requestAnimationFrame(step);
@@ -218,13 +219,14 @@ export default class extends Controller {
 
     // Auto-advance to the next crossing after a dwell, so the homepage runs itself
     // as a showcase. Cleared on any (re)activation, so a manual click just takes over.
-    scheduleAdvance(gen) {
+    // Short dwell when there's no comment to read.
+    scheduleAdvance(gen, comment) {
         if (this.itemTargets.length < 2) return;
         if (this.advanceTimer) clearTimeout(this.advanceTimer);
         this.advanceTimer = setTimeout(() => {
             if (gen !== this.gen) return;
             this.activate((this.activeIndex + 1) % this.itemTargets.length);
-        }, DWELL);
+        }, comment ? DWELL : DWELL_NO_COMMENT);
     }
 
     // Floats a subtle thought bubble above the marker (only once the crossing is done).
