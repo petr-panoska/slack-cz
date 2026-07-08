@@ -15,11 +15,12 @@ const DEFAULT_HEIGHT_MOBILE = 190;
 const MIN_HEIGHT = 60;
 const KEY_STEP = 40;
 
-// Tabbed panel over the map (Lajny / Přechody). Collapsed = a single bar with
-// the Lajny tab; expanded = both tab headers + the active pane. Pane content
-// is rendered by the line-feed / crossing-feed controllers living on the same
-// element — they dispatch `rendered` (gradient refresh), wired via
-// data-action on the root.
+// Tabbed panel over the map (Lajny / Přechody). Collapse is a mobile-only
+// concept (bar-only vs. both tab headers + the active pane) — desktop has no
+// toggle button and always shows the panel expanded, see the isMobile()
+// guards below. Pane content is rendered by the line-feed / crossing-feed
+// controllers living on the same element — they dispatch `rendered`
+// (gradient refresh), wired via data-action on the root.
 export default class extends Controller {
     static targets = ['body', 'linesTab', 'crossingsTab', 'linesPane', 'crossingsPane', 'toggle'];
 
@@ -41,7 +42,9 @@ export default class extends Controller {
             ? height
             : DEFAULT_HEIGHT_MOBILE;
         this._select(tab === 'crossings' ? 'crossings' : 'lines', { remember: false });
-        this.setCollapsed(collapsed === '1' || (collapsed === null && mobile), { remember: false });
+        // Collapse never applies on desktop, even if a stored '1' came from an
+        // earlier mobile session in the same tab (sessionStorage is shared).
+        this.setCollapsed(mobile && (collapsed === '1' || collapsed === null), { remember: false });
 
         // The "more below" gradient goes out once the pane is scrolled to its
         // end — and needs a re-check after the expand transition lands.
@@ -61,7 +64,13 @@ export default class extends Controller {
         this._onResize = () => {
             clearTimeout(this._resizeTimer);
             this._resizeTimer = setTimeout(() => {
-                if (this._collapsed() || !this.hasBodyTarget) return;
+                // Growing into desktop with a collapsed bar from an earlier
+                // mobile session — force it open, desktop has no collapsed state.
+                if (this._collapsed()) {
+                    if (!isMobile()) this.setCollapsed(false);
+                    return;
+                }
+                if (!this.hasBodyTarget) return;
                 if (isMobile()) {
                     this._setHeight(this._height);
                 } else {
@@ -82,7 +91,9 @@ export default class extends Controller {
     }
 
     // Tab click: collapsed → expand (on that tab); other tab → switch; the
-    // active tab again → collapse (mirrors the old header toggle).
+    // active tab again → collapse (mirrors the old header toggle) — mobile
+    // only. Desktop has no toggle button and is never collapsed, so a repeat
+    // click on the active tab is just a no-op there.
     selectTab(event) {
         const tab = event.params.tab;
         if (this._collapsed()) {
@@ -90,7 +101,7 @@ export default class extends Controller {
             this.setCollapsed(false);
         } else if (tab !== this._active) {
             this._select(tab);
-        } else {
+        } else if (isMobile()) {
             this.setCollapsed(true);
         }
         // A tap leaves the button focused, which reads as "still active" on
@@ -98,8 +109,11 @@ export default class extends Controller {
         if (event.detail) event.currentTarget.blur();
     }
 
+    // Mobile only — the toggle button is hidden on desktop (media-up(md) in
+    // _map.scss), this guard is belt and suspenders (see resizeStart()).
     toggle(event) {
         event?.preventDefault();
+        if (!isMobile()) return;
         this.setCollapsed(!this._collapsed());
     }
 

@@ -592,6 +592,7 @@
     align-items: center;
     gap: 18px;
     user-select: none;
+    padding: 10px 0;
 }
 
 /* Tabs are Bootstrap buttons (btn-outline-primary); `.active` (filled) means
@@ -641,26 +642,12 @@
     font-weight: 700;
 }
 
-/* Collapse/expand arrow at the row's end. */
 .map-panel__toggle {
-    appearance: none;
-    border: 0;
-    background: transparent;
     margin-left: auto;
-    padding: 10px 2px;
-    cursor: pointer;
-    color: var(--color-fg);
-}
-
-.map-panel__toggle:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: -2px;
 }
 
 .map-panel__arrow {
     display: inline-block;
-    font-size: 1rem;
-    line-height: 1;
     transition: transform 0.25s ease;
 }
 
@@ -750,10 +737,13 @@
     pointer-events: none;
 }
 
-/* Desktop: no drag handle, no fixed height — the panel (and its body) just
-   fill the sidebar column. `:not(--collapsed)` keeps the collapsed bar its
-   own content size instead of stretching empty space below it; JS mirrors
-   this with isMobile() guards so it never sets an inline pixel height here. */
+/* Desktop: no collapsing, no drag handle, no fixed height — the panel is
+   always expanded and its body just fills the sidebar column. Tab buttons
+   only switch panes there (map_panel_controller's isMobile() guards keep it
+   from ever gaining --collapsed or an inline pixel height on desktop);
+   `:not(--collapsed)` here is belt and suspenders for the same reason
+   resizeStart()/toggle() re-check isMobile() even though their triggers are
+   hidden below. */
 @include media-up(md) {
     .map-panel:not(.map-panel--collapsed) {
         flex: 1 1 auto;
@@ -763,7 +753,8 @@
         flex: 1 1 auto;
     }
 
-    .map-panel__resize {
+    .map-panel__resize,
+    .map-panel__toggle {
         display: none;
     }
 }
