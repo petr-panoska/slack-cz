@@ -65,14 +65,72 @@
     .md-layout {
         grid-template-columns: 1fr;
     }
+}
+
+// Mobile-first: static by default (in-flow, scrolls with the page — required
+// so an expanded .md-sidebar__collapse pushes the article down instead of
+// sticking in place while the text scrolls past/under it). Sticky is a
+// desktop-only affordance where the sidebar has no expand/collapse state.
+.md-sidebar {
+    position: static;
+}
+
+@include media-up(md) {
     .md-sidebar {
-        position: static;
+        position: sticky;
+        top: 16px;
     }
 }
 
-.md-sidebar {
-    position: sticky;
-    top: 16px;
+/* Mobile-only "Obsah" disclosure — hidden above `md` (see media-up(md) below),
+   where the list is always visible and no toggle is needed. */
+.md-sidebar__toggle {
+    display: none;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    background: #fafafa;
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    color: var(--color-fg);
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+.md-sidebar__toggle-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.md-sidebar__toggle-icon {
+    flex: none;
+    color: var(--color-muted);
+    transition: transform 0.2s ease;
+}
+
+.md-sidebar__toggle[aria-expanded="true"] .md-sidebar__toggle-icon {
+    transform: rotate(180deg);
+}
+
+@include media-down(md) {
+    .md-sidebar__toggle {
+        display: flex;
+    }
+}
+
+@include media-up(md) {
+    // Above the toggle breakpoint the list stays visible regardless of the
+    // collapse's shown/hidden state — same trick `.navbar-expand-*` uses for
+    // `.navbar-collapse`.
+    .md-sidebar__collapse {
+        display: block !important;
+    }
 }
 
 .md-sidebar-list {

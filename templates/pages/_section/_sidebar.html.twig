@@ -2,31 +2,55 @@
     - entries: list<App\Markdown\Section\Entry>
     - index_route, show_route: route names dané sekce
     - active_slug: 'README' nebo entry.slug — řídí is-active
-   Skupiny (`entry.group`) renderuje jako separator nadpisy, pokud aspoň jedna entry má group. #}
+   Skupiny (`entry.group`) renderuje jako separator nadpisy, pokud aspoň jedna entry má group.
+   Pod `md` je seznam schovaný za tlačítkem (Bootstrap collapse, sbaleno defaultně) —
+   nad `md` je vždy vidět bez ohledu na collapse stav (override v _markdown.scss). #}
 
 {% set hasGroups = entries|filter(e => e.group != '')|length > 0 %}
 {% set lastGroup = null %}
+{% set currentLabel = 'README.md' %}
+{% if active_slug|lower != 'readme' %}
+    {% for entry in entries %}
+        {% if entry.slug == active_slug %}
+            {% set currentLabel = entry.label %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
 
 <aside class="md-sidebar">
-    <ul class="md-sidebar-list">
-        <li>
-            <a
-                href="{{ path(index_route) }}"
-                class="md-sidebar-link {% if active_slug|lower == 'readme' %}is-active{% endif %}"
-            >README.md</a>
-        </li>
-        {% for entry in entries %}
-            {% if hasGroups and entry.group != lastGroup %}
-                </ul><ul class="md-sidebar-list">
-                <li class="md-sidebar-group">{{ entry.group }}</li>
-                {% set lastGroup = entry.group %}
-            {% endif %}
+    <button
+        type="button"
+        class="md-sidebar__toggle"
+        data-bs-toggle="collapse"
+        data-bs-target="#md-sidebar-list"
+        aria-expanded="false"
+        aria-controls="md-sidebar-list"
+    >
+        <span class="md-sidebar__toggle-label">Obsah: {{ currentLabel }}</span>
+        <span class="md-sidebar__toggle-icon" aria-hidden="true">⌄</span>
+    </button>
+
+    <div class="collapse md-sidebar__collapse" id="md-sidebar-list">
+        <ul class="md-sidebar-list">
             <li>
                 <a
-                    href="{{ path(show_route, {slug: entry.slug}) }}"
-                    class="md-sidebar-link {% if entry.slug == active_slug %}is-active{% endif %}"
-                >{{ entry.label }}</a>
+                    href="{{ path(index_route) }}"
+                    class="md-sidebar-link {% if active_slug|lower == 'readme' %}is-active{% endif %}"
+                >README.md</a>
             </li>
-        {% endfor %}
-    </ul>
+            {% for entry in entries %}
+                {% if hasGroups and entry.group != lastGroup %}
+                    </ul><ul class="md-sidebar-list">
+                    <li class="md-sidebar-group">{{ entry.group }}</li>
+                    {% set lastGroup = entry.group %}
+                {% endif %}
+                <li>
+                    <a
+                        href="{{ path(show_route, {slug: entry.slug}) }}"
+                        class="md-sidebar-link {% if entry.slug == active_slug %}is-active{% endif %}"
+                    >{{ entry.label }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 </aside>
