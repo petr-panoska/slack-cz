@@ -64,6 +64,9 @@ export default class extends Controller {
         this.map = L.map(this.canvasTarget, { zoomControl: false, scrollWheelZoom: false })
             .setView(center, zoom);
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+        // Drop the "Leaflet | " self-promo prefix — the required Esri tile credit
+        // (kept, see _homepage.scss) is cramped enough on this narrow preview already.
+        this.map.attributionControl.setPrefix(false);
         addBasemapPicker(this.map, { ortho: true });
         addFullscreenToggle(this.map);
         // Plain wheel scrolls the homepage; Ctrl/⌘ + wheel zooms the map.
@@ -96,9 +99,14 @@ export default class extends Controller {
         }
     }
 
+    // Row click (or Enter/Space — the row is a keyboard-focusable button). Let
+    // clicks on the highline link navigate normally instead of just activating.
     select(event) {
-        // Let clicks on the highline link navigate normally instead of just activating.
         if (event.target.closest('a')) return;
+        if (event.type === 'keydown') {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+        }
         const idx = this.itemTargets.indexOf(event.currentTarget);
         if (idx >= 0) this.activate(idx);
     }
@@ -107,7 +115,7 @@ export default class extends Controller {
         const item = this.itemTargets[index];
         if (!item) return;
 
-        this.itemTargets.forEach((el, i) => el.classList.toggle('is-active', i === index));
+        this.itemTargets.forEach((el, i) => el.classList.toggle('hp-map__item--active', i === index));
         item.scrollIntoView({ block: 'nearest' });
         this.activeIndex = index;
 

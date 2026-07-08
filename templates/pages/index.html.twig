@@ -19,15 +19,17 @@
                 </div>
                 <a href="{{ path('app_line_map') }}" class="card-header-link">Otevřít →</a>
             </header>
-            <div class="hp-map-body">
-                <aside class="hp-crossings" aria-label="Poslední přechody">
+            <div class="hp-map__body">
+                <aside class="hp-map__crossings" aria-label="Poslední přechody">
                     {% if recent_crossings|length > 0 %}
-                    <ul class="list-group list-group-flush">
+                    <ul class="hp-map__list">
                         {% for c in recent_crossings %}
                         <li
-                            class="list-group-item crossing-item hp-crossing{{ loop.first ? ' is-active' : '' }}"
+                            class="hp-map__item{{ loop.first ? ' hp-map__item--active' : '' }}"
+                            tabindex="0"
+                            role="button"
                             data-hp-map-target="item"
-                            data-action="click->hp-map#select"
+                            data-action="click->hp-map#select keydown->hp-map#select"
                             data-name="{{ c.line.name }}"
                             data-lat="{{ c.line.latitude }}"
                             data-lng="{{ c.line.longitude }}"
@@ -38,30 +40,30 @@
                             data-user-id="{{ c.user.id }}"
                             data-comment="{{ c.comment }}"
                         >
-                            <time datetime="{{ c.crossedAt|date('c') }}" class="crossing-date">{{ c.crossedAt|date('j. n. Y') }}</time>
-                            {% if c.style %}
-                                <span class="badge crossing-style" title="Styl přechodu">{{ c.style.label }}</span>
-                            {% endif %}
-                            <span class="crossing-user">{{ c.user.displayName }}</span>
-                            <span class="crossing-rating" aria-label="hodnocení {{ c.rating ?? '–' }} z 5">
+                            <span class="hp-map__main">
+                                <span class="hp-map__user">{{ c.user.displayName }}</span>
+                                <span class="hp-map__on">na</span>
+                                <a class="hp-map__line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
+                            </span>
+                            <span class="hp-map__meta">
+                                <time datetime="{{ c.crossedAt|date('c') }}">{{ c.crossedAt|date('j. n. Y') }}</time>
+                                {% if c.style %} · {{ c.style.label }}{% endif %}
                                 {% if c.rating %}
-                                    {% for s in 1..5 %}
-                                        <span class="crossing-star{% if s <= c.rating %} on{% endif %}">★</span>
-                                    {% endfor %}
-                                {% else %}
-                                    <span>–</span>
+                                    ·
+                                    <span class="hp-map__rating" aria-label="hodnocení {{ c.rating }} z 5">
+                                        {% for s in 1..5 %}<span class="hp-map__star{% if s <= c.rating %} hp-map__star--on{% endif %}">★</span>{% endfor %}
+                                    </span>
                                 {% endif %}
                             </span>
-                            <a class="crossing-line" href="{{ path('app_line_detail', { slug: c.line.slug }) }}">{{ c.line.name }}</a>
                         </li>
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <p class="hp-crossings-empty">Zatím žádný přechod.</p>
+                    <p class="hp-map__empty">Zatím žádný přechod.</p>
                     {% endif %}
                 </aside>
-                <div class="hp-map-canvas-wrap">
-                    <div class="hp-map-canvas" data-hp-map-target="canvas"></div>
+                <div class="hp-map__canvas-wrap">
+                    <div class="hp-map__canvas" data-hp-map-target="canvas"></div>
                 </div>
             </div>
         </section>
