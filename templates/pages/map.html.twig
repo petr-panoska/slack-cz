@@ -28,7 +28,7 @@
             aria-label="Lajny a přechody na mapě"
             data-controller="map-panel line-feed crossing-feed"
             data-crossing-feed-url-value="{{ path('app_line_map_feed') }}"
-            data-action="line-feed:collapse->map-panel#collapse line-feed:rendered->map-panel#refreshOverflow crossing-feed:rendered->map-panel#refreshOverflow"
+            data-action="line-feed:rendered->map-panel#refreshOverflow crossing-feed:rendered->map-panel#refreshOverflow"
         >
             <header class="map-panel__tabs" role="tablist">
                 <button
@@ -52,6 +52,7 @@
                     aria-selected="false"
                     aria-controls="map-panel-pane-crossings"
                     data-map-panel-target="crossingsTab"
+                    data-crossing-feed-target="tab"
                     data-map-panel-tab-param="crossings"
                     data-action="map-panel#selectTab"
                 >

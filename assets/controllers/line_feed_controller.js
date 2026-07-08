@@ -1,12 +1,11 @@
 import { Controller } from '@hotwired/stimulus';
 import { typeColor, escapeHtml } from './map_controller.js';
-import { isMobile } from '../breakpoints.js';
 
 // Lines-in-viewport list (a pane of .map-panel). Pure view: map_controller
 // broadcasts `slack:viewport-lines` on every pan/zoom, we render; a row click
 // goes back as `slack:line-focus` so the map centers the line. Collapse and
-// height live in map_panel_controller — we only dispatch `collapse` (mobile
-// row click) and `rendered` (gradient refresh), wired on the shared root.
+// height live in map_panel_controller — we only dispatch `rendered`
+// (gradient refresh), wired on the shared root.
 export default class extends Controller {
     static targets = ['list', 'empty', 'count'];
 
@@ -27,12 +26,11 @@ export default class extends Controller {
         if (event.target.closest('a')) return;
         const id = parseInt(event.currentTarget.dataset.id, 10);
         if (!Number.isFinite(id)) return;
-        document.dispatchEvent(new CustomEvent('slack:line-focus', { detail: { id } }));
-        // On mobile the panel overlays a big chunk of the map — get it out of
-        // the opened popup's way.
-        if (isMobile()) {
-            this.dispatch('collapse');
+        this._selectedId = id;
+        for (const li of this.listTarget.children) {
+            li.classList.toggle('line-feed__item--active', li === event.currentTarget);
         }
+        document.dispatchEvent(new CustomEvent('slack:line-focus', { detail: { id } }));
     }
 
     render(lines) {
@@ -42,8 +40,11 @@ export default class extends Controller {
         this.listTarget.innerHTML = lines.map((r) => {
             const place = [r.area, r.region].filter(Boolean).join(', ');
             const meta = [`${r.length} m`, `${r.height} m vysoko`, place].filter(Boolean).join(' · ');
+            // The selected highlight must survive the re-render — a row click
+            // moves the map, which rebuilds this very list.
+            const active = r.id === this._selectedId ? ' line-feed__item--active' : '';
             return `
-                <li class="line-feed__item" data-id="${r.id}" data-action="click->line-feed#focus">
+                <li class="line-feed__item${active}" data-id="${r.id}" data-action="click->line-feed#focus">
                     <span class="line-feed__dot" style="background:${typeColor(r.type)}" aria-hidden="true"></span>
                     <span class="line-feed__main">
                         <a class="line-feed__name" href="/lajna/${encodeURIComponent(r.slug)}">${escapeHtml(r.name)}</a>

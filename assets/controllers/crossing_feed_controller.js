@@ -53,7 +53,7 @@ export default class extends Controller {
         url: String,
     };
     static targets = [
-        'list', 'empty', 'caption', 'eye', 'tabEye', 'tabCount',
+        'list', 'empty', 'caption', 'eye', 'tab', 'tabEye', 'tabCount',
         'filter', 'count', 'from', 'to', 'modeCount', 'modeRange',
     ];
 
@@ -112,6 +112,22 @@ export default class extends Controller {
         this._applyUsersVisibility();
     }
 
+    // Row click = fly the map to the crossing's emoji marker. Clicking while
+    // the markers are hidden is an implicit "show them" — flip the eye first
+    // (updates the button, the tab badge and sessionStorage). Links inside the
+    // row keep their own navigation.
+    focus(event) {
+        if (event.target.closest('a')) return;
+        const id = parseInt(event.currentTarget.dataset.id, 10);
+        if (!Number.isFinite(id)) return;
+        this._selectedId = id;
+        for (const li of this.listTarget.children) {
+            li.classList.toggle('crossing-feed__item--active', li === event.currentTarget);
+        }
+        if (!this.usersVisible) this.toggleUsers();
+        document.dispatchEvent(new CustomEvent('slack:crossing-focus', { detail: { id } }));
+    }
+
     _applyUsersVisibility() {
         if (this.hasEyeTarget) {
             this.eyeTarget.classList.toggle('crossing-feed__eye--off', !this.usersVisible);
@@ -123,6 +139,11 @@ export default class extends Controller {
         // visible, the crossed-eye badge while they are hidden.
         if (this.hasTabEyeTarget) this.tabEyeTarget.hidden = this.usersVisible;
         if (this.hasTabCountTarget) this.tabCountTarget.hidden = !this.usersVisible;
+        // Actively shown markers pin the tab into the collapsed bar (which
+        // otherwise shows only Lajny) — see .map-panel--collapsed in _map.scss.
+        if (this.hasTabTarget) {
+            this.tabTarget.classList.toggle('map-panel__tab--pinned', this.usersVisible);
+        }
         document.dispatchEvent(new CustomEvent('slack:users-visibility', {
             detail: { visible: this.usersVisible },
         }));
@@ -299,33 +320,31 @@ export default class extends Controller {
         this.dispatch('rendered');
     }
 
+    // Compact two-line row (mirrors .line-feed__item): "user na lajna" + a
+    // muted meta line. The comment lives in the marker popup, not here.
     _render(item) {
         const li = document.createElement('li');
         li.className = 'crossing-feed__item';
+        // The selected highlight must survive a re-render (filter change).
+        if (item.id === this._selectedId) li.classList.add('crossing-feed__item--active');
+        li.dataset.id = item.id;
+        li.dataset.action = 'click->crossing-feed#focus';
 
         const userHref = `/denik/${item.userId}`;
         const lineHref = `/lajna/${encodeURIComponent(item.lineSlug)}`;
-        const dateStr = escapeHtml(formatDate(item.crossedAt));
-        const styleHtml = item.styleLabel
-            ? `<span class="crossing-feed__style">${escapeHtml(item.styleLabel)}</span>`
-            : '';
-        const ratingHtml = renderStars(item.rating);
-        const commentHtml = item.comment
-            ? `<p class="crossing-feed__comment">${escapeHtml(item.comment)}</p>`
-            : '';
+        const meta = [
+            escapeHtml(formatDate(item.crossedAt)),
+            item.styleLabel ? escapeHtml(item.styleLabel) : '',
+            renderStars(item.rating),
+        ].filter(Boolean).join(' · ');
 
         li.innerHTML = `
-            <header class="crossing-feed__head">
-                <time class="crossing-feed__date" datetime="${escapeHtml(item.crossedAt)}">${dateStr}</time>
-                ${styleHtml}
-                ${ratingHtml}
-            </header>
-            <div class="crossing-feed__crossing">
+            <span class="crossing-feed__main">
                 <a class="crossing-feed__user" href="${userHref}">${escapeHtml(item.userDisplayName)}</a>
                 <span class="crossing-feed__on">na</span>
                 <a class="crossing-feed__line" href="${lineHref}">${escapeHtml(item.lineName)}</a>
-            </div>
-            ${commentHtml}
+            </span>
+            <span class="crossing-feed__meta">${meta}</span>
         `;
         return li;
     }

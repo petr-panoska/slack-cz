@@ -207,6 +207,15 @@
     letter-spacing: -0.05em;
 }
 
+/* Crossing comment — the compact /mapa feed rows don't show it, the popup does. */
+.user-popup__comment {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--color-line);
+    font-size: 0.9em;
+    font-style: italic;
+}
+
 /* ---------- Homepage „Z galerie" rotating panel ---------- */
 
 .panel-photos {

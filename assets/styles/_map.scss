@@ -465,21 +465,35 @@
 .crossing-feed__list {
     list-style: none;
     margin: 0;
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    padding: 0;
 }
 
+/* Compact hairline rows (mirror of .line-feed__item). The whole row is a
+   click target — it flies the map to the crossing's marker (links inside
+   keep their own navigation); the comment lives in the marker popup. */
 .crossing-feed__item {
-    background: #fff;
-    border: 1px solid var(--color-line);
-    border-left: 3px solid var(--color-accent);
-    border-radius: 10px;
-    padding: 8px 12px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 7px 12px;
+    border-bottom: 1px solid rgba(20, 0, 12, 0.08);
+    cursor: pointer;
+    transition: background-color 0.12s;
     animation: crossing-feed-item-in 0.35s ease both;
     animation-delay: var(--feed-stagger, 0ms);
+}
+
+.crossing-feed__item:last-child {
+    border-bottom: 0;
+}
+
+.crossing-feed__item:hover {
+    background: rgba(225, 0, 91, 0.06);
+}
+
+/* The picked crossing (map is focused on its marker). */
+.crossing-feed__item--active {
+    background: rgba(225, 0, 91, 0.1);
 }
 
 @keyframes crossing-feed-item-in {
@@ -487,29 +501,24 @@
     to { opacity: 1; transform: none; }
 }
 
-.crossing-feed__head {
+/* "Who on what": user na lajna. */
+.crossing-feed__main {
+    min-width: 0;
+    font-size: 0.85rem;
+    line-height: 1.35;
     display: flex;
-    align-items: center;
-    gap: 8px;
     flex-wrap: wrap;
+    gap: 4px;
+    align-items: baseline;
+}
+
+/* Date · style · stars. */
+.crossing-feed__meta {
     font-size: 0.72rem;
     color: var(--color-muted);
-}
-
-.crossing-feed__date {
-    font-weight: 600;
-    color: var(--color-fg);
-    letter-spacing: 0.02em;
-}
-
-.crossing-feed__style {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.65rem;
-    padding: 1px 6px;
-    border-radius: 4px;
-    background: rgba(225, 0, 91, 0.1);
-    color: var(--color-accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .crossing-feed__rating {
@@ -525,17 +534,6 @@
 
 .crossing-feed__star--on {
     color: var(--color-accent);
-}
-
-/* One line of "who on what": user na lajna. */
-.crossing-feed__crossing {
-    margin-top: 4px;
-    font-size: 0.85rem;
-    line-height: 1.35;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    align-items: baseline;
 }
 
 .crossing-feed__user {
@@ -560,16 +558,6 @@
 
 .crossing-feed__line:hover {
     text-decoration: underline;
-}
-
-.crossing-feed__comment {
-    margin: 6px 0 0;
-    padding-top: 6px;
-    border-top: 1px dashed var(--color-line);
-    font-size: 0.82rem;
-    line-height: 1.4;
-    color: var(--color-fg);
-    font-style: italic;
 }
 
 /* ---------- Tabbed panel over the map (.map-panel) ---------- */
@@ -607,8 +595,10 @@
     text-transform: uppercase;
 }
 
-/* Collapsed bar = just the outline "Lajny" button + the arrow. */
-.map-panel--collapsed .map-panel__tab--crossings {
+/* Collapsed bar = just the outline "Lajny" button + the arrow. Exception:
+   while the crossing markers are shown on the map, the Přechody tab stays
+   pinned in the bar (--pinned toggles crossing_feed_controller). */
+.map-panel--collapsed .map-panel__tab--crossings:not(.map-panel__tab--pinned) {
     display: none;
 }
 
@@ -782,6 +772,11 @@
     background: rgba(225, 0, 91, 0.06);
 }
 
+/* The picked line (map is focused on its marker). */
+.line-feed__item--active {
+    background: rgba(225, 0, 91, 0.1);
+}
+
 /* Type dot — same colours as the map markers (line_feed_controller ← typeColor). */
 .line-feed__dot {
     flex: none;
@@ -853,12 +848,14 @@
     }
 
     /* Compact rows: name only. */
-    .line-feed__item {
+    .line-feed__item,
+    .crossing-feed__item {
         padding: 6px 12px;
     }
 
     .line-feed__dot,
-    .line-feed__meta {
+    .line-feed__meta,
+    .crossing-feed__meta {
         display: none;
     }
 

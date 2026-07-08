@@ -238,8 +238,10 @@ export default class extends Controller {
         // and sends back clicks so we can focus the map on the picked line.
         this._onLinesRequest = () => this._publishViewportLines();
         this._onLineFocus = (e) => this._focusLine(e.detail?.id);
+        this._onCrossingFocus = (e) => this._focusCrossing(e.detail?.id);
         document.addEventListener('slack:lines-request', this._onLinesRequest);
         document.addEventListener('slack:line-focus', this._onLineFocus);
+        document.addEventListener('slack:crossing-focus', this._onCrossingFocus);
 
         await this.loadLines();
         await this.loadUsers();
@@ -265,6 +267,9 @@ export default class extends Controller {
         }
         if (this._onLineFocus) {
             document.removeEventListener('slack:line-focus', this._onLineFocus);
+        }
+        if (this._onCrossingFocus) {
+            document.removeEventListener('slack:crossing-focus', this._onCrossingFocus);
         }
         if (this.map) {
             this.map.remove();
@@ -359,6 +364,17 @@ export default class extends Controller {
         this.staticLayer.zoomToShowLayer(rec.marker, () => rec.marker.openPopup());
     }
 
+    // Crossings list click → center the picked crossing's emoji marker and open
+    // its popup. The feed flips marker visibility on its side before dispatching,
+    // so an invisible layer here means something went wrong — bail out.
+    _focusCrossing(id) {
+        if (!this.map || this.timeTravel || !this.usersVisible) return;
+        const marker = this.userIndex?.get(id);
+        if (!marker) return;
+        this.map.setView(marker.getLatLng(), Math.max(this.map.getZoom(), LINE_MIN_ZOOM));
+        marker.openPopup();
+    }
+
     // Type legend as a collapsible top-right control: a "?" pill that toggles a panel
     // listing the types actually present (in canonical LEGEND_ORDER). Top-right so it
     // sits with the other map buttons instead of covering the bottom-left crossing feed,
@@ -434,6 +450,7 @@ export default class extends Controller {
 
         // Rebuild from scratch — the filter (last N / date range) may have changed.
         this.usersLayer.clearLayers();
+        this.userIndex = new Map();
 
         const groups = new Map();
         for (const u of users) {
@@ -457,9 +474,10 @@ export default class extends Controller {
                     iconSize: [32, 32],
                     iconAnchor: [16 - offset.x, 16 - offset.y],
                 });
-                L.marker([lat, lng], { icon, zIndexOffset: 800 })
+                const marker = L.marker([lat, lng], { icon, zIndexOffset: 800 })
                     .bindPopup(this.userPopupHtml(u))
                     .addTo(this.usersLayer);
+                this.userIndex.set(u.id, marker);
             });
         }
 
@@ -806,11 +824,16 @@ export default class extends Controller {
         const userLink = u.userId
             ? `<a href="/denik/${u.userId}">${escapeHtml(u.userDisplayName)}</a>`
             : escapeHtml(u.userDisplayName);
+        // The compact feed rows dropped the comment — the popup is its home now.
+        const comment = u.comment
+            ? `<div class="user-popup__comment">${escapeHtml(u.comment)}</div>`
+            : '';
         return `
             <div class="user-popup">
                 <strong>${userLink}</strong>
                 <div class="user-popup-line">${lineLink}</div>
                 <div class="muted">${escapeHtml(date)}${stars ? ` &middot; <span class="user-popup-stars">${stars}</span>` : ''}</div>
+                ${comment}
             </div>
         `;
     }

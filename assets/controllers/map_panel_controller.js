@@ -15,10 +15,10 @@ const MIN_HEIGHT = 60;
 const KEY_STEP = 40;
 
 // Tabbed panel over the map (Lajny / Přechody). Collapsed = a single bar with
-// the active tab; expanded = both tab headers + the active pane. Pane content
+// the Lajny tab; expanded = both tab headers + the active pane. Pane content
 // is rendered by the line-feed / crossing-feed controllers living on the same
-// element — they dispatch `rendered` (gradient refresh) and `collapse`
-// (mobile row click), wired via data-action on the root.
+// element — they dispatch `rendered` (gradient refresh), wired via
+// data-action on the root.
 export default class extends Controller {
     static targets = ['body', 'linesTab', 'crossingsTab', 'linesPane', 'crossingsPane', 'toggle'];
 
@@ -86,12 +86,6 @@ export default class extends Controller {
     toggle(event) {
         event?.preventDefault();
         this.setCollapsed(!this._collapsed());
-    }
-
-    // line-feed dispatches `collapse` after a row click on mobile — the panel
-    // covers a big chunk of the map and would hide the opened popup.
-    collapse() {
-        this.setCollapsed(true);
     }
 
     // line-feed / crossing-feed dispatch `rendered` after (re)filling a pane.
