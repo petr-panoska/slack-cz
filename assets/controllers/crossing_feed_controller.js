@@ -53,7 +53,7 @@ export default class extends Controller {
         url: String,
     };
     static targets = [
-        'list', 'empty', 'caption', 'eye',
+        'list', 'empty', 'caption', 'eye', 'tabEye', 'tabCount',
         'filter', 'count', 'from', 'to', 'modeCount', 'modeRange',
     ];
 
@@ -78,7 +78,13 @@ export default class extends Controller {
         this.abortController = null;
 
         // Markers are hidden by default — '0' means the user explicitly showed them.
-        this.usersVisible = sessionStorage.getItem(USERS_HIDDEN_KEY) === '0';
+        let usersHidden = null;
+        try {
+            usersHidden = sessionStorage.getItem(USERS_HIDDEN_KEY);
+        } catch {
+            /* sessionStorage may be unavailable; non-fatal */
+        }
+        this.usersVisible = usersHidden === '0';
         this._applyUsersVisibility();
 
         this._onModeChange = (e) => this._handleMode(e.detail);
@@ -113,6 +119,10 @@ export default class extends Controller {
             this.eyeTarget.setAttribute('aria-label', label);
             this.eyeTarget.setAttribute('title', label);
         }
+        // The tab header shows the crossings count while the markers are
+        // visible, the crossed-eye badge while they are hidden.
+        if (this.hasTabEyeTarget) this.tabEyeTarget.hidden = this.usersVisible;
+        if (this.hasTabCountTarget) this.tabCountTarget.hidden = !this.usersVisible;
         document.dispatchEvent(new CustomEvent('slack:users-visibility', {
             detail: { visible: this.usersVisible },
         }));
@@ -256,6 +266,7 @@ export default class extends Controller {
     }
 
     _renderAll(items, detail) {
+        if (this.hasTabCountTarget) this.tabCountTarget.textContent = `${items.length}`;
         if (this.hasCaptionTarget) {
             let caption;
             if (detail.mode === 'time-travel') caption = `${formatDate(detail.date)} · 7 dní zpět`;

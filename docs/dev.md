@@ -214,7 +214,7 @@ curl -s http://localhost:8000/mapa | grep -oE 'feed-item|panel-map' | sort -u
 # JSON endpoint — všechny highlines pro markery
 curl -s http://localhost:8000/mapa/data | head -c 500
 
-# JSON endpoint — N posledních přechodů (sidebar feed + emoji markery na mapě)
+# JSON endpoint — N posledních přechodů (tab Přechody + emoji markery na mapě)
 curl -s http://localhost:8000/mapa/feed | head -c 500
 
 # JSON endpoint — time-travel okno (-7 dní od daného data)
@@ -233,7 +233,7 @@ curl -s http://localhost:8000/$(curl -s http://localhost:8000/ | grep -oE 'asset
 - **Leaflet markery** mají v Asset Mapperu rozbité default ikony → musí se URL předat přes Stimulus values, viz `assets/controllers/map_controller.js` + `templates/pages/map.html.twig`. Pro plnohodnotnou mapu se 254 lajnami + time-travel use `map_controller`; pro slim single-line view (např. detail) je `line_detail_map_controller`.
 - **Legacy import je jednorázová lokální věc na čisté schéma.** Spouští se při nahazování projektu (`make legacyImport`), kdy je DB prázdná — proto FK z crossings → highline nevadí (žádné crossings ještě nejsou). Když to chceš zopakovat: dropni novou DB, znovu nahraj legacy dump (adminer / `make loadLegacyDump`), pak `make legacyImport`.
 - **Asset URL hashe** se mění při edit → curl test musí parsovat URL z HTML, ne hardcodovat.
-- **Limit posledních přechodů** je centralizovaný v `App\Repository\LineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i sidebar feed. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
+- **Limit posledních přechodů** je centralizovaný v `App\Repository\LineCrossingRepository::RECENT_LIMIT`. Měň jen tam — propíše se na index page stripe, mapové emoji markery i tab Přechody na `/mapa`. Repo metody `findRecent()` a `findRecentForJson()` ho přebírají defaultem.
 
 ## Feed (slackTV)
 

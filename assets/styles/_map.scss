@@ -7,16 +7,17 @@
    mobile = lines box on top, map below (see the media-down block). */
 .line-map-wrapper {
     position: relative;
-    /* dvh = skutečně viditelný viewport (mobilní URL bar schovaný/vysunutý);
-       s vh stránka na mobilu o výšku baru přetékala a svisle scrollovala.
-       Řádek s vh je fallback pro prohlížeče bez dvh. */
+    /* dvh = the actually visible viewport (mobile URL bar shown/hidden); with
+       vh the page overflowed by the bar height on mobile and scrolled
+       vertically. The vh line is a fallback for browsers without dvh. */
     height: calc(100vh - var(--header-height));
     height: calc(100dvh - var(--header-height));
     width: 100%;
     display: flex;
-    /* Schovaný time-travel panel (translateY pod spodní hranu) jinak vytváří
-       scrollable overflow → stránka jde svisle scrollovat. Nic legitimního
-       z wrapperu nepřetéká (Leaflet i .map-side si klipují samy). */
+    /* The hidden time-travel panel (translateY below the bottom edge) would
+       otherwise create scrollable overflow → the page scrolls vertically.
+       Nothing legitimate overflows the wrapper (Leaflet and .map-side clip
+       themselves). */
     overflow: clip;
 }
 
@@ -235,8 +236,9 @@
     }
 }
 
-/* TODO(mapa-mobile): offset uvolňoval roh pro „Přehrát historii" — vrátit,
-   až se time-travel toggle vrátí (viz templates/pages/map.html.twig).
+/* TODO(mapa-mobile): the offset cleared the corner for the "Přehrát historii"
+   button — restore once the time-travel toggle returns (see
+   templates/pages/map.html.twig).
 .line-map-wrapper .leaflet-top.leaflet-right {
     top: 44px;
 }
@@ -376,15 +378,15 @@
 }
 
 /* Eye state: markers hidden on the map → crossed-out icon, dimmed. */
-.crossing-feed__eye-off {
+.crossing-feed__eye-icon-off {
     display: none;
 }
 
-.crossing-feed__eye--off .crossing-feed__eye-on {
+.crossing-feed__eye--off .crossing-feed__eye-icon-on {
     display: none;
 }
 
-.crossing-feed__eye--off .crossing-feed__eye-off {
+.crossing-feed__eye--off .crossing-feed__eye-icon-off {
     display: block;
 }
 
@@ -593,72 +595,51 @@
     display: flex;
     align-items: center;
     gap: 18px;
-    border-bottom: 1px solid rgba(20, 0, 12, 0.75);
     user-select: none;
 }
 
-.map-panel--collapsed .map-panel__tabs {
-    border-bottom: none;
+/* Tabs are Bootstrap buttons (btn-outline-primary); `.active` (filled) means
+   "selected AND expanded". State drives map_panel_controller. */
+.map-panel__tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
 }
 
-/* Collapsed bar shows only the active tab (+ the arrow). */
-.map-panel--collapsed .map-panel__tab:not(.map-panel__tab--active) {
+/* Collapsed bar = just the outline "Lajny" button + the arrow. */
+.map-panel--collapsed .map-panel__tab--crossings {
     display: none;
 }
 
-.map-panel__tab {
-    appearance: none;
-    border: 0;
-    background: transparent;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    padding: 10px 0;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--color-muted);
-    transition: color 0.15s;
+/* Touch devices keep :hover stuck on the last tapped element, so the
+   Bootstrap hover fill reads as a phantom "active" after collapsing.
+   No mouse → hover looks like the default outline; the filled look stays
+   class-driven (.active — its vars win over :hover in Bootstrap's cascade).
+   The .map-panel prefix outweighs the brand `.btn-outline-primary` overrides
+   in _buttons.scss (same specificity, later in the manifest). */
+@media (hover: none) {
+    .map-panel .map-panel__tab {
+        --bs-btn-hover-color: var(--bs-btn-color);
+        --bs-btn-hover-bg: transparent;
+        --bs-btn-hover-border-color: var(--bs-btn-border-color);
+    }
 }
 
-.map-panel__tab--active {
-    color: var(--color-fg);
-}
-
-.map-panel__tab:hover {
-    color: var(--color-fg);
-}
-
-.map-panel__tab:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: -2px;
-}
-
-/* Accent dot in the tab label; the crossings one pulses (live feed). */
-.map-panel__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--color-accent);
-    box-shadow: 0 0 8px rgba(225, 0, 91, 0.8);
+/* Crossed-eye badge in the tab label — shown while the crossing markers are
+   hidden on the map; otherwise the tab shows the crossings count. State owns
+   crossing_feed_controller via the `hidden` attribute. */
+.map-panel__tab-eye {
+    display: flex;
     flex-shrink: 0;
 }
 
-.map-panel__dot--pulse {
-    animation: map-panel-dot-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes map-panel-dot-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
+.map-panel__tab-eye[hidden] {
+    display: none;
 }
 
 /* Viewport count right in the tab label: "LAJNY – 254" (bold = the accent). */
 .map-panel__count {
-    margin-left: 7px;
     font-weight: 700;
 }
 
@@ -849,9 +830,7 @@
     .crossing-feed__item {
         animation: none;
     }
-    .map-panel__dot--pulse {
-        animation: none;
-    }
+
     .map-panel,
     .map-panel__arrow,
     .map-panel__body {

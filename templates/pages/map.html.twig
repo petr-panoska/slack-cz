@@ -33,7 +33,7 @@
             <header class="map-panel__tabs" role="tablist">
                 <button
                     type="button"
-                    class="map-panel__tab map-panel__tab--active"
+                    class="map-panel__tab btn btn-outline-primary btn-sm active"
                     id="map-panel-tab-lines"
                     role="tab"
                     aria-selected="true"
@@ -42,12 +42,11 @@
                     data-map-panel-tab-param="lines"
                     data-action="map-panel#selectTab"
                 >
-                    <span class="map-panel__dot" aria-hidden="true"></span>
                     Lajny<span class="map-panel__count" data-line-feed-target="count"></span>
                 </button>
                 <button
                     type="button"
-                    class="map-panel__tab"
+                    class="map-panel__tab map-panel__tab--crossings btn btn-outline-primary btn-sm"
                     id="map-panel-tab-crossings"
                     role="tab"
                     aria-selected="false"
@@ -56,8 +55,22 @@
                     data-map-panel-tab-param="crossings"
                     data-action="map-panel#selectTab"
                 >
-                    <span class="map-panel__dot map-panel__dot--pulse" aria-hidden="true"></span>
                     Přechody
+                    {# V buttonu je BUĎ počet přechodů, NEBO přeškrtnuté oko (markery
+                       schované). Stav vlastní crossing-feed (default schované). #}
+                    <span class="map-panel__count" data-crossing-feed-target="tabCount" hidden></span>
+                    <span
+                        class="map-panel__tab-eye"
+                        data-crossing-feed-target="tabEye"
+                        aria-hidden="true"
+                    >
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3l18 18"/>
+                            <path d="M10.6 6.2A10.1 10.1 0 0 1 12 6c6 0 9.5 7 9.5 7a14.7 14.7 0 0 1-3.3 4.1"/>
+                            <path d="M6.2 7.8C3.9 9.6 2.5 12 2.5 12s3.5 7 9.5 7c1.6 0 3-.4 4.2-1"/>
+                            <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
+                        </svg>
+                    </span>
                 </button>
                 <button
                     type="button"
@@ -103,19 +116,21 @@
                             aria-controls="crossing-feed-filter"
                             title="Změnit filtr přechodů"
                         >Posledních 10 přechodů</button>
+                        {# Default = markery schované (crossing_feed_controller) — button
+                           startuje ve stavu --off, connect ho případně přepne. #}
                         <button
                             type="button"
-                            class="crossing-feed__eye"
+                            class="crossing-feed__eye crossing-feed__eye--off"
                             data-crossing-feed-target="eye"
                             data-action="crossing-feed#toggleUsers"
-                            aria-label="Skrýt přechody na mapě"
-                            title="Skrýt přechody na mapě"
+                            aria-label="Zobrazit přechody na mapě"
+                            title="Zobrazit přechody na mapě"
                         >
-                            <svg class="crossing-feed__eye-on" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <svg class="crossing-feed__eye-icon-on" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7S2.5 12 2.5 12z"/>
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
-                            <svg class="crossing-feed__eye-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <svg class="crossing-feed__eye-icon-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 3l18 18"/>
                                 <path d="M10.6 6.2A10.1 10.1 0 0 1 12 6c6 0 9.5 7 9.5 7a14.7 14.7 0 0 1-3.3 4.1"/>
                                 <path d="M6.2 7.8C3.9 9.6 2.5 12 2.5 12s3.5 7 9.5 7c1.6 0 3-.4 4.2-1"/>

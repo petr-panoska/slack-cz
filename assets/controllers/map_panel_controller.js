@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { isMobile } from '../breakpoints.js';
 
 const COLLAPSED_KEY = 'slack.cz:map:panel-collapsed';
 const HEIGHT_KEY = 'slack.cz:map:panel-height';
@@ -34,7 +35,7 @@ export default class extends Controller {
         } catch {
             /* sessionStorage may be unavailable; non-fatal */
         }
-        const mobile = window.matchMedia('(max-width: 768px)').matches;
+        const mobile = isMobile();
         this._height = Number.isFinite(height) && height > 0
             ? height
             : (mobile ? DEFAULT_HEIGHT_MOBILE : DEFAULT_HEIGHT_DESKTOP);
@@ -48,6 +49,13 @@ export default class extends Controller {
             this.bodyTarget.addEventListener('scroll', this._onScroll, { passive: true });
             this.bodyTarget.addEventListener('transitionend', this._onScroll);
         }
+
+        // Viewport resize/rotation can shrink the half-of-map limit below the
+        // current height — re-clamp (the stored height stays the user's).
+        this._onResize = () => {
+            if (!this._collapsed() && this.hasBodyTarget) this._setHeight(this._height);
+        };
+        window.addEventListener('resize', this._onResize);
     }
 
     disconnect() {
@@ -55,6 +63,7 @@ export default class extends Controller {
             this.bodyTarget.removeEventListener('scroll', this._onScroll);
             this.bodyTarget.removeEventListener('transitionend', this._onScroll);
         }
+        window.removeEventListener('resize', this._onResize);
     }
 
     // Tab click: collapsed → expand (on that tab); other tab → switch; the
@@ -69,6 +78,9 @@ export default class extends Controller {
         } else {
             this.setCollapsed(true);
         }
+        // A tap leaves the button focused, which reads as "still active" on
+        // the collapsed outline button. Keyboard clicks (detail 0) keep focus.
+        if (event.detail) event.currentTarget.blur();
     }
 
     toggle(event) {
@@ -101,6 +113,7 @@ export default class extends Controller {
             // fixed user height.
             this.bodyTarget.style.height = collapsed ? '0px' : `${this._clampHeight(this._height)}px`;
         }
+        this._applyTabState();
         this._updateOverflow();
         if (!remember) return;
         try {
@@ -147,22 +160,31 @@ export default class extends Controller {
     _select(tab, { remember = true } = {}) {
         this._active = tab;
         const lines = tab === 'lines';
-        if (this.hasLinesTabTarget) {
-            this.linesTabTarget.classList.toggle('map-panel__tab--active', lines);
-            this.linesTabTarget.setAttribute('aria-selected', String(lines));
-        }
-        if (this.hasCrossingsTabTarget) {
-            this.crossingsTabTarget.classList.toggle('map-panel__tab--active', !lines);
-            this.crossingsTabTarget.setAttribute('aria-selected', String(!lines));
-        }
         if (this.hasLinesPaneTarget) this.linesPaneTarget.hidden = !lines;
         if (this.hasCrossingsPaneTarget) this.crossingsPaneTarget.hidden = lines;
+        this._applyTabState();
         this._updateOverflow();
         if (!remember) return;
         try {
             sessionStorage.setItem(TAB_KEY, tab);
         } catch {
             /* non-fatal */
+        }
+    }
+
+    // Bootstrap `.active` (filled button) = the tab is selected AND the panel
+    // is expanded; collapsed panel shows both tabs as plain outline buttons.
+    _applyTabState() {
+        const expanded = !this._collapsed();
+        const lines = expanded && this._active === 'lines';
+        const crossings = expanded && this._active === 'crossings';
+        if (this.hasLinesTabTarget) {
+            this.linesTabTarget.classList.toggle('active', lines);
+            this.linesTabTarget.setAttribute('aria-selected', String(lines));
+        }
+        if (this.hasCrossingsTabTarget) {
+            this.crossingsTabTarget.classList.toggle('active', crossings);
+            this.crossingsTabTarget.setAttribute('aria-selected', String(crossings));
         }
     }
 

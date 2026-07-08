@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import { typeColor, escapeHtml } from './map_controller.js';
+import { isMobile } from '../breakpoints.js';
 
 // Lines-in-viewport list (a pane of .map-panel). Pure view: map_controller
 // broadcasts `slack:viewport-lines` on every pan/zoom, we render; a row click
@@ -29,13 +30,13 @@ export default class extends Controller {
         document.dispatchEvent(new CustomEvent('slack:line-focus', { detail: { id } }));
         // On mobile the panel overlays a big chunk of the map — get it out of
         // the opened popup's way.
-        if (window.matchMedia('(max-width: 768px)').matches) {
+        if (isMobile()) {
             this.dispatch('collapse');
         }
     }
 
     render(lines) {
-        if (this.hasCountTarget) this.countTarget.textContent = `– ${lines.length}`;
+        if (this.hasCountTarget) this.countTarget.textContent = `${lines.length}`;
         if (this.hasEmptyTarget) this.emptyTarget.hidden = lines.length > 0;
 
         this.listTarget.innerHTML = lines.map((r) => {
