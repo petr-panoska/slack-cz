@@ -52,8 +52,14 @@ export default class extends Controller {
 
         // Viewport resize/rotation can shrink the half-of-map limit below the
         // current height — re-clamp (the stored height stays the user's).
+        // Debounced like map_controller's canvas ResizeObserver: a dragged
+        // window edge fires this dozens of times a tick, and _setHeight()
+        // triggers a layout read — no point doing that on every one.
         this._onResize = () => {
-            if (!this._collapsed() && this.hasBodyTarget) this._setHeight(this._height);
+            clearTimeout(this._resizeTimer);
+            this._resizeTimer = setTimeout(() => {
+                if (!this._collapsed() && this.hasBodyTarget) this._setHeight(this._height);
+            }, 120);
         };
         window.addEventListener('resize', this._onResize);
     }
@@ -64,6 +70,7 @@ export default class extends Controller {
             this.bodyTarget.removeEventListener('transitionend', this._onScroll);
         }
         window.removeEventListener('resize', this._onResize);
+        clearTimeout(this._resizeTimer);
     }
 
     // Tab click: collapsed → expand (on that tab); other tab → switch; the

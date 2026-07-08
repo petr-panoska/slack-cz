@@ -491,6 +491,11 @@
     background: rgba(225, 0, 91, 0.06);
 }
 
+.crossing-feed__item:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+}
+
 /* The picked crossing (map is focused on its marker). */
 .crossing-feed__item--active {
     background: rgba(225, 0, 91, 0.1);
@@ -770,6 +775,11 @@
 
 .line-feed__item:hover {
     background: rgba(225, 0, 91, 0.06);
+}
+
+.line-feed__item:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
 }
 
 /* The picked line (map is focused on its marker). */

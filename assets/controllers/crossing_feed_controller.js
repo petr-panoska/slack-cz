@@ -112,12 +112,17 @@ export default class extends Controller {
         this._applyUsersVisibility();
     }
 
-    // Row click = fly the map to the crossing's emoji marker. Clicking while
-    // the markers are hidden is an implicit "show them" — flip the eye first
-    // (updates the button, the tab badge and sessionStorage). Links inside the
-    // row keep their own navigation.
+    // Row click (or Enter/Space — the row is a keyboard-focusable button) = fly
+    // the map to the crossing's emoji marker. Activating while the markers are
+    // hidden is an implicit "show them" — flip the eye first (updates the
+    // button, the tab badge and sessionStorage). Links inside the row keep
+    // their own navigation.
     focus(event) {
         if (event.target.closest('a')) return;
+        if (event.type === 'keydown') {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+        }
         const id = parseInt(event.currentTarget.dataset.id, 10);
         if (!Number.isFinite(id)) return;
         this._selectedId = id;
@@ -328,7 +333,9 @@ export default class extends Controller {
         // The selected highlight must survive a re-render (filter change).
         if (item.id === this._selectedId) li.classList.add('crossing-feed__item--active');
         li.dataset.id = item.id;
-        li.dataset.action = 'click->crossing-feed#focus';
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.dataset.action = 'click->crossing-feed#focus keydown->crossing-feed#focus';
 
         const userHref = `/denik/${item.userId}`;
         const lineHref = `/lajna/${encodeURIComponent(item.lineSlug)}`;

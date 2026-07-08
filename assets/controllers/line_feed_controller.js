@@ -20,10 +20,15 @@ export default class extends Controller {
         document.removeEventListener('slack:viewport-lines', this._onLines);
     }
 
-    // Row click = center the map on the line. The name inside is a normal link to
-    // the line detail — let that one navigate.
+    // Row click (or Enter/Space — the row is a keyboard-focusable button) = center
+    // the map on the line. The name inside is a normal link to the line detail —
+    // let that one navigate on its own.
     focus(event) {
         if (event.target.closest('a')) return;
+        if (event.type === 'keydown') {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+        }
         const id = parseInt(event.currentTarget.dataset.id, 10);
         if (!Number.isFinite(id)) return;
         this._selectedId = id;
@@ -44,7 +49,7 @@ export default class extends Controller {
             // moves the map, which rebuilds this very list.
             const active = r.id === this._selectedId ? ' line-feed__item--active' : '';
             return `
-                <li class="line-feed__item${active}" data-id="${r.id}" data-action="click->line-feed#focus">
+                <li class="line-feed__item${active}" data-id="${r.id}" tabindex="0" role="button" data-action="click->line-feed#focus keydown->line-feed#focus">
                     <span class="line-feed__dot" style="background:${typeColor(r.type)}" aria-hidden="true"></span>
                     <span class="line-feed__main">
                         <a class="line-feed__name" href="/lajna/${encodeURIComponent(r.slug)}">${escapeHtml(r.name)}</a>
