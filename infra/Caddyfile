@@ -22,3 +22,24 @@ beta.slack.cz {
 	php_fastcgi unix//run/php/php8.3-fpm.sock
 	file_server
 }
+
+# Self-hosted Matomo (viz docs/deploy.md § Analytics). Sdílí php-fpm socket
+# s hlavní appkou — jiný `root` na request stačí, žádný samostatný pool.
+#
+# ⚠ NEDEPLOYOVAT (make deployCaddy) dřív, než existuje DNS záznam pro
+# analytics.slack.cz — viz Gotchas "DNS records dřív než Caddy site block"
+# v docs/deploy.md, jinak si veřejné resolvery uloží NXDOMAIN do negative cache.
+analytics.slack.cz {
+	root * /var/www/analytics
+	encode gzip zstd
+
+	# Matomo počítá s ochranou přes .htaccess (Apache) pro tyhle adresáře —
+	# Caddy .htaccess neumí, takže to nahrazujeme explicitním denym. Žádný
+	# z nich není určený k přímému browser přístupu, jen k internímu use
+	# frontcontrollerem. Viz Matomo system-check "PHP SAPI" warning.
+	@matomoInternal path /config/* /tmp/* /core/* /lang/*
+	respond @matomoInternal 403
+
+	php_fastcgi unix//run/php/php8.3-fpm.sock
+	file_server
+}

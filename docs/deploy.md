@@ -91,9 +91,10 @@ ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158
 | Reverse proxy + auto-HTTPS | Caddy | 2.11.2 | `:80`, `:443` |
 | App | PHP-FPM | 8.3.6 | unix socket `/run/php/php8.3-fpm.sock` |
 | DB | PostgreSQL | 16.13 | `127.0.0.1:5432` (jen lokálně) |
+| DB (Matomo) | MariaDB | 11.x | `127.0.0.1:3306` (jen lokálně) |
 | Composer | apt package | 2.7.1 | — |
 
-PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `readline`, `mysql` (+ `mysqli`/`pdo_mysql` — Doctrine registruje `old` connection na boot, nevyužívá ji), `gd` (liip_imagine WebP thumby), `exif`.
+PHP extenze: `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `intl`, `opcache`, `readline`, `mysql` (+ `mysqli`/`pdo_mysql` — Doctrine registruje `old` connection na boot, nevyužívá ji; Matomo ale `mysqli`/`pdo_mysql` reálně používá pro svoje připojení na MariaDB, viz § Analytics), `gd` (liip_imagine WebP thumby), `exif`.
 
 **Systémové binárky pro foto upload** (ne PHP ext): `imagemagick` (na Ubuntu 24.04 IM6 → `convert`; dev Alpine IM7 → `magick`) + `libimage-exiftool-perl` (`exiftool`). Normalizace uploadů — HEIC dekód z iPhonů, WebP master, datum/GPS extrakce — viz `architecture.md` § *Foto galerie — upload pipeline*. Instaluje `setup-server.sh` (vč. HEIC delegate + php-fpm upload limitu 32M), ověřuje `check-server-env.sh` funkčně (HEIC read + WebP write).
 
@@ -162,6 +163,76 @@ Workflow: změnu Caddy konfigurace dělej v `infra/Caddyfile`, commitni do repa,
 | Logy | `journalctl -u caddy` (default systemd journal, custom log files se nepoužívají kvůli apparmor restrikcím) |
 | Restart | `sudo systemctl restart caddy` (NE `reload` — pokud se zasekne, viz "Gotchas") |
 
+## Analytics (Matomo)
+
+Self-hosted [Matomo](https://matomo.org/) na vlastní subdoméně `analytics.slack.cz`,
+běží na stejném serveru jako appka (žádný nový box). Volba padla na Matomo (ne
+Google Analytics / self-hosted Umami) protože prod je native PHP-FPM bez
+Node.js — Matomo je čisté PHP, takže nepřidává nový runtime, na rozdíl od
+Umami (Next.js/Node).
+
+| | |
+|---|---|
+| Subdoména | `analytics.slack.cz` |
+| Kód | `/var/www/analytics` (stažený release zip, ne git checkout) |
+| DB | MariaDB (`mariadb-server` apt balíček) — **ne** appkin Postgres, Matomo oficiálně podporuje jen MySQL-family |
+| PHP | sdílí php-fpm socket s appkou (`unix//run/php/php8.3-fpm.sock`), žádný nový pool — appka i Matomo mají stejné PHP extension nároky (mysqli/pdo_mysql, gd, curl, xml, mbstring), nic nového netřeba instalovat |
+| Writable pro `www-data` | jen `tmp/` + `config/` (dle Matomo install docs) |
+
+### Provisioning
+
+`scripts/setup-server.sh` instaluje `mariadb-server`, stáhne a rozbalí Matomo
+do `/var/www/analytics`, vytvoří MariaDB roli + DB `matomo` a zapíše
+vygenerované heslo do `/var/www/analytics-db-credentials.txt` (mode 600, jen
+`deploy` — stejný pattern jako appčin `.env.local`, heslo se nikde jinde
+nezálohuje).
+
+> ⚠ **Musí být MIMO `/var/www/analytics`.** Ten adresář JE Caddy `root` pro
+> `analytics.slack.cz` (na rozdíl od appky, kde `.env.local` sedí mimo
+> `public/`) — cokoli uvnitř je potenciálně stažitelné přes `file_server`.
+> Incident 2026-07-08: první verze skriptu psala creds soubor dovnitř
+> `/var/www/analytics/`, heslo bylo pár minut veřejně čitelné na
+> `/db-credentials.txt`. Opraveno přesunem mimo webroot — nepřesouvat zpátky.
+
+Skript **nedokončuje install wizard** — stejně jako appčin `.env.local`
+neřeší admin účet appky, Matomo install wizard (Database Setup → Create
+Superuser → Setup a website) je záměrně manuální krok na
+`https://analytics.slack.cz/`, po tom, co DNS + Caddy jedou (viz níž).
+
+### Hardening — `.htaccess` náhrada v Caddy
+
+Matomo počítá s tím, že web server umí `.htaccess` (Apache) a blokuje přes něj
+přímý přístup na `/config`, `/tmp`, `/core`, `/lang` — Caddy `.htaccess`
+neumí. `infra/Caddyfile` to nahrazuje explicitním blokem:
+
+```
+@matomoInternal path /config/* /tmp/* /core/* /lang/*
+respond @matomoInternal 403
+```
+
+Bez týhle náhrady projde Matomo install-wizard system checkem s warningem
+"PHP FPM may ignore .htaccess rules" — ten warning zůstane i po přidání bloku
+(testuje jen SAPI typ, ne skutečné chování web serveru), ale funkčně je díra
+zalepená — ověřeno `curl` na `/config/config.ini.php` → 403.
+
+### Rollout pořadí
+
+Site blok pro `analytics.slack.cz` je už v `infra/Caddyfile`, ale **nesmí** se
+pustit `make deployCaddy`, dokud neexistuje DNS záznam — viz Gotchas "DNS
+records dřív než Caddy site block" níž. Postup (vše `hotovo` 2026-07-08):
+
+1. ~~Cloudflare: přidat `A analytics → 178.105.81.158` + `AAAA analytics → 2a01:4f8:1c18:6966::1`, DNS-only (gray cloud)~~ — **hotovo**, `cf-proxied:false`, stejná IP jako `beta`.
+2. ~~`make setupServer` — nainstaluje MariaDB, stáhne Matomo kód, vytvoří DB~~ — **hotovo**.
+3. ~~`make deployCaddy` — pushne `infra/Caddyfile` (vč. `analytics.slack.cz` bloku + hardeningu) na server~~ — **hotovo**.
+4. ~~Install wizard na `https://analytics.slack.cz/`, website „slack.cz"~~ — **hotovo**, `MATOMO_SITE_ID=1`.
+5. ~~`.env.local`: `MATOMO_URL=https://analytics.slack.cz`, `MATOMO_SITE_ID=1`~~ — **hotovo**.
+6. ~~`sudo systemctl reload php8.3-fpm`~~ — **hotovo**.
+7. **Zbývá:** appkód (tracking snippet v `base.html.twig` + twig globals) je zatím jen v tomhle commitu, na serveru ještě neběží — čeká na `make deploy`. Po deployi ověř: `curl -s https://beta.slack.cz/ | grep -c _paq` má být nenulové.
+
+Tracking snippet v `templates/base.html.twig` je gated na `app.environment == 'prod'`
+a obě proměnné neprázdné — dev/test/lokál mají vždy no-op bez ohledu na to, co
+je v `.env.local`.
+
 ## DNS
 
 Cloudflare drží zónu `slack.cz` (NS: `gemma.ns.cloudflare.com`, `thaddeus.ns.cloudflare.com`).
@@ -172,6 +243,8 @@ Aktuálně přidané záznamy pro novou app:
 |---|---|---|---|
 | A | `beta` | `178.105.81.158` | DNS-only (gray cloud) |
 | AAAA | `beta` | `2a01:4f8:1c18:6966::1` | DNS-only |
+| A | `analytics` | `178.105.81.158` | DNS-only (gray cloud) |
+| AAAA | `analytics` | `2a01:4f8:1c18:6966::1` | DNS-only |
 
 **Proč DNS-only (gray cloud):** Caddy auto-HTTPS přes Let's Encrypt potřebuje, aby HTTP-01 / TLS-ALPN-01 challenge dorazila přímo na origin. Když je Cloudflare proxy ON (orange cloud), CF zachytí request a Caddy cert nedostane. Pro produkci s CF proxy je řešení Cloudflare Origin Certificate nebo DNS-01 challenge přes CF API token — řešíme až později.
 

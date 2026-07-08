@@ -42,6 +42,7 @@ FAIL_COUNT=0
 pass()    { printf '  ✓ %s\n' "$1"; PASS_COUNT=$((PASS_COUNT + 1)); }
 fail()    { printf '  ✗ %s\n' "$1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 info()    { printf '    %s\n' "$1"; }
+warn()    { printf '  ⚠ %s\n' "$1"; }  # jako fail(), ale nepočítá se do exit code
 section() { printf '\n== %s ==\n' "$1"; }
 
 # Sudo preflight — všechny FS-as-www-data checky to vyžadují. Pokud deploy
@@ -291,6 +292,53 @@ if [[ -x "$APP_DIR/bin/console" ]]; then
         info "$PENDING pending migration(s) na serveru — deploy je spustí"
     fi
     pass "doctrine migrations: $PENDING pending"
+fi
+
+# ===========================================================================
+section "Matomo (self-hosted analytics, volitelné — nikdy neblokuje deploy appky)"
+# ===========================================================================
+
+ANALYTICS_DIR="/var/www/analytics"
+if [[ ! -d "$ANALYTICS_DIR" ]]; then
+    info "neprovisionováno (make setupServer ho zařídí) — viz docs/deploy.md § Analytics"
+else
+    # Regresní pojistka na incident 2026-07-08: DB heslo krátce veřejně
+    # čitelné, protože leželo uvnitř Caddy `root` pro tuhle subdoménu. Na
+    # rozdíl od zbytku sekce tohle JE fail() — aktivně unikající secret musí
+    # zablokovat deploy, ne jen warnnout.
+    if [[ -f "$ANALYTICS_DIR/db-credentials.txt" ]]; then
+        fail "$ANALYTICS_DIR/db-credentials.txt existuje — DB heslo je veřejně stažitelné přes file_server!"
+        info "fix: sudo mv $ANALYTICS_DIR/db-credentials.txt ${ANALYTICS_DIR}-db-credentials.txt (mimo webroot, viz docs/deploy.md § Analytics)"
+    fi
+
+    if [[ -f "$ANALYTICS_DIR/index.php" ]]; then
+        info "kód přítomen v $ANALYTICS_DIR"
+    else
+        warn "$ANALYTICS_DIR existuje, ale index.php chybí — rozbalení nedoběhlo"
+    fi
+
+    if systemctl is-active --quiet mariadb; then
+        info "mariadb: active"
+    else
+        warn "mariadb service neběží"
+    fi
+
+    if [[ "$SUDO_AS_WWWDATA_OK" -eq 1 ]]; then
+        for p in tmp config; do
+            abs="$ANALYTICS_DIR/$p"
+            if [[ -d "$abs" ]] && sudo -n -u "$PHP_FPM_USER" test -w "$abs" 2>/dev/null; then
+                info "$p: writable by $PHP_FPM_USER"
+            else
+                warn "$p: NOT writable by $PHP_FPM_USER (nebo neexistuje)"
+            fi
+        done
+    fi
+
+    if [[ -f "$ANALYTICS_DIR/config/config.ini.php" ]]; then
+        info "install wizard proběhl (config/config.ini.php existuje)"
+    else
+        info "install wizard zatím neproběhl — https://analytics.slack.cz/ (DB creds v ${ANALYTICS_DIR}-db-credentials.txt)"
+    fi
 fi
 
 # ===========================================================================

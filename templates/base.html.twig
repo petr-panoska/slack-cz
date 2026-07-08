@@ -16,6 +16,26 @@
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
+
+    {# Self-hosted Matomo — no-op unless both env vars are set (see .env) and we're
+       actually in prod, so dev/test traffic never pollutes the stats. Cookieless
+       mode (disableCookies): no personal data client-side, keeps this out of the
+       "needs a cookie consent banner" bucket under GDPR/ePrivacy. #}
+    {% if app.environment == 'prod' and matomo_url and matomo_site_id %}
+        <script>
+            var _paq = window._paq = window._paq || [];
+            _paq.push(['disableCookies']);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function () {
+                var u = "{{ matomo_url|e('js') }}/";
+                _paq.push(['setTrackerUrl', u + 'matomo.php']);
+                _paq.push(['setSiteId', '{{ matomo_site_id|e('js') }}']);
+                var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+                g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+            })();
+        </script>
+    {% endif %}
 </head>
 
 <body>

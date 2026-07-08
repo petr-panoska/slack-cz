@@ -86,6 +86,7 @@ PKGS=(
     php8.3-mysql php8.3-gd
     composer
     postgresql postgresql-contrib
+    mariadb-server
     caddy
     git acl unzip openssl sudo
     imagemagick libimage-exiftool-perl libheif1
@@ -242,6 +243,86 @@ done
 ok "ACLs applied"
 
 # ===========================================================================
+log "Matomo (self-hosted analytics) — kód"
+# ===========================================================================
+# Viz docs/deploy.md § Analytics. Vlastní subdoména (analytics.slack.cz), sdílí
+# php-fpm socket s appkou (php_fastcgi v infra/Caddyfile), takže žádný nový pool.
+ANALYTICS_DIR="/var/www/analytics"
+if [[ -f "$ANALYTICS_DIR/index.php" ]]; then
+    skip "$ANALYTICS_DIR už obsahuje Matomo kód"
+else
+    $SUDO mkdir -p "$ANALYTICS_DIR"
+    $SUDO chown "$APP_USER:$APP_USER" "$ANALYTICS_DIR"
+    curl -fsSL 'https://builds.matomo.org/matomo.zip' -o /tmp/matomo.zip
+    rm -rf /tmp/matomo-extract
+    sudo -u "$APP_USER" unzip -q /tmp/matomo.zip -d /tmp/matomo-extract
+    sudo -u "$APP_USER" -- bash -c "cp -r /tmp/matomo-extract/matomo/. '$ANALYTICS_DIR'/"
+    rm -rf /tmp/matomo.zip /tmp/matomo-extract
+    ok "staženo a rozbaleno Matomo do $ANALYTICS_DIR"
+fi
+
+# Writable pro PHP-FPM: jen tmp/ (běžný provoz) + config/ (install wizard tam
+# zapisuje config.ini.php). Zbytek stromu záměrně read-only, viz Matomo docs.
+for p in tmp config; do
+    abs="$ANALYTICS_DIR/$p"
+    if [[ ! -d "$abs" ]]; then
+        sudo -u "$APP_USER" mkdir -p "$abs"
+    fi
+    $SUDO setfacl -R  -m "u:$PHP_FPM_USER:rwX" "$abs"
+    $SUDO setfacl -dR -m "u:$PHP_FPM_USER:rwX" "$abs"
+done
+ok "Matomo tmp/ + config/ ACL pro $PHP_FPM_USER"
+
+# matomo.js writable = pluginy (pokud nějaké nainstalujeme) si tam smí
+# dopsat vlastní JS tracking kód. Bez tohohle to jen warní v system checku,
+# ale je to jednořádkové, tak rovnou.
+if [[ -f "$ANALYTICS_DIR/matomo.js" ]]; then
+    $SUDO setfacl -m "u:$PHP_FPM_USER:rw" "$ANALYTICS_DIR/matomo.js"
+    ok "Matomo matomo.js ACL pro $PHP_FPM_USER"
+fi
+
+# ===========================================================================
+log "Matomo — MariaDB role + DB (atomicky)"
+# ===========================================================================
+MATOMO_DB_NAME="matomo"
+MATOMO_DB_USER="matomo"
+# ⚠ MIMO $ANALYTICS_DIR záměrně — ten JE Caddy `root` pro analytics.slack.cz
+# (na rozdíl od appky, kde .env.local sedí mimo public/). Cokoli uvnitř
+# ANALYTICS_DIR je potenciálně stažitelné přes file_server, viz incident
+# 2026-07-08 (heslo krátce veřejně na /db-credentials.txt).
+MATOMO_CREDS_FILE="${ANALYTICS_DIR}-db-credentials.txt"
+MYSQL_BIN="$(command -v mariadb || command -v mysql || true)"
+[[ -n "$MYSQL_BIN" ]] || die "mariadb/mysql binárka chybí po apt installu mariadb-server"
+
+matomo_db_user_exists() { $SUDO "$MYSQL_BIN" -N -e "SELECT 1 FROM mysql.user WHERE User='$MATOMO_DB_USER'" 2>/dev/null | grep -q 1; }
+
+if [[ -f "$MATOMO_CREDS_FILE" ]]; then
+    skip "$MATOMO_CREDS_FILE existuje — DB už byla vytvořená, žádná regenerace hesla"
+else
+    if matomo_db_user_exists; then
+        die "WEIRD STATE: MariaDB user '$MATOMO_DB_USER' existuje, ale $MATOMO_CREDS_FILE chybí (nemůžu uhodnout heslo).
+   Manuální recovery: buď obnov $MATOMO_CREDS_FILE s heslem co znáš, nebo:
+     sudo $MYSQL_BIN -e \"DROP USER '$MATOMO_DB_USER'@'localhost';\" a spusť setup znovu."
+    fi
+
+    MATOMO_DB_PASS=$(openssl rand -hex 16)
+    $SUDO "$MYSQL_BIN" -e "CREATE DATABASE IF NOT EXISTS $MATOMO_DB_NAME CHARACTER SET utf8mb4;"
+    $SUDO "$MYSQL_BIN" -e "CREATE USER '$MATOMO_DB_USER'@'localhost' IDENTIFIED BY '$MATOMO_DB_PASS';"
+    $SUDO "$MYSQL_BIN" -e "GRANT ALL PRIVILEGES ON $MATOMO_DB_NAME.* TO '$MATOMO_DB_USER'@'localhost'; FLUSH PRIVILEGES;"
+    ok "vytvořena MariaDB DB '$MATOMO_DB_NAME' + user '$MATOMO_DB_USER'"
+
+    sudo -u "$APP_USER" tee "$MATOMO_CREDS_FILE" >/dev/null <<EOF
+# Matomo DB credentials — vyplň do install wizardu na https://analytics.slack.cz/
+# (Database Server: localhost, Adapter: MySQLi/PDO_MYSQL)
+Database name: $MATOMO_DB_NAME
+Username:      $MATOMO_DB_USER
+Password:      $MATOMO_DB_PASS
+EOF
+    $SUDO chmod 600 "$MATOMO_CREDS_FILE"
+    ok "zapsán $MATOMO_CREDS_FILE (mode 600, obsahuje DB heslo)"
+fi
+
+# ===========================================================================
 log "Composer install (initial bootstrap)"
 # ===========================================================================
 if [[ -d "$APP_DIR/vendor" ]]; then
@@ -269,7 +350,7 @@ fi
 # ===========================================================================
 log "Systemd services"
 # ===========================================================================
-for svc in postgresql php8.3-fpm caddy; do
+for svc in postgresql mariadb php8.3-fpm caddy; do
     if systemctl is-enabled --quiet "$svc"; then
         skip "$svc enabled"
     else
@@ -306,6 +387,8 @@ echo "  2. SSH klíč pro $APP_USER (~/.ssh/authorized_keys)"
 echo "     z lokálu: ssh-copy-id -i ~/.ssh/slack_cz_prod.pub $APP_USER@HOST"
 echo "  3. GH repo secret DEPLOY_SSH_KEY"
 echo "  4. DNS records v Cloudflare na tento server"
+echo "  5. Matomo install wizard: https://analytics.slack.cz/"
+echo "     DB creds: ${ANALYTICS_DIR}-db-credentials.txt (DNS + make deployCaddy musí být hotové první)"
 echo ""
 echo "Verifikuj (z lokálu):"
 echo "  make checkServerEnv"
