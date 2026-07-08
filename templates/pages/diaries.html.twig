@@ -31,17 +31,22 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
+                        <th scope="col" class="cell-num" data-sort-type="date" data-sort-default="desc" data-action="click->data-table#sort" aria-sort="descending">Poslední aktivita</th>
                         <th scope="col" data-sort-type="text" data-action="click->data-table#sort">Nick</th>
                         <th scope="col" data-sort-type="text" data-action="click->data-table#sort">Jméno</th>
                         <th scope="col" class="cell-num" data-sort-type="num" data-sort-default="desc" data-action="click->data-table#sort">Highline</th>
                         <th scope="col" class="cell-num" data-sort-type="num" data-sort-default="desc" data-action="click->data-table#sort">Longline</th>
-                        <th scope="col" class="cell-num" data-sort-type="date" data-sort-default="desc" data-action="click->data-table#sort" aria-sort="descending">Poslední aktivita</th>
                     </tr>
                 </thead>
                 <tbody data-data-table-target="body">
                     {% for row in rows %}
                         {% set name = [row.firstName, row.lastName]|filter(v => v)|join(' ') %}
                         <tr data-filter="{{ (row.nick ~ ' ' ~ name)|trim }}">
+                            <td class="cell-num text-body-secondary" data-sort-value="{{ row.lastActivity ? row.lastActivity|date('Y-m-d') : '' }}">
+                                {% if row.lastActivity %}
+                                    <time datetime="{{ row.lastActivity|date('Y-m-d') }}">{{ row.lastActivity|date('j. n. Y') }}</time>
+                                {% else %}–{% endif %}
+                            </td>
                             <td>
                                 <a href="{{ path('app_user_diary', { id: row.id }) }}">
                                     {{ row.nick ?: 'uživatel #' ~ row.id }}
@@ -50,11 +55,6 @@
                             <td>{{ name ?: '–' }}</td>
                             <td class="cell-num text-body-secondary">{{ row.highlineCount }}</td>
                             <td class="cell-num text-body-secondary">{{ row.longlineCount }}</td>
-                            <td class="cell-num text-body-secondary" data-sort-value="{{ row.lastActivity ? row.lastActivity|date('Y-m-d') : '' }}">
-                                {% if row.lastActivity %}
-                                    <time datetime="{{ row.lastActivity|date('Y-m-d') }}">{{ row.lastActivity|date('j. n. Y') }}</time>
-                                {% else %}–{% endif %}
-                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
