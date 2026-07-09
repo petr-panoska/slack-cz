@@ -64,13 +64,23 @@ Index `idx_line_edit_status` — admin queue často filtruje `WHERE status='pend
 
 ## Form (`src/Form/LineForm.php`)
 
-18 polí. Required: name, type, height, point1Lat/Lng, point2Lat/Lng. Slug se generuje automaticky z `name` přes `AsciiSlugger` (collision = numerický suffix).
+19 polí. Required: name, type, height, point1Lat/Lng, point2Lat/Lng. Slug se generuje automaticky z `name` přes `AsciiSlugger` (collision = numerický suffix).
 
 **Verified lajny mají `name` zamčený** — `disabled: true` (server-side ignoruje POSTed value) + 🔒 ikonka u labelu s tooltipem ukazujícím URL a důvod. Slug se nikdy nepřegenerovává po vytvoření, takže zámek na názvu chrání URL stabilitu (existující odkazy / bookmarky / tisk nepřestanou fungovat). Nezamčené názvy jsou jen u unverified lajn (autor je ladí před verifikací).
 
-**Length NENÍ ve formu** — odvozuje se v `LineCrudController::deriveGeometry()` z point1/point2 přes haversine (v metrech, zaokrouhleno). Lajna nemá žádné separátní `latitude`/`longitude` (zahozené v migraci `Version20260609120000`) — lokace je daná výhradně dvěma kotvícími body; reprezentativní jeden bod = `point1`.
+**Length NENÍ ve formu** — odvozuje se v `LineCrudController::deriveGeometry()` z point1/point2 přes haversine (v metrech, zaokrouhleno). Lajna nemá žádné separátní `latitude`/`longitude` (zahozené v migraci `Version20260609120000`) — lokace je daná výhradně dvěma kotvícími body; reprezentativní jeden bod = `point1`. Formulář má od 2026-07-09 read-only `<output>` s live-updated délkou vedle výšky (podrobnosti v `docs/architecture.md` § *Line form — GPS picker*), ale samo pole `length` se pořád nikde neodesílá.
 
-GPS picker je Stimulus `line_form_map_controller.js` — 2 markery s alternujícím placement na klik (1 → 2 → 1 → …), oba draggable, polyline + live distance overlay. Sync se 4 inputs oboustranně.
+GPS picker je Stimulus `line_form_map_controller.js` — button-driven (**ne** alternující klik): „Přidat bod 1/2"/„Přidat parkování" každé vyzbrojí konkrétní mód, další klik do mapy umístí ten bod, tlačítko se přepne na „Smazat …". Markery draggable, polyline + live distance overlay (od 2026-07-09 i live při tažení, ne jen po puštění — viz `docs/architecture.md`). Sync se 6 inputs (2 body + parkování) oboustranně.
+
+### `rating` — hodnocení lajny (2026-07-09)
+
+Na rozdíl od zbytku formuláře je `rating` (1–5★, `HiddenType` + klikací `rating-picker` widget, viz `docs/architecture.md` § *Hotové features*) **plnohodnotně součástí audit systému** — je v `LineCrudController::FIELDS`, `snapshot()` i `applySnapshot()`, takže se chová stejně jako `height`/`description`/atd.: u verified lajny jde přes proposal queue, diff se ukazuje v historii. **Pozor na duplicitu s `SyncLineFromAuditCommand::applySnapshot()`** — je to záměrně samostatná zrcadlová kopie (viz komentář v souboru), takže při přidání nového pole do `FIELDS`/`snapshot()`/`applySnapshot()` v controlleru je potřeba stejnou trojici polí doplnit i tam (chytilo se to 2026-07-09, kdy `rating` v mirror commandu chyběl).
+
+### `coverPhotoFile` — titulní fotka (2026-07-09), MIMO audit systém
+
+`coverPhotoFile` je **unmapped** (`'mapped' => false`) — netýká se ho `FIELDS`/`snapshot`/`applySnapshot` vůbec. Cover foto **obchází celý trust/proposal model** a aplikuje se vždy okamžitě, bez ohledu na `queueProposal` — stejně jako existující samostatný upload flow (`LinePhotoController::new()`, `/lajna/{slug}/fotky/pridat`), kde taky může fotku přidat/nahradit kdokoli přihlášený bez ohledu na vlastnictví lajny. V `edit()` se cover foto zpracuje a flushne **ve vlastní transakci, před** `deriveGeometry()`/proposal větví, takže přežije následný `$em->refresh($line)` v proposal cestě.
+
+**Gotcha, na kterou je snadné nabalit `TypeError`/500:** VichUploader directory namer pro `line_photo` mapping (`config/packages/vich_uploader.yaml`) je `PropertyDirectoryNamer` s `property: 'line.id'` — potřebuje, aby lajna **už měla ID** (byla flushnutá), než se k ní připojí `LinePhoto`. V `new()` (vytvoření lajny) proto musí být `$em->flush()` na lajnu samotnou **před** persist+flush fotky (dva sekvenční flushe, ne jeden společný) — jinak `Directory name could not be generated: property line.id is empty`. V `edit()` už lajna ID má, takže tam se to netýká.
 
 ## Direct edit vs proposal — implementace
 
