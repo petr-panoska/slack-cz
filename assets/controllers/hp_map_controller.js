@@ -117,7 +117,7 @@ export default class extends Controller {
         if (!item) return;
 
         this.itemTargets.forEach((el, i) => el.classList.toggle('hp-map__item--active', i === index));
-        item.scrollIntoView({ block: 'nearest' });
+        this.scrollItemIntoView(item);
         this.activeIndex = index;
 
         if (this.rafHandle) {
@@ -169,6 +169,23 @@ export default class extends Controller {
                 if (!sameView) this.map.setView(mid, 15, { animate: false });
                 this.scheduleAdvance(gen, comment);
             }
+        }
+    }
+
+    // Keeps the active row visible inside the sidebar's own scrollbox — never the
+    // page. item.scrollIntoView() walks up EVERY scrollable ancestor including the
+    // document, so once the widget itself scrolls out of the viewport (user reading
+    // further down the homepage), the auto-advance timer would yank the whole page
+    // back here. Confine the scroll to .hp-map__crossings instead.
+    scrollItemIntoView(item) {
+        const container = item.closest('.hp-map__crossings');
+        if (!container) return;
+        const itemRect = item.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        if (itemRect.top < containerRect.top) {
+            container.scrollTop -= containerRect.top - itemRect.top;
+        } else if (itemRect.bottom > containerRect.bottom) {
+            container.scrollTop += itemRect.bottom - containerRect.bottom;
         }
     }
 
