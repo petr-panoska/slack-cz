@@ -1,140 +1,89 @@
 # TODO
 
-Otevřené úkoly napříč projektem. **Seřazeno podle priority** (revize 2026-06-20).
+Otevřené úkoly napříč projektem. **Seřazeno podle priority.** (revize 2026-07-09 —
+kompletní revize: hotové věci přesunuté do archivu na konci souboru, otevřené
+přeorganizované nahoru podle toho, co dává smysl dělat teď.)
+
 ---
 
-### ✅ Refaktoring (2026-06-21)
-- [x] **Rename `Highline` → `Line`** — entita + všechny třídy, tabulky, indexy, sekvence, routy i veřejné URL (`/highline/{slug}` → `/line/{slug}`; verby anglicizované: `/upravit`→`/edit`, `/smazat`→`/delete`, `/historie`→`/history`, `/prechod`→`/crossing`, `/fotky`→`/photos`, `/navrhy`→`/proposals`). Slovo „highline" záměrně zůstává jako **disciplína** (`LineType::Highline`, command `app:import:line-crossings`, UI labely, `#highline` deep-link, legacy MySQL tabulka + souborový strom). 3 migrace (`Version20260621120000/134540/140000`) renamují schema. Ověřeno `lint:container` + `lint:twig` + `debug:router` + `doctrine:schema:validate`. Konvence v `architecture.md` § *Pojmenování: entita `Line`, disciplíny „highline" a „longline" a další*.
-- [x] **CSS split dokončen** — `app.css` monolit (~5000 ř.) → **30 komponentních partialů** + `@import` manifest. Viz `architecture.md` § *Frontend* a níž.
-- [x] **`ImportHighlineCrossingsCommand` → `ImportLineCrossingsCommand`** + `docs/highline-edits.md` → `docs/line-edits.md` (2026-06-21).
-
-### Jazykové sjednocení — kód EN, URL CS (follow-up rename)
-**Pravidlo: kód = anglicky, veřejné URL = česky** (appka je pro české uživatele, anglické URL nedávají smysl). Rename `Highline→Line` to nakousl, ale (a) v kódu zůstaly **české identifikátory**, (b) naopak ve veřejných URL přibyly **anglické verby**. Obojí narovnat — **velký, ne-urgentní rename, dělat najednou** (znovu projít `lint:container`/`lint:twig`/`debug:router`).
-
-- [x] **denik→diary + mapa→map cluster anglicizován** (2026-06-30) — šablony `denicky`→`diaries` / `mapa`→`map` / `user_denik`→`user_diary` (+ `render` cesty), Stimulus `user_denik_map`→`user_diary_map` (+ `data-controller`/`data-*`), CSS `_denik.css`→`_diary.css` + třídy `.denik-*`/`.denicky-*`→`.diary-*`/`.diaries-*` + `.profile-denik-link`, `UserController::denik()`→`diary()`, route **name** `app_user_denik`→`app_user_diary` (path `/denik/{id}` zůstal CS, `app_user_directory` byl už EN). URL paths + UI text „deník"/„mapa" zůstávají CS. Ověřeno lint:twig+lint:container+debug:router+asset-map:compile+smoke 7/7.
-- [x] **Dohledat zbylé CS identifikátory** (2026-07-01) — projet `grep -rniE 'prechod|navrh|lajn|fotk|vyska|delka|oblast|misto'` + cílený sken identifikátorových pozic (CSS třídy, Stimulus controller/target/value, PHP metody/property, `denik`). Ze 118 hitů základního grepu bylo **0 identifikátorů** — vše legacy SQL sloupce (import commandy), schválně CS veřejné URL (`/lajna/`, `/prechod/`, `/denik/`…), UI texty (flash/labely/hlášky) a komentáře. Cílený sken našel **jediný** zbylý český identifikátor: privátní metoda `LonglineCrossingController::redirectToDenik()` → přejmenována na `redirectToDiary()` (denik→diary anglicizace z 2026-06-30 ji minula; 4 výskyty jen v tom souboru, route už mířila na EN `app_user_diary`). Ověřeno `php -l` + `lint:container` OK. **Jazykové sjednocení (kód EN / URL CS) tímto uzavřeno.**
-- [x] **Veřejné URL zpět do CS** (2026-06-30) — `/line/`→`/lajna/`, `/crossing/`→`/prechod/`, verby česky (`/uprava`, `/smazat`, `/historie`, `/pridat`, `/fotky`, `/libi`), `/admin/proposals/*`→`/admin/navrhy/*`, auth (`/login`→`/prihlaseni`, `/register`→`/registrace`, `/logout`→`/odhlaseni`, `/reset-password`→`/obnova-hesla`, `/verify/email`→`/overeni-emailu`, `/profile`→`/profil`). Jména rout zůstala EN (`app_*`), takže `path()` v Twigu se nedotklo; ručně jen hardcoded `/line/` v 5 JS controllerech + smoke test. Mezinárodní/odborné termíny (`/longline`, `/docs`, `/wiki`, `/tv`, `/intro`, `/data-report`) ponechány EN. Ověřeno `lint:twig`+`lint:container`+`debug:router`+smoke test 7/7. **Pozn.:** žádné redirecty ze starých EN cest — ale ty byly živé jen krátce (od 2026-06-21 renamu), bez SEO. Legacy `slack.cz` cutover je samostatná věc.
-
-### 🔥 Teď
-
-- [ ] **PIVOT (2026-07-01): mobil = priorita č. 1, přepsat CSS na Bootstrap 5.** Custom CSS (30 partialů) označen jako nepoužitelný (feedback od kamaráda + user). Desktop skoro nikdo. Detail v paměti `mobile-first-bootstrap-rewrite`.
-  - [x] **CSS refaktoring** (2026-06-20→21) — `app.css` 5000 řádků → **30 komponentních souborů** v `assets/styles/`. *(Nahrazeno Bootstrap přepisem — historie.)*
-  - [x] **Fáze 0 — Bootstrap základ** (2026-07-01) — `symfonycasts/sass-bundle` (v0.10) + Bootstrap 5 JS+Popper přes importmap + `bootstrap.min.css`. Brand vrstva `assets/styles/brand.scss` (accent `#e1005b` = legacy `--color-accent`, kvůli koherenci; theming přes Bootstrap CSS proměnné, ne `$primary`). Wiring v `app.js`: Bootstrap CSS → legacy `app.css` (netknutý manifest) → `brand.scss` (poslední = přebíjí). **Pozor na kolizi jmen**: sass entry je `brand.scss` (ne `app.scss`), jinak stíní legacy `app.css`. Symfony `bootstrap_5_layout` form theme. Ověřeno asset-map:compile (81 assetů) + všechny stránky 200.
-  - [x] **Fáze 1 — Shell + mobil** (2026-07-01) — `user_toolbar.twig` přepsán na Bootstrap **navbar + offcanvas** (`navbar-expand-lg`, `fixed-top`), fixní výška hlavičky (`--header-height: 72px`, drží map wrapper). Na mobilu v headeru **jen „Přihlásit"** (Registrovat `d-none d-lg-inline-flex`); user profil/odhlášení na mobilu v offcanvasu. Login stránka: „Nemáte účet? Registrujte se." Flash → Bootstrap alerts (`base.html.twig`). **Horizontální overflow**: příčina = stará vodorovná `.site-nav` (řada odkazů) → vyřešeno offcanvasem; `overflow-x: clip` na html/body jako guard. Disabled music/intro blok vytažen do `_partials/_music_player.twig` (inert). Ověřeno lint:twig+lint:container+asset-map:compile+phpunit 8/8.
-  - [x] **Fáze 1 — bugfixy po headless kontrole** (2026-07-03) — ověřeno v headless Chrome (360/390/768/1440 + klik offcanvas/search): **(a)** hlavička se na mobilu lámala na 2 řádky (logo.png 1072×136 při h=40px ⇒ ~315px šířky) → `flex-wrap: nowrap` na navbar containeru + logo se zmenšuje (`flex: 0 1 auto` + `min-width: 0` + `max-width/max-height`), hlavička teď všude přesně 72px; **(b)** search panel na mobilu ujížděl mimo obrazovku (legacy `_search.css` `right:-16px` kotvil k tlačítku u pravého okraje, které v navbaru není) → vyřešeno přesunem do offcanvasu (viz níž).
-  - [x] **Mobilní header = jen logo + hamburger** (2026-07-03) — search i „Přihlásit" přesunuty do offcanvasu (<lg): search jako **inline varianta** nahoře v menu (`site-search--inline`, druhá instance search controlleru, sdílená module-scope cache; dropdown v navbaru `d-none d-lg-flex`), „Přihlásit" jako `w-100` tlačítko v patičce menu (zrcadlí přihlášený stav). Ověřeno headless: výsledky hledání se renderují, klik naviguje, žádný stuck backdrop po Turbo navigaci, desktop beze změny.
-  - [x] **Fáze 1 — cleanup** (2026-07-03) — smazán mrtvý `assets/controllers/nav_controller.js` + `assets/styles/_nav.css` (+ import z `app.css`); ověřeno grep-em, že `.site-header`/`.nav-burger`/`data-controller="nav"` už nikde nejsou.
-  - [x] **Fáze 1 — zbylý cleanup** (2026-07-04) — `_buttons.css` a `_flash.css` smazány (flash třídy už neměly konzumenty; Bootstrap `.btn` převzal vzhled). Legacy `btn-secondary`/`btn-danger` (outline vzhled) → Bootstrap `btn-outline-secondary`/`btn-outline-danger`, `btn-block` → `w-100` — prohnáno sedem přes všechny šablony.
-  - [x] **Fáze 2 — Mapa redesign** (2026-07-03) — hotovo, viz sekce *Mapa* níž.
-  - [x] **Breakpoint systém** (2026-07-03) — `assets/styles/_breakpoints.scss` = jediný zdroj breakpointů (Bootstrap škála sm 576/md 768/lg 992/xl 1200/xxl 1400), mixiny `media-up($bp)`/`media-down($bp)` (down s -0.02px jako Bootstrap). **Žádné nové hardcoded px v @media.** Legacy CSS partialy mají ještě staré 640/768/900 — umírají s Fází 3, nekonvertovat zbytečně. `_map.css` → `_map.scss` (přes `@use` v `brand.scss`, vyndáno z `app.css` manifestu; pořadí cascade OK — mapové selektory jsou izolované).
-  - [x] **Fáze 3 — migrace zbylých stránek — DOKONČENO, `app.css` smazán** (2026-07-04). Poslední dávka najednou: **homepage/about/data_report** `page-grid`→`container-xxl vstack gap-4` (smrt `_layout.css`), **/tv hashtag taby** → Bootstrap `nav-pills` s brand theme (smrt `_tabs.css`), **tokeny+base** (`--color-*` proměnné, Space Grotesk, `a{color:inherit}`) → `brand/_shell.scss` (webbing theme přepínače smazány — picker odložen, kdyžtak git historie `_tokens.css`), zbylých **11 partialů portnuto 1:1** do `brand/` (`_search`, `_footer`, `_intro`, `_music`, `_homepage`, `_tv`, `_photo`, `_about`=article+preface+people, `_markdown`, `_admin`, `_proposals`; media queries převedeny na mixiny). `brand.scss` manifest drží pořadí kaskády: shell → porty → Bootstrap theme vrstvy. **`app.css` + 18 souborů smazáno, import odstraněn z `app.js`** — appka má jediný stylesheet. Chycený bug: portnutý base `html,body{padding:0}` sestřelil `padding-top` pod fixní hlavičkou → blok přesunut před padding pravidla. Ověřeno sass:build+lint:twig+asset-map:compile (52 assetů)+phpunit 8/8 + headless sweep (/, /tv vč. pills, /o-projektu, /wiki, foto detail, /intro, /mapa, /denicky, mobil).
-    - [x] **Detail lajny → Bootstrap** (2026-07-04) — layout gridu (`hl-detail-grid` s natvrdo číslovanými řádky) nahrazen Bootstrap `row/col`: levý sloupec `col-lg-8 vstack gap-4` (info/galerie/mapa/přechody), staty `col-lg-4 order-lg-2` (na mobilu první, na desktopu vpravo sticky — offset opraven o fixní hlavičku, dřív podjížděly pod navbar). Info sekce = card-body, `hl-empty` → utilities i ve foto detailu/history/proposals. Cover hero, stat dlaždice, `hl-type-badge`, richtext/`.hl-table`, foto grid a Leaflet markery portnuty do `brand/_line-detail.scss` (vč. cover reskinu tlačítek přepsaného na `btn-outline-*` — starý mířil na mrtvé `btn-secondary`). Cover content zarovnán s tělem přes vnitřní `container-xl`. **Smazán celý `_line.css`** (540 ř.). Ověřeno lint:twig+phpunit+headless: detail s coverem (desktop+mobil full-page) i bez coveru.
-    - [x] **Formuláře → Bootstrap** (2026-07-04) — všech 9 formulářových stránek (login, registrace, obnova hesla ×3, profil + edit, přechod, longline, foto) + velký formulář lajny → `form-page`/`container-xl` + card + `form_row()` (bootstrap_5_layout dělá form-control/labely/errors sám). Nové partialy `brand/_forms.scss` (šířky `.form-page`/`--md`, brand focus ring, form-check, `.form-notice`, `.form-section`) a `brand/_line-form.scss` (jen map picker: overlay tlačítka, distance badge, fullscreen, panely bodů, URL panel; breakpointy přes mixiny). **Smazáno:** `_auth.css`, `_profile.css`, `_crossing-form.css`, `_line-form.css`, `_buttons.css`, `_flash.css` (648 řádků, app.css manifest má už jen 18 importů). Bonus: `NewPasswordType`/`RegistrationForm` labely a validační hlášky počeštěny (New password→Heslo, Agree terms→Souhlasím s podmínkami…). Ověřeno lint:twig+lint:container+phpunit 8/8 + Playwright end-to-end: reálný reset hesla test účtu → login → screenshoty všech formulářů přihlášeně (desktop+mobil), mapový picker na `/lajna/pridat` funguje.
-    - [x] **Tabulky → Bootstrap** (2026-07-03) — `/denicky` přepsáno (container/card/form-control/`table table-hover table-sm small` v `.table-responsive`) + partial `_longline_crossings` (bootstrap table, akce `text-end`, komentář `d-block small text-body-secondary`). Sort affordance (šipky ↕↑↓ přes `th[data-sort-type]` + `aria-sort`) přesunuta do `brand.scss` — funguje na libovolné tabulce; helper `.cell-num` (tabular-nums+nowrap). **Theme vrstva `.table` v `brand.scss`** (feedback od usera — surový Bootstrap default vypadal hrozně): verzálkové muted hlavičky, tmavé bold odkazy bez podtržení, padding 0.6/0.85rem, `.table-filter` max-width, `.card-header h2` malé verzálky, poslední řádek v kartě bez borderu. Platí pro všechny budoucí migrované tabulky. **Smazáno**: `_table.css` (poslední konzumenti zmigrováni), `.diaries-*` blok z `_diary.css`. Admin `data_report` má vlastní `dr-table` — neřešeno (admin, nízká priorita). Ověřeno headless: sort+filtr+badge fungují, mobil bez overflow.
-    - [x] **Deníček + panel→card všude** (2026-07-04) — `user_diary.html.twig` kompletně přepsán (container/card/`nav-underline` taby — `tabs_controller` teď přepíná i `.active`, `#highline`/`#longline` deep-link funguje dál). `_recent_crossings` partial → Bootstrap `list-group-flush` + nové třídy `crossing-*` (singulár; grid layout portnut do `brand.scss`, style badge sedí na `.badge`). **Všichni konzumenti `.panel` → `.card`** (line_detail, index vč. inline seznamu přechodů, `_line_gallery`, tv, line_photo detail+form, data_report, line_form history+proposals, music player) + theme vrstva rozsekaná do partialů `assets/styles/brand/` (`brand.scss` = jen `@use` manifest): `_cards.scss` (`.card-header` flex, `.card-dot-*` vč. tv-pulse, `.card-header-link`, `.count-badge`, `.meta-label`), `_crossings.scss`, `_tabs.scss` (`.nav-underline` brand), `_diary.scss` (map výšky přes `media-down(md)`), `_tables.scss`/`_buttons.scss`/`_shell.scss`/`_header.scss` (přesun stávajícího). **Smazáno:** `_panel.css`, `_crossings.css`, `_diary.css` (+ importy z `app.css`), `.hl-crossings-count` z `_line.css`; `_homepage.css` selektory přejmenované na `.crossing-item.hp-crossing`. `_tabs.css` žije jen pro /tv pills. Ověřeno lint:twig+lint:container+sass:build+asset-map:compile (77 assetů)+phpunit 8/8 + headless (deníček desktop/mobil/longline tab, detail lajny full-page, homepage desktop/mobil, /tv, /denicky regrese).
-  - [x] **Docs pryč z menu** (2026-07-01) — odebráno z `user_toolbar.twig`, místo toho odkaz v nové sekci „Dokumentace" na konci `/o-projektu` (`about.html.twig`).
-  - [ ] ⏸ webbing themes picker — **odloženo na neurčito** (2026-07-01).
-
-### Obsah ze starého slack.cz (nasát + archivovat)
-- [ ] **Archiv článků** — nasosat texty/články z původního slack.cz a udělat z nich archiv v nové appce.
-- [ ] **slackTV — content z old slack.cz** — nasát videa/odkazy ze starého webu do slackTV.
-- [ ] **Nové fotky** — z původního slack.cz máme hodně low-quality fotek, potřebujeme nové. Hlavní výzva pro Intro stránku.
+## Teď — dává smysl udělat
 
 ### Intro
-- Intro: stránka `/intro` hotová (`app_intro` + `templates/pages/intro.html.twig`, seed citáty „deníček" + „co po nás zbyde"), ale **zatím nelinkovaná z nav.**
-  - [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).
+Stránka `/intro` hotová (`app_intro` + seed citáty), ale zatím nelinkovaná z nav.
+- [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).
+
+### Cutover: `slack.cz` → nový VPS (launch blockery)
+Detailně v `deploy.md`. Appka běží na `beta.slack.cz`, tohle je poslední balík
+před ostrou doménou.
+
+- [ ] **`MAILER_DSN` přes externí SMTP relay** (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound. Dokud nejede, fallback: `bin/console app:user:reset-password <email>`. Odblokuje i admin/autor notifikace u verifikací (viz níž).
+- [ ] **Fotky na betu** — `public/uploads/line/*` jsou mimo git i mimo `pg_dump`. `make syncBetaFromLocal` veze jen DB → po lokálním importu ještě **`make syncBetaPhotos`** (rsync masterů), jinak `line_photo` řádky ukazují na neexistující soubory.
+- [ ] **DNS swap** — A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only).
+- [ ] **`slack.cz` blok do `infra/Caddyfile`** (analogický k `beta.slack.cz`) + `make deployCaddy`.
+- [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM.
+- [ ] Zkontrolovat `LineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji `/data-report` pro proklik na legacy detail; upravit, pokud se prod host změní.
+- [ ] Nastavit reálné `YOUTUBE_API_KEY` v `.env.local` na serveru pro slackTV feed.
+- [ ] Po prvním deployi s galerií zkontrolovat `line_photo.width` na serveru (`SELECT count(*) FROM line_photo WHERE width IS NULL`). Kdyby zůstaly NULL, spustit **`bin/console app:photo:backfill-dimensions`**; bez toho `/galerie` kreslí fallback poměr 4:3.
+- [ ] (volitelné) `unattended-upgrades` na auto-security patches.
+- [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery.
+
+### Mapa
+- [ ] „Přidat lajnu" CTA klikem na mapu — z `/mapa` klik na prázdné místo předvyplní Bod 1 (teď jen v hlavičce + ručně nastavené GPS).
+- [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy).
 
 ### UX — co nejjednodušší pro lajnery
 Cíl (sezení 2026-06-12): ať je appka pro lajnery co nejjednodušší na používání.
-- [ ] **Smooth highline edit flow** — když user aktualizuje info o lajně, ať je to co nejjednodušší (minimum kroků, žádné tření). Projít celý edit flow a vyhladit.
-- [ ] **Smooth zadávání přechodu** — stejný princip pro přidání přechodu: co nejmíň klikání, rychlé zapsání zážitku.
-
-### Legacy import fotek ze slack.cz
-Foto stažené z legacy webu do `../old-slack-cz`. Highline import **hotový** (`make importLegacyPhotos`). Zbývají vedlejší věci níž.
-
-- [x] **`app:import:line-photos`** (2026-06-16) — cover (`foto.jpg`, filesystem-only konvence) + galerie (`highline_foto`) → WebP mastery, navázané na highline přes `legacyId`. Datum = 1. napnutí lajny / null. Ověřeno disk × legacy DB × živý web, **0 ztraceno**. Detail v `migration.md` § *Line photos*.
-- [x] **Cover fotka lajny** (2026-06-16) — self-hostovaná přes `Line.coverPhoto` (FK), legacy hotlink zrušen (bez fallbacku).
-- [ ] **`highline_media`** — externí odkazy (foto/video/clanek na youtube / rajce / lezec), **ne lokální fotky** → potřebuje vlastní entitu + UI sekci na detailu. Deferred, viz `migration.md` § Mimo scope.
-- [ ] **Non-highline fotky (FotoLIVE)** — legacy tabulka `fotolive` jsou fotky nepatřící ke konkrétní lajně. Rozhodnout, jestli pro ně udělat zvlášť kategorii / galerii.
-- [ ] **Fotky na betu** — `public/uploads/line/*` jsou soubory mimo git **i mimo `pg_dump`**. `make syncBetaFromLocal` veze jen DB → po lokálním importu ještě **`make syncBetaPhotos`** (rsync masterů na betu), jinak budou `line_photo` řádky ukazovat na neexistující soubory. (cutover krok, viz `deploy.md`)
-- [x] **Nasadit `@photos` cache blok** z `infra/Caddyfile` na betu — hotovo (ověřeno 2026-07-05, `make deploy` prochází vč. Caddy preflight bez driftu).
-
-
-### Mapa
-- [x] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (2026-06-16) — sdílený helper `assets/map_scroll_zoom.js` (`enableCtrlScrollZoom`): inline mapa = plain kolečko scrolluje stránku, **Ctrl/⌘ + kolečko zoomuje** (mirror Leafletího debounce/zoom-to-cursor) + hint overlay „podrž Ctrl"; **ve fullscreenu zoomuje plain kolečko bez modifikátoru** (není co scrollovat). Nasazeno na vložené mapy: `hp_map`, `user_denik_map`, `line_detail_map`, `line_form_map`. Dedikovaná `/mapa` (`map_controller`) **záměrně ponechána** se zoomem samotným kolečkem (na celostránkové mapě očekávané).
-- [x] **Redesign `/mapa` — sreality styl** (2026-07-03) — levý sloupec `.map-side`: nahoře box **Lajny ve výřezu** (abecedně dle `localeCompare('cs')`, default otevřený), dole **Přechody** (default sbalené; `'0'` v sessionStorage = user si je rozbalil). Nový `line_feed_controller.js` — čistý view; `map_controller` broadcastuje `slack:viewport-lines` na `moveend/zoomend` (+ replay přes `slack:lines-request` kvůli boot race), klik na řádek → `slack:line-focus` → setView + popup (na mobilu se box po kliku sbalí, ať je popup vidět); jméno lajny = link na detail. Boxy sdílí vizuál `.crossing-feed`, sloupec má `pointer-events: none` (klik do prázdna jde do mapy). Žádný nový backend (`app_line_map_data`, filtr přes `map.getBounds()`). Ověřeno headless (desktop+mobil, time-travel OK).
-- [ ] **Time-travel („Přehrát historii") — doladit do „super feature"** (2026-07-01) — user ho chce **ZACHOVAT** a vylepšit; dřívější záměr smazat zrušen. **2026-07-05:** toggle dočasně zakomentován v `map.html.twig` (TODO(mapa-mobile)) — vrátí se s mobilním redesignem ovládání; s ním i `top: 44px` offset pravých controls v `_map.scss`.
-- [x] **Mobil: přechody na `/mapa` → tabový `.map-panel`** (2026-07-07) — boxy Lajny + Přechody sloučeny do jednoho panelu s taby (desktop i mobil stejně, rozhodnutí usera). Sbalený stav = lišta jen s aktivním tabem, rozbalený = oba tab-headery + obsah aktivního; klik na aktivní tab sbalí (zrcadlí starý header-toggle). Filtr přechodů + oko se přestěhovaly do tabu Přechody (světlá varianta místo tmavého shellu). Nový `map_panel_controller.js` (taby + collapse + drag výška + gradient, sessionStorage `panel-collapsed/height/tab`), `line_feed_controller` zeštíhlen na čistý seznam (dispatch `rendered`/`collapse` na sdíleném rootu), `crossing_feed_controller` bez vlastního collapse. Bloky přejmenované na skutečný BEM (`map-panel__*--*`, `line-feed__*`, `crossing-feed__*`; stav oka = `__eye--off` modifikátor). Přechody jsou tím poprvé dostupné na mobilu bez záboru mapy navíc. Ověřeno Playwright (desktop+mobil: taby, filtr, oko, drag, persistence, row-click collapse, bez scrollu) + phpunit.
-- [x] **Redesign boxu Lajny** (2026-07-07) — vlastní BEM blok `.line-feed` (dřív půjčené `.crossing-feed-*` třídy — nedělat!), flat & density: hlavička (celá = toggle) se šipkou na konci, počet lajn bold, řádky bez karet dělené hairlines, tělo bez paddingu. **Výška těla je PEVNÁ, user-driven** (default ~5 řádků, tažením kulatého úchytu na spodní hraně / šipky ↑↓; sessionStorage, clamp 60 px – ½ viewportu vč. hlavičky) — fit-to-content byl zavržen: výška z obsahu → resize mapy → jiné lajny ve výřezu → jiný obsah = nekonečná smyčka. Gradient „dole je toho víc" (dnes `map-panel--overflow`, mizí po doscrollování), sbalení animované přes výšku (jen `height`, ne padding — rozbíjel to na dva kroky; ne `display:none` — zabije transition), `.map-side` z-index 900 nad leafletí panes kvůli přesahu úchytu přes mapu. Zároveň `/mapa` bez patičky (blok `footer` v base) a bez svislého scrollu (`100dvh` + `overflow: clip` na wrapperu — schovaný time-travel panel jinak přetékal).
-- ❌ ~~Filtry na `/mapa` (typ, délka, výška)~~ — **nebude** (2026-07-01, rozhodnutí usera).
-- [ ] Vlastní ikony per typ (Highline / Midline / Longline / Waterline — různé barvy)
-- [x] **Clustering markerů** (2026-07-07) — `leaflet.markercluster` přes importmap (`+esm`, JS + base CSS s animacemi), `staticLayer` = `L.markerClusterGroup` (radius 50, `disableClusteringAtZoom` = `LINE_MIN_ZOOM` 14 — kde se kreslí lajny, clustery končí; bez coverage hoveru). Vlastní ikona = BEM blok `.map-cluster` (akcent + bílý ring jako `.line-marker`), default vzhled pluginu se nepoužívá. Focus ze sidebar seznamu jde přes `zoomToShowLayer` (marker může být v clusteru → popup až po rozbalení). Emoji přechodů a time-travel vrstvy se neclusterují.
-- [x] **Opravy z code review `.map-panel`** (2026-07-08) — **(a)** nový sdílený `assets/breakpoints.js` (`isMobile()`, 767.98px = přesně SCSS `media-down(md)`) místo 2× hardcoded `matchMedia('768px')` — na přesně 768px (iPad portrét) se JS choval mobilně v desktopovém layoutu; **(b)** `crossing_feed_controller` čte sessionStorage v try/catch (zablokované úložiště shazovalo celý tab Přechody); **(c)** oko v twigu startuje `--off` (soulad s default-hidden markery, žádný flash); **(d)** re-clamp výšky panelu na window resize/rotaci; **(e)** SVG ikony oka přejmenované na `__eye-icon-on/off` (past `__eye-off` vs. `__eye--off`); **(f)** české komentáře v `_map.scss` přeložené (pravidlo SCSS = EN). Ověřeno headless Chrome (desktop/768/mobil).
-- [x] **Přeškrtnuté oko v tab-headeru Přechody** (2026-07-08) — když jsou markery přechodů schované, tab Přechody ukazuje malé přeškrtnuté oko (`map-panel__tab-eye`, default viditelné = markery default schované). Stav vlastní `crossing_feed_controller` (target `tabEye`, `hidden` atribut) — zrcadlí eye toggle uvnitř tabu. **Doplněno tentýž den:** button nese BUĎ počet přechodů (`tabCount`, plní se v `_renderAll`), NEBO oko — přepíná se spolu s markery.
-- [x] **Taby panelu = Bootstrap buttony** (2026-07-08, přestyloval user) — `btn btn-outline-primary btn-sm`; JS (`map_panel_controller._applyTabState`) řídí Bootstrap `.active`: filled = vybraný tab při ROZBALENÉM panelu, sbalený = outline. Sbalená lišta ukazuje VŽDY jen první button [Lajny] + [šipka] (`--collapsed` schová `map-panel__tab--crossings`) — dřív ukazovala aktivní tab, tj. měnila se. **Výjimka (2026-07-08):** když user aktivně zobrazí markery přechodů, tab Přechody zůstává v liště i sbalený — `crossing_feed._applyUsersVisibility` togglí `map-panel__tab--pinned` (drží i přes reload, sessionStorage). Bez `data-bs-toggle="button"` (jeho auto-toggle by se pral s tab/collapse logikou; per Bootstrap docs je pro samostatné toggle buttony). Smazán mrtvý `map-panel__tab--active` modifikátor + prázdné rulesety. **Touch fix:** sticky `:hover` po tapu vypadal jako active → `@media (hover: none)` neutralizuje `--bs-btn-hover-*` vary; k tomu blur() po pointer kliku (keyboard klik, `event.detail` 0, focus drží).
-- [x] **Kompaktní výpis přechodů + klik → marker** (2026-07-08) — karty ve výpisu nahrazeny dvouřádkovými hairline řádky à la `line-feed` („user na lajna" + meta datum · styl · hvězdy; na mobilu jen první řádek). Komentář se přestěhoval do popupu markeru (`user-popup__comment` — v listu nebyl kompaktní, v popupu chyběl). Klik na řádek → `slack:crossing-focus` → `map_controller._focusCrossing` (nový `userIndex`: id přechodu → marker, plní se v `_renderUsers`); **skryté markery klik zviditelní** (`toggleUsers` před dispatchem — přepne oko, tab badge i sessionStorage). Panel se po kliku NEsbaluje — **tentýž den zrušeno i u lajn** (mobilní row-click collapse z 2026-07-07 pryč, rozhodnutí usera; smazán celý `collapse` dispatch + `map-panel#collapse`). V time-travel se focus ignoruje (markery nejsou na mapě), stejně jako u lajn. **Vybraná položka se podbarví** (`__item--active` u obou seznamů, `_selectedId` přežije re-render — u lajn se list přerenderuje hned po kliku posunem mapy, sticky hover na to nestačil).
-- [ ] „Přidat lajnu" CTA klikem na mapu — z `/mapa` klik na prázdné místo předvyplní Bod 1 (teď jen v hlavičce + ručně nastavené GPS)
-
-### Galerie
-- [x] **Samostatná stránka `/galerie` — kronika po letech** (2026-07-04) — koncept vybrán s userem (čas = jediná osa s daty: 0 GPS/autorů/lajků, oblast prázdná, ~1,6 fotky na lajnu ⇒ seskupení po lajnách/místech nedává smysl). Roční sekce 2026→2004 + „Bez data", sticky lišta roků se scrollspy (`gallery_nav_controller.js`), **justified grid** (flex: `flex-grow`/`flex-basis` škálované poměrem stran přes `--ar`, `aspect-ratio` ⇒ nulový CLS — výška dokumentu identická s obrázky i bez nich), hover overlay se jménem lajny + popiskem, klik → stávající detail fotky. Nové `line_photo.width/height` (migrace `Version20260704133205`, plní `PhotoNormalizer` při uploadu i importu; backfill `app:photo:backfill-dimensions` — lokálně hotovo 376/376). Liip filtr `gallery_thumb` (inset 1600×480). Odkazy: nav „Galerie" + „Otevřít →" z homepage karty. **Gotcha:** klik na kotvu v rámci stránky Turbo bere jako novou visit (refetch + vlastní scroll, který přestřelí) → chip klik řeší controller sám (`preventDefault` + `scrollIntoView` + `replaceState`). Ověřeno lint:twig+lint:container+phpunit 8/8 + Playwright (chip → sekce přesně pod lištou, klik na fotku → detail, mobil bez overflow).
-- [ ] Časem: fotky z přechodů / hero momenty — až budou user uploady s reálnými EXIF daty, kronika se zpřesní sama (legacy fotky mají datum = 1. napnutí lajny).
-
-### Profil — avatar / bio / odkazy
-- [ ] Avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy.
+- [ ] **Smooth highline edit flow** — projít celý edit flow, minimum kroků, žádné tření.
+- [ ] **Smooth zadávání přechodu** — stejný princip: co nejmíň klikání, rychlé zapsání zážitku.
 
 ### Highline edit / verification — follow-upy
 Trust model + proposal queue v `docs/line-edits.md`.
 - [ ] Bulk verify — admin UI s checkboxy nad seznamem unverified lajn (teď to musí klikat 1×1).
-- [ ] Notifikace adminovi mailem při `PENDING` proposalu (Symfony Mailer — závisí na `MAILER_DSN`, viz Cutover).
-- [ ] Notifikace authorovi proposalu o schválení/zamítnutí.
+- [ ] Notifikace adminovi mailem při `PENDING` proposalu — závisí na `MAILER_DSN` výš.
+- [ ] Notifikace autorovi proposalu o schválení/zamítnutí.
 - [ ] „Soft-delete" lajny (`deleted_at` flag) místo hard delete — kdyby admin chtěl revertovat omylem smazanou lajnu.
 
-### slackTV — follow-upy
-- [ ] **Cold-cache `/tv` dělá ~19 sekvenčních HTTP volání** — při expiraci `tv.sections` (6 h) první návštěvník čeká ~5–10 s (worst case víc; 6s timeout × N). Paralelizovat (concurrent HttpClient) nebo nahřívat cache cronem. (MED — UX jednou za TTL)
-- [ ] Až bude existovat YT kanál CAS, přidat jeho channel ID do `feed.youtube.channels`.
-- [ ] Přidat další search query / kanál — při TTL 6h je quota rezerva ~25×, pár dalších zdrojů se vejde bez úprav TTL (vzorec v `architecture.md` § *Quota economics*). TTL prodlužovat až kdyby queries narostly o řád.
-- [ ] Promyslet FB Page CAS jako další zdroj (pak nutný jiný fetcher; Meta API).
-- [ ] Hashtag taby bez klávesové navigace (arrow keys / roving `tabindex`) — není plný WAI-ARIA tablist. (LOW, a11y)
-- [ ] **Hashtag slider: „view on YouTube" míří na `/hashtag/{tag}` místo na search** — `hashtagGroup()` (`YoutubeTvFeed.php`) odkazuje na `youtube.com/hashtag/{tag}` = YT-ořezaná plocha (~10 videí, i když čítač hlásí tisíce) → dead-end. Fix = jeden řádek: `url: 'https://www.youtube.com/results?search_query=' . rawurlencode($tag)`. Ověřeno přes API: `#` je v searchi no-op; hashtagy v configu zůstávají. (LOW)
-
 ### Wiki
-- [ ] Doplnit chybějící obrázky — úvodní Google Docs seed přenesl jen 8 z ~N obrázků. Editovat `wiki/NN-skupina/NN-slug.md` na GitHubu, přidat `![][imageN]` ref-defs s base64 (případně inline `data:image/png;base64`). (LOW, kosmetika)
+- [ ] Doplnit chybějící obrázky — úvodní Google Docs seed přenesl jen 8 z ~N obrázků. Editovat `wiki/NN-skupina/NN-slug.md`, přidat `![][imageN]` ref-defs. (LOW, kosmetika)
 
----
+### Obsah ze starého slack.cz
+Vyžaduje ruční sběr materiálu, ne jen dev práci.
+- [ ] Archiv článků — nasosat texty/články z původního slack.cz, udělat z nich archiv v nové appce.
+- [ ] slackTV — content z old slack.cz — nasát videa/odkazy do slackTV.
+- [ ] Nové fotky — z původního slack.cz máme hodně low-quality fotek. Hlavní výzva pro Intro stránku.
 
-## Cutover legacy slack.cz → nový VPS (až po featurách)
-Detailně v `deploy.md`. Launch-blockery.
-
-- [ ] **`MAILER_DSN` přes externí SMTP relay** (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound. Dokud nejede, fallback: `bin/console app:user:reset-password <email>` (viz `deploy.md`). Odblokuje i admin/author notifikace u verifikací.
-- [ ] **DNS swap** — A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only).
-- [ ] **`slack.cz` blok do `infra/Caddyfile`** (analogický k `beta.slack.cz`) + `make deployCaddy`.
-- [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM (čte to `framework.router.default_uri` pro absolutní URL z CLI commandů).
-- [ ] Zkontrolovat `LineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji veřejná „Data report" stránka (`/data-report`) pro proklik na legacy detail; upravit, pokud se prod host změní.
-- [ ] Nastavit reálné `YOUTUBE_API_KEY` v `.env.local` na serveru pro slackTV feed.
-- [ ] Po prvním deployi s galerií zkontrolovat `line_photo.width` na serveru (`SELECT count(*) FROM line_photo WHERE width IS NULL`) — normálně přijdou hodnoty s `make syncBetaFromLocal` dumpem (lokálně backfill proběhl) i z čerstvého importu (command je plní). Kdyby NULL zůstaly (DB syncnutá před 2026-07-04 bez re-syncu), spustit jednorázově **`bin/console app:photo:backfill-dimensions`**; bez toho `/galerie` kreslí fotky s fallback poměrem 4:3.
-- [ ] (volitelné) `unattended-upgrades` na auto-security patches.
-- [ ] (volitelné) Hetzner snapshot schedule pro disaster recovery.
-
----
-
-## Údržba / drobnosti
-- [ ] Rozšířit smoke testy o DB-backed routy (`/`, `/mapa`, `/denik/{id}`, …) — vyžaduje test DB se schématem (přidat `doctrine:schema:create --env=test` step do `symfony.yml`; migrace jsou Postgres-specific, na SQLite je nepustíš).
-- [ ] Přidat `/registrace` (a další form-rendering routy) do smoke testů až po deprecation cleanupu — render `RegistrationForm` teď spouští **přímé** array-option constraint deprecations, takže s `failOnDeprecation=true` by shodil CI. Viz `roadmap.md` deprecation checklist.
+### Údržba / drobnosti
+- [ ] Rozšířit smoke testy o DB-backed routy (`/`, `/mapa`, `/denik/{id}`, …) — vyžaduje test DB se schématem.
+- [ ] Přidat `/registrace` (a další form-rendering routy) do smoke testů až po deprecation cleanupu — render `RegistrationForm` teď spouští přímé array-option constraint deprecations. Viz `roadmap.md` deprecation checklist.
 - [ ] Default Symfony `hello_controller.js` v `assets/controllers/` smazat až bude místo něj něco užitečného.
-- [ ] Restrikce `YOUTUBE_API_KEY` v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — teď bez restrikce. (nízká, nic na tom nestojí)
+- [ ] Restrikce `YOUTUBE_API_KEY` v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — teď bez restrikce. (nízká)
 - [ ] Po nasazení produkce rotovat `YOUTUBE_API_KEY`. (nízká)
 
 ---
 
-## Backlog / plány (neimplementovat teď)
+## Backlog / odloženo (neřešit teď)
+
+- [ ] **Time-travel („Přehrát historii") — doladit do „super feature"** — user ho chce zachovat a vylepšit, ne smazat. Toggle je zakomentovaný v `map.html.twig` (a `top: 44px` offset v `_map.scss`) od 2026-07-05; mobilní redesign ovládání, na který se čekalo, mezitím proběhl (map-panel taby, 2026-07-07/08), takže je to odemčené — jen teď nemá prioritu.
+- [ ] Profil: avatar / bio / odkazy (IG, web) — UI editor pro vlastní profil + sloupce v entitě, případně backfill z legacy.
+- [ ] Non-highline fotky (FotoLIVE) — legacy tabulka `fotolive` jsou fotky nepatřící ke konkrétní lajně. Rozhodnout, jestli pro ně udělat zvlášť kategorii / galerii.
+- [ ] ⏸ webbing themes picker — odloženo na neurčito (2026-07-01).
+
+### slackTV — follow-upy
+- [ ] **Cold-cache `/tv` dělá ~19 sekvenčních HTTP volání** — při expiraci `tv.sections` (6 h) první návštěvník čeká ~5–10 s. Paralelizovat (concurrent HttpClient) nebo nahřívat cache cronem. (MED)
+- [ ] **Hashtag slider „view on YouTube" míří na `/hashtag/{tag}` místo na search** — dead-end (~10 videí místo tisíců). Fix = jeden řádek: `url: 'https://www.youtube.com/results?search_query=' . rawurlencode($tag)`. (LOW, hotový recept)
+- [ ] Hashtag taby bez klávesové navigace (arrow keys / roving `tabindex`). (LOW, a11y)
+- [ ] Přidat další search query / kanál — TTL 6h má quota rezervu ~25×. Až bude YT kanál CAS, přidat jeho channel ID do `feed.youtube.channels`.
+- [ ] Promyslet FB Page CAS jako další zdroj (jiný fetcher; Meta API).
+- [ ] `highline_media` — externí odkazy (foto/video/článek na youtube / rajce / lezec), ne lokální fotky → potřebuje vlastní entitu + UI sekci na detailu. **Deferred**, viz `migration.md` § Mimo scope.
+- Galerie: fotky z přechodů / hero momenty — netřeba akce teď; až budou user uploady s reálnými EXIF daty, kronika se zpřesní sama (legacy fotky mají datum = 1. napnutí lajny).
 
 ### Offline PWA — highline mapa v terénu (PLÁN)
 
 > Stav: **návrh k doladění.** Sepsáno session 2026-06-02. Záměr: highliner v horách bez signálu si appku nainstaluje jako PWA a má offline **celou ČR** (podkladová mapa + body highlinů + popupy + časová osa). Nic se zatím nestaví — nejdřív dorozhodnout otevřené body níž.
 
 #### Rozhodnutí, která už padla
-- **Zůstává Leaflet, nemění se za MapLibre.** Použít `protomaps-leaflet` (renderuje vektorové PMTiles přímo v Leafletu, canvas). Vymění se jen podkladová vrstva — `L.tileLayer(OSM)` → vektor nad pmtiles. Všechny 4 mapové controllery (`map`, `line_detail_map`, `user_denik_map`, `line_form_map`) i veškerý marker/popup/timeline kód zůstávají beze změny. MapLibre by znamenal přepsat všechno.
-- **Instalace PWA = souhlas se stažením celé ČR.** Po instalaci se automaticky na pozadí stáhne `cz.pmtiles` (žádné druhé klikání). Install je vědomý úkon → bereme ho jako „chci to celé offline".
+- **Zůstává Leaflet, nemění se za MapLibre.** Použít `protomaps-leaflet` (renderuje vektorové PMTiles přímo v Leafletu, canvas). Vymění se jen podkladová vrstva — `L.tileLayer(OSM)` → vektor nad pmtiles. Všechny 4 mapové controllery (`map`, `line_detail_map`, `user_denik_map`, `line_form_map`) i veškerý marker/popup/timeline kód zůstávají beze změny.
+- **Instalace PWA = souhlas se stažením celé ČR.** Po instalaci se automaticky na pozadí stáhne `cz.pmtiles`. Install je vědomý úkon → bereme ho jako „chci to celé offline".
 - **Vlastní hostovaný pmtiles**, ne OSM tile server (OSM policy zakazuje hromadný předstah; navíc chceme nezávislost na cizím zdroji).
 
 #### Architektura (4 etapy, ~2,5 dne, největší riziko etapa 3)
@@ -152,9 +101,9 @@ Detailně v `deploy.md`. Launch-blockery.
 
 **Etapa 3 — auto-offline po instalaci** (~1 den, tady je vlastní inženýrská práce)
 - Detekce instalace: `appinstalled` (Chromium/Android) **+** standalone-detekce při startu (`display-mode: standalone`) pro iOS, kde `appinstalled`/`beforeinstallprompt` neexistují.
-- Po instalaci stáhnout `cz.pmtiles` → **OPFS** (Origin Private File System, iOS 16.4+ OK), progress bar (kolik z X MB).
+- Po instalaci stáhnout `cz.pmtiles` → **OPFS** (Origin Private File System, iOS 16.4+ OK), progress bar.
 - Custom pmtiles source čte rozsahy z OPFS přes `File.slice()` → range requesty lokálně.
-- Resume při přerušení (foreground download — browser nedá spolehlivý background download); fallback na online range requests dokud není staženo.
+- Resume při přerušení (foreground download); fallback na online range requests dokud není staženo.
 
 **Etapa 4 — prod parity** (~půlden)
 - Caddy: servírovat `.pmtiles` s `Range` + MIME `application/octet-stream` (`infra/Caddyfile` + `make deployCaddy`).
@@ -165,64 +114,111 @@ Detailně v `deploy.md`. Launch-blockery.
 - maxzoom 13 ≈ ~40–60 MB — terénní kontext, hrubší zoom
 
 #### OTEVŘENÉ ROZHODOVACÍ BODY (k doptání)
-1. **Styl podkladu / vrstevnice.** `protomaps-leaflet` basemap je „city" styl **bez vrstevnic / hillshade / terénu** — pro highliny v horách možná chceme topo. Varianty: (a) smířit se s plochým podkladem, (b) přidat druhou pmtiles vrstvu s vrstevnicemi/hillshade (víc dat + práce), (c) jiný zdroj tilesetu. **Tohle je největší otevřená otázka.**
-2. **maxzoom** — z13 (lehčí) vs z14 (detailnější). Ovlivní velikost stažení i ostrost u skal.
-3. **Co všechno je offline.** Jen `/mapa`, nebo i detail stránky `/lajna/{slug}` (server-rendered Twig, 254 stránek)? Buď runtime-cache jen navštívené, nebo přestavět detail na data-driven z cachovaného JSON. Fotky/audio offline spíš ne (velikost).
-4. **iOS UX** — když nejde chytit install event, kdy přesně spustit download (hned při prvním standalone startu? za potvrzením kvůli mobilním datům?).
-5. **Aktualizace pmtiles** — jak často přegenerovat CZ extract a jak řešit cache-busting / verzování souboru.
-6. **Stažení jen na wifi?** Desítky MB — nabídnout potvrzení / detekci typu připojení před stažením?
-7. **PWA scope** — instalovatelná celá appka, nebo prezentovat jako „nainstaluj si mapu"?
+1. **Styl podkladu / vrstevnice.** `protomaps-leaflet` basemap je „city" styl bez vrstevnic / hillshade / terénu — pro highliny v horách možná chceme topo. **Tohle je největší otevřená otázka.**
+2. **maxzoom** — z13 (lehčí) vs z14 (detailnější).
+3. **Co všechno je offline.** Jen `/mapa`, nebo i detail stránky `/lajna/{slug}` (254 stránek)? Fotky/audio offline spíš ne.
+4. **iOS UX** — když nejde chytit install event, kdy přesně spustit download?
+5. **Aktualizace pmtiles** — jak často přegenerovat a jak řešit cache-busting / verzování.
+6. **Stažení jen na wifi?** Desítky MB — nabídnout potvrzení / detekci typu připojení?
+7. **PWA scope** — instalovatelná celá appka, nebo „nainstaluj si mapu"?
 
 ### Doporučení obsahu od userů (DEFERRED)
 
 > Stav: **myšlenka k dořešení.** User si není jistý, jestli celý koncept dává smysl — implementaci odložit. Sepsáno session 2026-06-11.
 
-- Záměr: přihlášený user vloží YouTube odkaz (video / kanál / playlist) jako tip; po **moderaci adminem** se schválené objeví v sekci **„Doporučeno komunitou"**.
-- Rozhodnuto v konzultaci:
-  - Sbírat **videa + kanály + playlisty** (ne jen videa).
-  - Schválené → **vlastní sekce „Doporučeno komunitou"** (oddělená od kanálů/playlistů/hashtagů).
-  - Default (k potvrzení): doporučovat jen **přihlášení**, nic se nezobrazí **bez schválení adminem**.
-- Technika: **oEmbed** (`youtube.com/oembed?url=…&format=json`) na validaci + metadata (název, autor, náhled) — **0 kvóty, bez klíče**. Nová entita `ContentSuggestion` (user, typ, YT id, metadata, status pending/approved/rejected). Admin moderační fronta.
-- **OTEVŘENÉ (blokuje to):** kde žije seznam zdrojů sekcí — **config (`feed.yaml`) vs DB + admin**. Schválený kanál/playlist by se musel propsat mezi zdroje → tlačí to k DB-backed zdrojům spravovaným v adminu. Nerozhodnuto; tohle je důvod, proč je celá feature odložená.
+- Záměr: přihlášený user vloží YouTube odkaz (video / kanál / playlist) jako tip; po **moderaci adminem** se schválené objeví v sekci „Doporučeno komunitou".
+- Rozhodnuto v konzultaci: sbírat videa + kanály + playlisty; schválené → vlastní sekce; default (k potvrzení) — doporučovat jen přihlášení, nic bez schválení adminem.
+- Technika: **oEmbed** na validaci + metadata — 0 kvóty, bez klíče. Nová entita `ContentSuggestion` (user, typ, YT id, metadata, status pending/approved/rejected). Admin moderační fronta.
+- **OTEVŘENÉ (blokuje to):** kde žije seznam zdrojů sekcí — config (`feed.yaml`) vs DB + admin. Nerozhodnuto; proto je feature odložená.
 
 ---
 
 ## Hotové (archiv)
 
-- [x] **WebP/HEIC upload pipeline** (2026-06-16) — `App\Service\PhotoNormalizer`: každý upload (user i legacy import) → WebP master (auto-orient, ≤ 2560 px, q85, strip metadat), datum + GPS z EXIF do DB (`LinePhoto.createdAt` nullable, `gpsLat`/`gpsLng`), HEIC z iPhonů. ImageMagick + exiftool v containeru i na prod (`setup-server.sh` + `check-server-env.sh` preflight). Nahradil GD `LinePhotoSanitizerSubscriber`. Disk-conscious (WebP, cap 2560) kvůli 40 GB VPS. Detail `architecture.md` § *Foto galerie — upload pipeline*.
-- [x] **Legacy foto import** (2026-06-16) — viz „🔥 Teď → Legacy import fotek" (cover + galerie → WebP, 0 ztraceno).
-- [x] **Veřejný rozcestník deníčků `/denicky`** (2026-06-15) — přehled všech aktivních uživatelů (nick, jméno, # highline/longline přechodů, poslední aktivita) s prolinkem na `/denik/{id}`, fulltext filtr + sort přes sloupce. Vlastní generický Stimulus `data-table` controller.
-- [x] **Longline deník** (2026-06-13) — tab na `/denik/{id}` (entita `LonglineCrossing` + import `app:import:longline-crossings` + plný CRUD + obecná Tab komponenta).
-- [x] **slackTV → `/tv` stránka + redesign na sekce** (2026-06-11) — feature přejmenována „Slack.cz TV" → **slackTV**, dedikovaná `/tv` (grid + click-to-play inline embed přes `tv_controller.js`). Rozděleno na sekce Kanály / Playlisty / Hashtagy (slidery + taby). Data přes YouTube Data API se stránkováním (`tv-more` AJAX), `FeedGroup` tvar, per-page cache. Zdroje v `feed.yaml`, detaily v `architecture.md` § *Feed (slackTV)*. Code-review fixy: `/tv/more` validace `key` proti configu; transient load-more chyba cachuje prázdno jen 60 s (ne 6 h).
-- [x] **Homepage panely** — slackTV ze sidebaru → horizontální strip dole; panely „Highline mapa" + „Poslední přechody" sloučeny do jednoho **Mapa** se sidebarem přechodů (aktivní přechod, reálná linka, zoom + emoji walker animace, `hp_map_controller.js`).
-- [x] **Linie mezi `point1` a `point2`** na hlavní mapě `/mapa` (vlastní layer, viditelná od zoom ≥ 14).
-- [x] **Cleanup** — smazán `App\Old\Entity\Uzivatel` (entita + repo + debug view `/old-users` + ORM `old` EM; DBAL `old` connection zůstává pro raw-SQL importy). Oživen `.github/workflows/symfony.yml` + `tests/Controller/PublicPagesSmokeTest.php` (DB-free routy na SQLite). Smazána mrtvá env `APP_SHARE_DIR`.
-- [x] **Migrace legacy dat — kompletní.** Highlines / users / crossings naimportované; deferred otázky vyřešené (first ascents = neimportovat; `record` role = mrtvý štítek; `enabled=0` = test junk; cross-email merge Terky 93→878). Plný příběh v `migration.md`.
-- [x] **Gender kompletně odstraněn** (2026-06-12) — vyhozeno z importu, smazána `User.gender` + enum `App\Enum\Gender`, drop-column migrace `Version20260612120000`.
-- [x] **Edit profile** — `/profile/edit` (`app_profile_edit`, `UserForm`). User edituje město, ročník, telefon.
-- [x] **Infra: Caddyfile v repu + drift gate** (2026-05-11) — `infra/Caddyfile` jako single source of truth, `scripts/check-caddy.sh` + `scripts/deploy-caddy.sh`, Makefile `checkCaddy`/`deployCaddy`, `make deploy` preflight. Caddy restart nikdy implicitně při code deploy.
-- [x] **Galerie sociální vrstva + AJAX likes** (2026-05-11) — `LinePhotoLike` (UNIQUE photo+user) + `LinePhotoComment` (flat, plain-text), detail page `/line/{slug}/photos/{id}`, like-toggle bez reloadu (`photo_like_controller.js`, JSON endpoint), homepage „Z galerie" rotace. Cover zatím čistě legacy URL. Migrace `Version20260511134125`.
-- [x] **Audit historie + stack-pop curation + verifikační merge** (2026-05-10) — `/line/{slug}/history` nad `LineEdit` rows, vlastní `beforeSnapshot` per row, admin „Smazat poslední revizi", verify slévá historii do jediné APPLIED creation revize. Maintenance `app:edit:sync-from-history`. Detaily v `docs/line-edits.md`.
-- [x] **Slug stability na verified + rename slug regen na unverified** (2026-05-10) — `nameLocked` z `isVerified()`, live slug preview (`live_slug_controller.js`), `makeUniqueSlug` regen na unverified rename, midpoint rounding na 7 míst.
-- [x] **Parking GPS import** (2026-05-10) — `Line.parkingLatitude/Longitude`, LEFT JOIN `gps WHERE type='PARKING'` (133/254 lajn), detail + form toggle. Migrace `Version20260510175252`.
-- [x] **Line CRUD + verifikační/proposal flow** (2026-05-10) — `LineCrudController`, `Line.isVerified` + `createdBy`, `LineEdit` unified audit log + pending queue, 254 legacy lajn `verified=true`, `ROLE_ADMIN` + `app:admin:grant`, `line_form_map_controller` 2-endpoint GPS picker. Detaily v `docs/line-edits.md`.
-- [x] **Crossing form (CRUD pro přechody)** — `CrossingController` + `LineCrossingForm`, edit/delete vlastních přechodů z deníku.
-- [x] **Deník uživatele `/denik/{id}`** — hlavička, mini-mapa navštívených lajn, tabulka přechodů. Linkováno z „Posledních přechodů" + z popupu na `/mapa`.
-- [x] **Crossing news-bar sidebar** na `/mapa` — N posledních přechodů, eye toggle, collapse, time-travel režim. Cross-controller eventy `slack:map-mode` / `slack:users-visibility`.
-- [x] **Single source of truth pro recent crossings** — `LineCrossingRepository::RECENT_LIMIT`, `findRecent()` + `findRecentForJson()`.
-- [x] **Intro splash overlay** — fullscreen logo + „Vstoupit" (komponenta `intro-overlay`), klik = dismiss + start audio.
-- [x] **Mapové zoom controly na `bottomright`** (kolidovaly se sidebarem; v time-travel se zvedají nad panel).
-- [x] **Line detail `/line/{slug}`** — slug v DB, stat panel, info tabulka, mini-mapa s polyline mezi body, seznam přechodů.
-- [x] **Line `point1`/`point2` GPS** — naimportováno z legacy `gps` přes JOIN na `point1_id`/`point2_id` (`LINE_POINT`).
-- [x] **User import** — 440 nových + 1 enriched + 6 dropped (5 duplicit emailů). MD5 hesla, `migrate_from` přehashuje na bcrypt při loginu.
-- [x] **Crossings import** — 993/995 (2 skipy `0000-00-00`). Style enum 9 hodnot, neznámé → warning.
-- [x] **`Makefile`** — target `legacyImport` (jednorázový import na čisté schéma, `--truncate`).
-- [x] **„Poslední přechody" panel** na indexu (datum / user / lajna / hvězdy). Limit v `RECENT_LIMIT`.
+### Analytics
+- [x] **Matomo self-hosted analytics** (2026-07-09) — `analytics.slack.cz`, native PHP+MariaDB (ne Docker, sedí na existující prod stack), cookieless tracking gated na `app.environment == 'prod'`. Provisioning v `scripts/setup-server.sh`/`check-server-env.sh` + `infra/Caddyfile`, rollout popsaný v `deploy.md` § Analytics. Cestou nalezen a opravený leak (DB credentials soubor krátce dostupný přes web — přesunuto mimo Caddy `root`). Rollout kompletně dokončen a ověřen na provozu.
+
+### Mapa
+- [x] **Desktop: panel na celou výšku sloupce** (2026-07-09) — `.map-panel` na desktopu bez drag úchytu a bez JS výšky, prostě vyplní `.map-side` (`media-up(md)` v `_map.scss`); collapse tlačítko na desktopu schované (sbalování zůstává mobilní koncept). `map_panel_controller.js` má `isMobile()` guardy, aby na desktopu nikdy nenastavil inline pixel výšku.
+- [x] **BUG: mapa nejde zoomovat Ctrl+kolečkem** (2026-06-16) — sdílený helper `assets/map_scroll_zoom.js` (`enableCtrlScrollZoom`): inline mapa = Ctrl/⌘ + kolečko zoomuje + hint overlay; fullscreen = plain kolečko. Nasazeno na `hp_map`, `user_denik_map`, `line_detail_map`, `line_form_map`. Dedikovaná `/mapa` záměrně ponechána se zoomem samotným kolečkem.
+- [x] **Redesign `/mapa` — sreality styl** (2026-07-03) — levý sloupec `.map-side`: box Lajny ve výřezu (abecedně, default otevřený) + box Přechody (default sbalené). Nový `line_feed_controller.js`, `map_controller` broadcastuje `slack:viewport-lines` na `moveend/zoomend`. Žádný nový backend (`app_line_map_data`, filtr přes `map.getBounds()`).
+- [x] **Mobil: přechody na `/mapa` → tabový `.map-panel`** (2026-07-07) — boxy Lajny + Přechody sloučené do jednoho panelu s taby (desktop i mobil stejně). Nový `map_panel_controller.js` (taby + collapse + drag výška + gradient, sessionStorage). Bloky přejmenované na skutečný BEM (`map-panel__*--*`, `line-feed__*`, `crossing-feed__*`).
+- [x] **Redesign boxu Lajny** (2026-07-07) — vlastní BEM blok `.line-feed`. Výška těla PEVNÁ, user-driven (drag úchyt / šipky), fit-to-content zavržen (nekonečná resize smyčka s mapou). `/mapa` bez patičky a bez svislého scrollu.
+- [x] **Clustering markerů** (2026-07-07) — `leaflet.markercluster`, `staticLayer` = `L.markerClusterGroup` (radius 50, `disableClusteringAtZoom` = `LINE_MIN_ZOOM`). Vlastní ikona `.map-cluster` (BEM). Focus ze sidebaru přes `zoomToShowLayer`.
+- [x] **Opravy z code review `.map-panel`** (2026-07-08) — sdílený `assets/breakpoints.js` (`isMobile()`, přesně `media-down(md)`) místo hardcoded matchMedia; sessionStorage try/catch; re-clamp výšky na resize; SVG ikony přejmenované na skutečný BEM; české komentáře v `_map.scss` přeložené do EN.
+- [x] **Přeškrtnuté oko v tab-headeru Přechody** (2026-07-08) — `map-panel__tab-eye`, button nese buď počet přechodů, nebo oko.
+- [x] **Taby panelu = Bootstrap buttony** (2026-07-08) — `btn btn-outline-primary btn-sm`, JS řídí Bootstrap `.active`. Touch fix pro sticky `:hover` po tapu.
+- [x] **Kompaktní výpis přechodů + klik → marker** (2026-07-08) — dvouřádkové hairline řádky, klik → `slack:crossing-focus` → focus markeru, skryté markery se klikem zviditelní. Vybraná položka podbarvená (`__item--active`).
+- [x] Linie mezi `point1` a `point2` na hlavní mapě (viditelná od zoom ≥ 14).
+- [x] Mapové zoom controly na `bottomright`.
+- [x] Crossing news-bar sidebar na `/mapa` — eye toggle, collapse, time-travel režim.
+- ❌ ~~Filtry na `/mapa` (typ, délka, výška)~~ — nebude (2026-07-01, rozhodnutí usera).
+
+### Mobile-first Bootstrap rewrite (2026-07-01 → 07-04)
+Pivot: mobil = priorita č. 1, custom CSS (30 partialů) označen jako nepoužitelný (feedback od kamaráda + usera). Desktop skoro nikdo.
+
+- [x] **Fáze 0 — Bootstrap základ** — `symfonycasts/sass-bundle` + Bootstrap 5 JS+Popper přes importmap. Brand vrstva `assets/styles/brand.scss` (accent `#e1005b`). Wiring v `app.js`: Bootstrap CSS → legacy `app.css` → `brand.scss` (poslední = přebíjí).
+- [x] **Fáze 1 — Shell + mobil** — `user_toolbar.twig` na Bootstrap navbar + offcanvas, fixní výška hlavičky (`--header-height: 72px`). Mobil header jen „Přihlásit"; profil/odhlášení v offcanvasu. Flash → Bootstrap alerts.
+- [x] **Fáze 1 — bugfixy po headless kontrole** (2026-07-03) — hlavička na mobilu se lámala na 2 řádky (logo scaling fix); search panel ujížděl mimo obrazovku (přesunut do offcanvasu).
+- [x] **Mobilní header = jen logo + hamburger** (2026-07-03) — search i „Přihlásit" v offcanvasu (inline search varianta + `w-100` tlačítko).
+- [x] **Fáze 1 — cleanup** (2026-07-03/04) — smazán mrtvý `nav_controller.js` + `_nav.css`; `_buttons.css`/`_flash.css` smazány (Bootstrap `.btn` převzal vzhled).
+- [x] **Breakpoint systém** (2026-07-03) — `assets/styles/_breakpoints.scss` jediný zdroj breakpointů (Bootstrap škála), mixiny `media-up($bp)`/`media-down($bp)`. Žádné nové hardcoded px v `@media`.
+- [x] **Fáze 3 — migrace zbylých stránek, `app.css` smazán** (2026-07-04) — homepage/about/data_report, /tv taby, tokeny+base do `brand/_shell.scss`, zbylých 11 partialů portnuto do `brand/`. **`app.css` + 18 souborů smazáno** — appka má jediný stylesheet.
+  - [x] **Detail lajny → Bootstrap** (2026-07-04) — `row/col` layout, staty `col-lg-4 order-lg-2`, `brand/_line-detail.scss`. Smazán celý `_line.css`.
+  - [x] **Formuláře → Bootstrap** (2026-07-04) — všech 9 formulářových stránek + lajna form → `form-page` + card + `form_row()`. Nové `brand/_forms.scss` + `brand/_line-form.scss`.
+  - [x] **Tabulky → Bootstrap** (2026-07-03) — `/denicky` + `_longline_crossings` partial. Theme vrstva `.table` v `brand.scss`.
+  - [x] **Deníček + panel→card všude** (2026-07-04) — `user_diary.html.twig` přepsán, všichni konzumenti `.panel` → `.card`, theme rozsekaná do `assets/styles/brand/` partialů.
+- [x] **Docs pryč z menu** (2026-07-01) — odkaz přesunut do `/o-projektu`.
+
+### Refaktoring a jazykové sjednocení
+**Pravidlo: kód anglicky, veřejné URL česky** — appka je pro české uživatele.
+- [x] **Rename `Highline` → `Line`** (2026-06-21) — entita + třídy, tabulky, routy, URL. Slovo „highline" záměrně zůstalo jako **disciplína**. 3 migrace, ověřeno lint/router/schema.
+- [x] **CSS split dokončen** (2026-06-21) — `app.css` monolit → 30 komponentních partialů.
+- [x] **`ImportHighlineCrossingsCommand` → `ImportLineCrossingsCommand`** + doc rename (2026-06-21).
+- [x] **denik→diary + mapa→map cluster anglicizován** (2026-06-30) — šablony, Stimulus, CSS, controller metody, route names. URL paths + UI text zůstávají CS.
+- [x] **Dohledat zbylé CS identifikátory** (2026-07-01) — cílený sken našel jediný zbylý: `redirectToDenik()` → `redirectToDiary()`. **Jazykové sjednocení tímto uzavřeno.**
+- [x] **Veřejné URL zpět do CS** (2026-06-30) — `/line/`→`/lajna/`, `/crossing/`→`/prechod/`, verby česky, auth cesty česky. Jména rout zůstala EN. Mezinárodní termíny (`/longline`, `/docs`, `/wiki`, `/tv`, `/intro`, `/data-report`) ponechány EN.
+
+### Legacy import fotek
+Foto stažené z legacy webu do `../old-slack-cz`. Highline import hotový (`make importLegacyPhotos`).
+- [x] **`app:import:line-photos`** (2026-06-16) — cover + galerie → WebP mastery. Ověřeno disk × legacy DB × živý web, 0 ztraceno.
+- [x] **Cover fotka lajny** (2026-06-16) — self-hostovaná přes `Line.coverPhoto`, legacy hotlink zrušen.
+- [x] **Nasadit `@photos` cache blok** z `infra/Caddyfile` na betu (ověřeno 2026-07-05).
+
+### Galerie
+- [x] **Samostatná stránka `/galerie` — kronika po letech** (2026-07-04) — roční sekce se scrollspy, justified grid (`line_photo.width/height`, nulový CLS). Liip filtr `gallery_thumb`. Ověřeno Playwright.
+
+### Rané funkce a migrace (do 2026-06-16)
+- [x] WebP/HEIC upload pipeline — `App\Service\PhotoNormalizer`, každý upload → WebP master, EXIF datum/GPS do DB.
+- [x] Veřejný rozcestník deníčků `/denicky` — přehled aktivních uživatelů, fulltext filtr + sort.
+- [x] Longline deník — tab na `/denik/{id}`, entita `LonglineCrossing` + import + CRUD.
+- [x] slackTV → `/tv` stránka + redesign na sekce (Kanály / Playlisty / Hashtagy), YouTube Data API + cache.
+- [x] Homepage panely — slackTV strip dole; „Highline mapa" + „Poslední přechody" sloučeny do jednoho panelu Mapa.
+- [x] Cleanup — smazán `App\Old\Entity\Uzivatel`, oživen CI workflow + smoke testy.
+- [x] Migrace legacy dat — kompletní (highlines/users/crossings). Detail v `migration.md`.
+- [x] Gender kompletně odstraněn (2026-06-12).
+- [x] Edit profile — `/profile/edit`.
+- [x] Infra: Caddyfile v repu + drift gate (2026-05-11).
+- [x] Galerie sociální vrstva + AJAX likes (2026-05-11) — `LinePhotoLike`/`LinePhotoComment`.
+- [x] Audit historie + stack-pop curation + verifikační merge (2026-05-10) — `/line/{slug}/history`, `LineEdit`. Detaily v `docs/line-edits.md`.
+- [x] Slug stability na verified + rename slug regen na unverified (2026-05-10).
+- [x] Parking GPS import (2026-05-10) — `Line.parkingLatitude/Longitude`.
+- [x] Line CRUD + verifikační/proposal flow (2026-05-10) — `LineCrudController`, `LineEdit` audit log. Detaily v `docs/line-edits.md`.
+- [x] Crossing form (CRUD pro přechody) — edit/delete vlastních přechodů z deníku.
+- [x] Deník uživatele `/denik/{id}` — hlavička, mini-mapa, tabulka přechodů.
+- [x] Single source of truth pro recent crossings — `LineCrossingRepository::RECENT_LIMIT`.
+- [x] Intro splash overlay — fullscreen logo + „Vstoupit".
+- [x] Line detail `/line/{slug}` — slug, stat panel, mini-mapa, seznam přechodů.
+- [x] Line `point1`/`point2` GPS import z legacy `gps`.
+- [x] User import — 440 nových + 1 enriched + 6 dropped.
+- [x] Crossings import — 993/995.
+- [x] `Makefile` target `legacyImport`.
+- [x] „Poslední přechody" panel na indexu.
 - [x] Line import 254/254 z legacy DB do Postgres.
-- [x] Mapa `/mapa` s Leaflet + OSM (fixnuté ikony přes Stimulus values).
-- [x] Light theme s magenta accent (`#e91e63` z původního loga).
+- [x] Mapa `/mapa` s Leaflet + OSM.
+- [x] Light theme s magenta accent (`#e91e63`).
 - [x] Index page se 2 panely (mini mapa + slackTV teaser).
-- [x] slackTV — YouTube Data API v3 fetcher s mock fallbackem a Symfony Cache TTL.
-- [x] About page `/o-projektu` — historie slacklive 2007 → slack.cz 2010 → ČAS 2011 → dnes + Kolouchovo úvodní slovo + archivní vizuály.
-- [x] Restrukturalizace legacy mapování — `App\Entity\Old\*` → `App\Old\Entity\*` (mimo `src/Entity/`), aby Doctrine default EM nepokoušel migrace.
-- [x] `.env` deklaruje `YOUTUBE_API_KEY=` (prázdné, dokumentace), reálný v `.env.local`.
+- [x] slackTV — YouTube Data API v3 fetcher s mock fallbackem a cache TTL.
+- [x] About page `/o-projektu`.
+- [x] Restrukturalizace legacy mapování — `App\Entity\Old\*` → `App\Old\Entity\*`.
+- [x] `.env` deklaruje `YOUTUBE_API_KEY=` (prázdné, dokumentace).
