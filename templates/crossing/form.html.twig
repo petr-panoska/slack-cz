@@ -15,7 +15,11 @@
             {{ form_start(form) }}
                 {{ form_row(form.crossedAt) }}
                 {{ form_row(form.style) }}
-                {{ form_row(form.rating) }}
+                <div class="mb-3">
+                    <label class="form-label d-block">Hodnocení</label>
+                    {{ include('_partials/_rating_picker.html.twig', { field: form.rating }) }}
+                    {{ form_errors(form.rating) }}
+                </div>
                 {{ form_row(form.comment) }}
 
                 <div class="d-flex gap-2 mt-4">

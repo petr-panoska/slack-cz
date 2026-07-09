@@ -25,6 +25,7 @@ export default class extends Controller {
         parkingLngInput: String,
         initLat: Number,
         initLng: Number,
+        lengthOutput: String,
     };
 
     static targets = ['canvas', 'distance', 'p1Toggle', 'p2Toggle', 'parkingToggle', 'fullscreenToggle'];
@@ -38,14 +39,15 @@ export default class extends Controller {
             parkingLat: this.hasParkingLatInputValue ? document.getElementById(this.parkingLatInputValue) : null,
             parkingLng: this.hasParkingLngInputValue ? document.getElementById(this.parkingLngInputValue) : null,
         };
+        // Read-only length readout lives in a form-section below the map, outside this
+        // controller's own element — same by-ID wiring as the lat/lng inputs above.
+        this.lengthOutputEl = this.hasLengthOutputValue ? document.getElementById(this.lengthOutputValue) : null;
 
         this.points = [readPair(this.inputs.p1Lat, this.inputs.p1Lng), readPair(this.inputs.p2Lat, this.inputs.p2Lng)];
         this.parking = readPair(this.inputs.parkingLat, this.inputs.parkingLng);
 
-        const center = computeCenter(this.points, [this.initLatValue, this.initLngValue]);
-        const zoom = (this.points[0] || this.points[1]) ? 15 : 7;
-
-        this.map = L.map(this.canvasTarget).setView(center, zoom);
+        this.map = L.map(this.canvasTarget);
+        this.fitToKnownPoints();
         // top-left (under the zoom control); the top-right corner holds the point buttons.
         addBasemapPicker(this.map, { position: 'topleft' });
         // Plain wheel scrolls the form page; Ctrl/⌘ + wheel zooms the map.
@@ -83,10 +85,20 @@ export default class extends Controller {
         });
 
         // Leaflet must recompute its size after the container resizes (in/out of fullscreen).
+        // The 200ms delay waits out the fullscreen transition so the container has its final
+        // size before we measure/fit against it.
         this.fullscreenHandler = () => {
             if (this.map) {
                 this.map.invalidateSize();
-                setTimeout(() => this.map && this.map.invalidateSize(), 200);
+                setTimeout(() => {
+                    if (!this.map) return;
+                    this.map.invalidateSize();
+                    // Leaving fullscreen: the view was framed for the fullscreen aspect ratio —
+                    // re-fit to the small inline canvas so every placed point stays visible.
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        this.fitToKnownPoints();
+                    }
+                }, 200);
             }
             this.refreshFullscreenToggle();
         };
@@ -104,6 +116,20 @@ export default class extends Controller {
         if (this.map) {
             this.map.remove();
             this.map = null;
+        }
+    }
+
+    // Frames the view around whatever is already placed (both line anchors AND parking,
+    // if set) — not just p1/p2 — so nothing ends up off-screen. Used on initial load and
+    // again when leaving fullscreen (see fullscreenHandler).
+    fitToKnownPoints() {
+        const known = [this.points[0], this.points[1], this.parking].filter(Boolean);
+        if (known.length >= 2) {
+            this.map.fitBounds(known, { padding: [40, 40], maxZoom: 17 });
+        } else if (known.length === 1) {
+            this.map.setView(known[0], 15);
+        } else {
+            this.map.setView([this.initLatValue, this.initLngValue], 7);
         }
     }
 
@@ -170,6 +196,14 @@ export default class extends Controller {
                 iconAnchor: [14, 14],
             });
             const marker = L.marker(coord, { icon, draggable: true, title: slot === 0 ? 'Bod 1' : 'Bod 2' }).addTo(this.map);
+            // Live redraw while dragging, not just on drop — polyline + length track the
+            // marker in real time. The (change-triggering) form inputs only need the final
+            // position, so writeInputs stays on dragend.
+            marker.on('drag', () => {
+                const { lat, lng } = marker.getLatLng();
+                this.points[slot] = [lat, lng];
+                this.refreshLine();
+            });
             marker.on('dragend', () => {
                 const { lat, lng } = marker.getLatLng();
                 this.points[slot] = [lat, lng];
@@ -265,20 +299,31 @@ export default class extends Controller {
 
     refreshLine() {
         const [a, b] = this.points;
-        if (this.polyline) {
-            this.map.removeLayer(this.polyline);
-            this.polyline = null;
-        }
         if (a && b) {
-            this.polyline = L.polyline([a, b], { color: '#e1005b', weight: 4, opacity: 0.9 }).addTo(this.map);
+            // setLatLngs on the existing layer (not remove+recreate) — this now also runs on
+            // every 'drag' tick, not just discrete clicks/drops.
+            if (this.polyline) {
+                this.polyline.setLatLngs([a, b]);
+            } else {
+                this.polyline = L.polyline([a, b], { color: '#e1005b', weight: 4, opacity: 0.9 }).addTo(this.map);
+            }
             const meters = haversineMeters(a[0], a[1], b[0], b[1]);
+            const label = `${Math.round(meters)} m`;
             if (this.hasDistanceTarget) {
-                this.distanceTarget.textContent = `${Math.round(meters)} m`;
+                this.distanceTarget.textContent = label;
                 this.distanceTarget.classList.remove('is-empty');
             }
-        } else if (this.hasDistanceTarget) {
-            this.distanceTarget.textContent = 'Nastav oba body';
-            this.distanceTarget.classList.add('is-empty');
+            if (this.lengthOutputEl) this.lengthOutputEl.textContent = label;
+        } else {
+            if (this.polyline) {
+                this.map.removeLayer(this.polyline);
+                this.polyline = null;
+            }
+            if (this.hasDistanceTarget) {
+                this.distanceTarget.textContent = 'Nastav oba body';
+                this.distanceTarget.classList.add('is-empty');
+            }
+            if (this.lengthOutputEl) this.lengthOutputEl.textContent = 'Nastav oba body';
         }
     }
 }
@@ -288,13 +333,6 @@ function readPair(latInput, lngInput) {
     const lat = parseFloat(latInput.value);
     const lng = parseFloat(lngInput.value);
     return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
-}
-
-function computeCenter(points, fallback) {
-    if (points[0] && points[1]) {
-        return [(points[0][0] + points[1][0]) / 2, (points[0][1] + points[1][1]) / 2];
-    }
-    return points[0] || points[1] || fallback;
 }
 
 function haversineMeters(lat1, lng1, lat2, lng2) {

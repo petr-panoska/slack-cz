@@ -17,8 +17,6 @@
                 <div class="form-notice">
                     Změny u téhle lajny jdou přes schválení adminem → tvůj návrh uvidí admin a po schválení se projeví na detailu.
                 </div>
-            {% elseif mode == 'new' %}
-                <p class="form-text mb-4">Lajnu po vytvoření vidí všichni. Aby se na ní mohly podílet i ostatní userové, požádej admina o verifikaci.</p>
             {% endif %}
 
             {{ form_errors(form) }}
@@ -44,27 +42,19 @@
                         {{ form_widget(form.name) }}
                         {{ form_errors(form.name) }}
                     </div>
-                    <div class="row">
-                        <div class="col-sm-6">{{ form_row(form.type) }}</div>
-                        <div class="col-sm-6">{{ form_row(form.height) }}</div>
-                    </div>
-                    {{ form_row(form.description) }}
-                    <div class="row">
-                        <div class="col-sm-6">{{ form_row(form.approachMinutes) }}</div>
-                        <div class="col-sm-6">{{ form_row(form.tensioningMinutes) }}</div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h2>Historie</h2>
+                    {{ form_row(form.nameHistory) }}
                     {{ form_row(form.firstAscentBy) }}
                     {{ form_row(form.firstAscentDate) }}
-                    {{ form_row(form.nameHistory) }}
+                    <div class="row">
+                        <div class="col-sm-12 col-md-4">{{ form_row(form.type) }}</div>
+                        <div class="col-sm-12 col-md-4">{{ form_row(form.approachMinutes) }}</div>
+                        <div class="col-sm-12 col-md-4">{{ form_row(form.tensioningMinutes) }}</div>
+                    </div>
+                    {{ form_row(form.description) }}
                 </div>
 
                 <div class="form-section">
-                    <h2>Kotvící body</h2>
-                    <p class="form-text mb-3">Klikni na <strong>Přidat bod 1/2</strong> a pak do mapy, nebo markery táhni. Délka lajny se počítá automaticky z těch dvou bodů.</p>
+                    <h2>Poloha</h2>
                     <div
                         class="hl-form-map"
                         data-controller="line-form-map"
@@ -76,6 +66,7 @@
                         data-line-form-map-parking-lng-input-value="{{ form.parkingLongitude.vars.id }}"
                         data-line-form-map-init-lat-value="{{ form.point1Latitude.vars.value ?: '50.0598' }}"
                         data-line-form-map-init-lng-value="{{ form.point1Longitude.vars.value ?: '14.4656' }}"
+                        data-line-form-map-length-output-value="line-length-output"
                     >
                         <div class="hl-form-map-canvas" data-line-form-map-target="canvas"></div>
                         <div class="hl-form-map-overlay">
@@ -114,6 +105,16 @@
                             <span class="hl-form-distance-value is-empty" data-line-form-map-target="distance">Nastav oba body</span>
                         </div>
                     </div>
+                    <p class="form-text mb-3">Délka se počítá automaticky ze zadaných bodů.</p>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="line-length-output">Délka [m]</label>
+                                <output id="line-length-output" class="form-control-plaintext">{{ line.length ? line.length ~ ' m' : 'Nastav oba body' }}</output>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-6">{{ form_row(form.height) }}</div>
+                    </div>
                     <div class="hl-form-points">
                         <div class="hl-form-point">
                             <h3>Bod 1</h3>
@@ -131,6 +132,8 @@
                             </div>
                             {{ form_row(form.pointTwoInfo) }}
                         </div>
+                    </div>
+                    <div class="hl-form-points">
                         <div class="hl-form-point hl-form-point-parking">
                             <h3>Parkování <span class="hl-form-optional">(volitelné)</span></h3>
                             <div class="row">
@@ -139,6 +142,24 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-section">
+                    {% if mode == 'edit' and line.coverPhoto %}
+                        <img
+                            class="line-cover-preview"
+                            src="{{ vich_uploader_asset(line.coverPhoto, 'file') | imagine_filter('line_thumb') }}"
+                            alt=""
+                        >
+                        <p class="form-text mb-3">Nahráním nové fotky se tahle nahradí.</p>
+                    {% endif %}
+                    {{ form_row(form.coverPhotoFile) }}
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label d-block">Hodnocení</label>
+                    {{ include('_partials/_rating_picker.html.twig', { field: form.rating }) }}
+                    {{ form_errors(form.rating) }}
                 </div>
 
                 <div class="d-flex gap-2">

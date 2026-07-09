@@ -11,6 +11,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Range;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class UserForm extends AbstractType
 {
@@ -21,12 +22,9 @@ class UserForm extends AbstractType
             maxMessage: 'Maximálně {{ limit }} znaků.',
         );
 
+        $phoneFormatMessage = 'Telefon zadej jako 9 nebo 12 číslic, volitelně s předvolbou + nebo 00 (např. 123456789, +420123456789).';
+
         $builder
-            ->add('nick', TextType::class, [
-                'label' => 'Nick',
-                'required' => false,
-                'constraints' => [$maxLen(30)],
-            ])
             ->add('firstName', TextType::class, [
                 'label' => 'Jméno',
                 'required' => false,
@@ -54,7 +52,17 @@ class UserForm extends AbstractType
             ->add('phone', TelType::class, [
                 'label' => 'Telefon',
                 'required' => false,
-                'constraints' => [$maxLen(30)],
+                'help' => 'Telefon je vidět jen přihlášeným uživatelům, ne veřejně.',
+                'attr' => [
+                    'pattern' => '\d{9}|(\+|00)?\d{12}',
+                    'title' => $phoneFormatMessage,
+                ],
+                'constraints' => [
+                    new Regex(
+                        pattern: '/^(\d{9}|(\+|00)?\d{12})$/',
+                        message: $phoneFormatMessage,
+                    ),
+                ],
             ])
         ;
     }

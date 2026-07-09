@@ -96,7 +96,8 @@ final class SyncLineFromAuditCommand extends Command
     {
         $h->setName((string) $s['name']);
         $h->setType(LineType::from((string) $s['type']));
-        $h->setHeight((int) $s['height']);
+        $h->setHeight(isset($s['height']) && $s['height'] !== null ? (int) $s['height'] : null);
+        $h->setRating(isset($s['rating']) && $s['rating'] !== null ? (int) $s['rating'] : null);
         $h->setLength((int) ($s['length'] ?? 0));
         $h->setPoint1Latitude(isset($s['point1Latitude']) ? (string) $s['point1Latitude'] : null);
         $h->setPoint1Longitude(isset($s['point1Longitude']) ? (string) $s['point1Longitude'] : null);

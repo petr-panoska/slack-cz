@@ -7,6 +7,7 @@ use App\Form\NewPasswordType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
@@ -19,12 +20,21 @@ class RegistrationForm extends AbstractType
     {
         $builder
             ->add('email')
+            ->add('nick', TextType::class, [
+                'label' => 'Nick',
+                'constraints' => [
+                    new NotBlank(message: 'Zadej nick.'),
+                    new Length(max: 30, maxMessage: 'Maximálně {{ limit }} znaků.'),
+                ],
+            ])
             ->add('agreeTerms', CheckboxType::class, [
-                'label' => 'Souhlasím s podmínkami používání',
+                // Label (s odkazem na /ochrana-osobnich-udaju) se skládá v
+                // register.html.twig přes form_row(..., {label_html: true}) — potřebuje
+                // Twig path(), ne natvrdo napsané URL tady.
                 'mapped' => false,
                 'constraints' => [
                     new IsTrue([
-                        'message' => 'Pro registraci musíš souhlasit s podmínkami.',
+                        'message' => 'Pro registraci musíš souhlasit se zpracováním osobních údajů.',
                     ]),
                 ],
             ])

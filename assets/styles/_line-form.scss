@@ -56,6 +56,17 @@
     line-height: 1.4;
 }
 
+// Náhled aktuální titulní fotky (edit režim, než se nahraje nová).
+.line-cover-preview {
+    display: block;
+    width: 160px;
+    height: 120px;
+    margin-bottom: 10px;
+    object-fit: cover;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+}
+
 // --- Mapa s výběrem bodů ---------------------------------------------
 .hl-form-map {
     position: relative;
@@ -69,13 +80,15 @@
     overflow: hidden;
 }
 
-// Badge s vypočtenou délkou (pravý dolní roh mapy).
+// Badge s vypočtenou délkou (pravý dolní roh mapy). Mimo fullscreen zbytečný —
+// stejnou hodnotu ukazuje read-only pole pod mapou; ve fullscreenu je to pole
+// mimo obrazovku, tak se tam badge zobrazí.
 .hl-form-distance {
+    display: none;
     position: absolute;
     bottom: 12px;
     right: 12px;
     z-index: 500;
-    display: flex;
     align-items: baseline;
     gap: 6px;
     padding: 6px 12px;
@@ -85,6 +98,11 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     font-size: 0.95rem;
     pointer-events: none;
+}
+
+.hl-form-map:fullscreen .hl-form-distance,
+.hl-form-map:-webkit-full-screen .hl-form-distance {
+    display: flex;
 }
 
 .hl-form-distance-label {

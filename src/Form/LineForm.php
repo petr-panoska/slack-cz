@@ -7,12 +7,15 @@ use App\Enum\LineType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File as FileConstraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 class LineForm extends AbstractType
@@ -48,43 +51,62 @@ class LineForm extends AbstractType
                 'label' => 'Výška [m]',
                 'attr' => ['min' => 0],
             ])
+            // Rendered as a click-to-set star widget (rating-picker Stimulus controller,
+            // see line_form/form.html.twig) — HiddenType so form_widget() emits a plain
+            // <input type="hidden">, not a <select>.
+            ->add('rating', HiddenType::class, [
+                'required' => false,
+            ])
+            ->add('coverPhotoFile', FileType::class, [
+                'label' => 'Titulní fotka',
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['accept' => 'image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif'],
+                'constraints' => [
+                    new FileConstraint(
+                        maxSize: '30M',
+                        mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+                        mimeTypesMessage: 'Nahraj prosím JPG, PNG, WebP nebo HEIC.',
+                    ),
+                ],
+            ])
             ->add('point1Latitude', NumberType::class, [
-                'label' => 'Bod 1 — šířka',
+                'label' => 'Bod 1 — šířka [GPS]',
                 'scale' => 7,
                 'html5' => true,
                 'attr' => ['step' => 'any', 'min' => -90, 'max' => 90, 'inputmode' => 'decimal'],
                 'constraints' => [new NotBlank(message: 'Nastav oba kotvící body lajny.')],
             ])
             ->add('point1Longitude', NumberType::class, [
-                'label' => 'Bod 1 — délka',
+                'label' => 'Bod 1 — délka [GPS]',
                 'scale' => 7,
                 'html5' => true,
                 'attr' => ['step' => 'any', 'min' => -180, 'max' => 180, 'inputmode' => 'decimal'],
                 'constraints' => [new NotBlank(message: 'Nastav oba kotvící body lajny.')],
             ])
             ->add('point2Latitude', NumberType::class, [
-                'label' => 'Bod 2 — šířka',
+                'label' => 'Bod 2 — šířka [GPS]',
                 'scale' => 7,
                 'html5' => true,
                 'attr' => ['step' => 'any', 'min' => -90, 'max' => 90, 'inputmode' => 'decimal'],
                 'constraints' => [new NotBlank(message: 'Nastav oba kotvící body lajny.')],
             ])
             ->add('point2Longitude', NumberType::class, [
-                'label' => 'Bod 2 — délka',
+                'label' => 'Bod 2 — délka [GPS]',
                 'scale' => 7,
                 'html5' => true,
                 'attr' => ['step' => 'any', 'min' => -180, 'max' => 180, 'inputmode' => 'decimal'],
                 'constraints' => [new NotBlank(message: 'Nastav oba kotvící body lajny.')],
             ])
             ->add('parkingLatitude', NumberType::class, [
-                'label' => 'Parkování — šířka',
+                'label' => 'Parkování — šířka [GPS]',
                 'required' => false,
                 'scale' => 7,
                 'html5' => true,
                 'attr' => ['step' => 'any', 'min' => -90, 'max' => 90, 'inputmode' => 'decimal'],
             ])
             ->add('parkingLongitude', NumberType::class, [
-                'label' => 'Parkování — délka',
+                'label' => 'Parkování — délka [GPS]',
                 'required' => false,
                 'scale' => 7,
                 'html5' => true,
@@ -96,12 +118,12 @@ class LineForm extends AbstractType
                 'attr' => ['rows' => 5, 'maxlength' => 5000],
             ])
             ->add('pointOneInfo', TextareaType::class, [
-                'label' => 'Kotvení — bod 1',
+                'label' => 'Bod 1 - popis',
                 'required' => false,
                 'attr' => ['maxlength' => 512, 'rows' => 3],
             ])
             ->add('pointTwoInfo', TextareaType::class, [
-                'label' => 'Kotvení — bod 2',
+                'label' => 'Bod 2 - popis',
                 'required' => false,
                 'attr' => ['maxlength' => 512, 'rows' => 3],
             ])

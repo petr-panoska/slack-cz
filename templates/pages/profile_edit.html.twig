@@ -8,10 +8,19 @@
             <div class="card-body p-4">
                 <h1 class="h4 mb-4">Upravit profil</h1>
 
+                <div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="flex-shrink-0">
+                        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="11" x2="12" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="1" fill="currentColor"/>
+                    </svg>
+                    <span>Vyplň dle libosti. Všechny údaje jsou nepovinné.</span>
+                </div>
+
                 {{ form_errors(form) }}
 
                 {{ form_start(form) }}
-                    {% for field in [form.nick, form.firstName, form.lastName, form.city, form.birthYear, form.phone] %}
+                    {% for field in [form.firstName, form.lastName, form.city, form.birthYear, form.phone] %}
                         {{ form_row(field) }}
                     {% endfor %}
 

@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ochrana osobních údajů — slack.cz{% endblock %}
+
+{% block body %}
+<article class="article">
+    <header class="article-head">
+        <h1>Ochrana osobních údajů</h1>
+        <p class="article-lead">
+            Stručně a bez právničiny — co o vás víme, k čemu to používáme
+            a kdo to vidí.
+        </p>
+    </header>
+
+    <section>
+        <h2>Co při registraci a v profilu zadáváte</h2>
+        <p>
+            Při registraci zadáváte <strong>email</strong> (na přihlášení, vidíte
+            jen vy), heslo (uložené jako hash, nikdy ne čitelně) a <strong>nick</strong>
+            — veřejné jméno, pod kterým vás ostatní na webu uvidí. Nick se dá
+            nastavit jen při registraci, později ho v appce nejde změnit.
+            Jméno, příjmení, město, ročník narození a telefon jsou <strong>nepovinné</strong>
+            — doplňujete je až v profilu a kdykoliv je tam můžete upravit i smazat.
+        </p>
+    </section>
+
+    <section>
+        <h2>Co je veřejné</h2>
+        <p>
+            Nick, jméno a příjmení, město, ročník, vaše lajny
+            a přechody v deníčku (datum, styl, hodnocení, komentář) i fotky,
+            které nahrajete, jsou <strong>veřejně vidět</strong> komukoliv na webu
+            — to je smysl appky, deníček je věřejná evidence přechodů.
+            Pokud fotka obsahuje GPS polohu (EXIF), přebírá se automaticky
+            a je taky veřejná. Editace lajny se zaznamenávají do historie úprav,
+            veřejně dohledatelné u dané lajny.
+        </p>
+        <p>
+            <strong>Telefon</strong> je výjimka — ten vidí jen přihlášení
+            uživatelé, ne anonymní návštěvníci.
+        </p>
+    </section>
+
+    <section>
+        <h2>Kdo si to všechno posílá dál</h2>
+        <p>
+            Nikdo. Data nepředáváme žádné třetí straně. Návštěvnost webu měříme
+            vlastní (self-hosted) analytikou Matomo bez cookies — nejde
+            o žádnou externí reklamní ani trackovací službu.
+        </p>
+    </section>
+
+    <section>
+        <h2>Starší účty z původního slack.cz</h2>
+        <p>
+            Pokud jste měli účet na starém slack.cz, vaše data (přechody,
+            případně fotky) jsme přenesli do nové appky. Chcete-li cokoliv
+            upravit, doplnit nebo smazat, napište nám.
+        </p>
+    </section>
+
+    <section>
+        <h2>Kontakt</h2>
+        <p>
+            Otázky ke svým údajům, žádost o opravu nebo smazání účtu:
+            <a href="mailto:info@slack.cz">info@slack.cz</a>.
+        </p>
+    </section>
+</article>
+{% endblock %}

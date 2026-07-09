@@ -4,15 +4,19 @@ namespace App\Controller;
 
 use App\Entity\Line;
 use App\Entity\LineEdit;
+use App\Entity\LinePhoto;
 use App\Entity\User;
 use App\Enum\LineEditStatus;
 use App\Enum\LineType;
 use App\Form\LineForm;
 use App\Repository\LineEditRepository;
 use App\Repository\LineRepository;
+use App\Service\PhotoNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -39,7 +43,7 @@ final class LineCrudController extends AbstractController
      * We still snapshot it so the audit row reflects the post-derivation state.
      */
     private const FIELDS = [
-        'name', 'type', 'height',
+        'name', 'type', 'height', 'rating',
         'point1Latitude', 'point1Longitude', 'point2Latitude', 'point2Longitude',
         'parkingLatitude', 'parkingLongitude',
         'length',
@@ -56,6 +60,7 @@ final class LineCrudController extends AbstractController
         EntityManagerInterface $em,
         LineRepository $lines,
         SluggerInterface $slugger,
+        PhotoNormalizer $normalizer,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -69,17 +74,41 @@ final class LineCrudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                // Built (normalized) before any persistence — a failed upload must not
+                // leave a half-created line behind.
+                $coverPhoto = $this->buildCoverPhoto($form, $user, $normalizer);
+            } catch (\Throwable) {
+                $this->addFlash('error', 'Titulní fotku se nepodařilo zpracovat. Zkus jiný soubor (JPG, PNG, WebP, HEIC).');
+
+                return $this->render('line_form/form.html.twig', [
+                    'form' => $form,
+                    'line' => $line,
+                    'mode' => 'new',
+                    'queueProposal' => false,
+                ]);
+            }
+
             $this->deriveGeometry($line);
             $line->setSlug($this->makeUniqueSlug((string) $line->getName(), $slugger, $lines));
             $em->persist($line);
+            // Own flush before the photo — Vich's directory namer for line_photo keys off
+            // line.id (config/packages/vich_uploader.yaml), which only exists post-insert.
             $em->flush();
+
+            if ($coverPhoto !== null) {
+                $coverPhoto->setLine($line);
+                $em->persist($coverPhoto);
+                $line->setCoverPhoto($coverPhoto);
+                $em->flush();
+            }
 
             // Creation row — no prior state to diff against; beforeSnapshot stays null.
             $audit = $this->buildEdit($line, $user, LineEditStatus::APPLIED, null);
             $em->persist($audit);
             $em->flush();
 
-            $this->addFlash('success', 'Lajna přidána. Pokud chceš, aby ji ostatní mohli rozšiřovat, požádej admina o verifikaci.');
+            $this->addFlash('success', 'Lajna přidána.');
 
             return $this->redirectToRoute('app_line_detail', ['slug' => $line->getSlug()]);
         }
@@ -101,6 +130,7 @@ final class LineCrudController extends AbstractController
         EntityManagerInterface $em,
         SluggerInterface $slugger,
         LineRepository $lines,
+        PhotoNormalizer $normalizer,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -122,6 +152,31 @@ final class LineCrudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $coverPhoto = $this->buildCoverPhoto($form, $user, $normalizer);
+            } catch (\Throwable) {
+                $this->addFlash('error', 'Titulní fotku se nepodařilo zpracovat. Zkus jiný soubor (JPG, PNG, WebP, HEIC).');
+
+                return $this->render('line_form/form.html.twig', [
+                    'form' => $form,
+                    'line' => $line,
+                    'mode' => 'edit',
+                    'queueProposal' => $queueProposal,
+                ]);
+            }
+
+            // Cover photo bypasses the verification/proposal trust model entirely — same as the
+            // standalone photo-upload flow (LinePhotoController), any logged-in user can already
+            // add/replace photos regardless of ownership. Commit it in its own flush so it
+            // survives the em->refresh() in the proposal branch below.
+            if ($coverPhoto !== null) {
+                $coverPhoto->setLine($line);
+                $em->persist($coverPhoto);
+                $line->setCoverPhoto($coverPhoto);
+                $em->flush();
+                $this->addFlash('success', 'Titulní fotka nahraná.');
+            }
+
             // Recompute length + midpoint from the (possibly changed) endpoints — applies to both
             // direct edit and proposal flow so the snapshot reflects the canonical derived values.
             $this->deriveGeometry($line);
@@ -133,9 +188,12 @@ final class LineCrudController extends AbstractController
                 $em->refresh($line);
 
                 // No-op submit (uživatel jen klikl Uložit bez změn) — neneřaduju prázdný návrh
-                // do queue. Bez tohohle by admin viděl proposal s prázdným diffem.
+                // do queue. Bez tohohle by admin viděl proposal s prázdným diffem. A cover photo
+                // change already committed above regardless, so only skip the info flash for it.
                 if ($this->diff($beforeSnapshot, $snapshot) === []) {
-                    $this->addFlash('info', 'Žádné změny — návrh se neukládal.');
+                    if ($coverPhoto === null) {
+                        $this->addFlash('info', 'Žádné změny — návrh se neukládal.');
+                    }
                     return $this->redirectToRoute('app_line_detail', ['slug' => $line->getSlug()]);
                 }
 
@@ -152,9 +210,12 @@ final class LineCrudController extends AbstractController
             } else {
                 $afterSnapshot = $this->snapshot($line);
                 if ($this->diff($beforeSnapshot, $afterSnapshot) === []) {
-                    // No-op direct edit — entitě sice projde flush (žádné změny), ale netřeba
-                    // zapisovat audit row, který nic neříká.
-                    $this->addFlash('info', 'Žádné změny — záznam historie se neukládal.');
+                    // No-op direct edit — netřeba zapisovat audit row, který nic neříká. Cover
+                    // photo change (pokud nějaká byla) už je commitnutá výš, tak jen neplašit
+                    // "žádné změny" hláškou, když se reálně něco nahrálo.
+                    if ($coverPhoto === null) {
+                        $this->addFlash('info', 'Žádné změny — záznam historie se neukládal.');
+                    }
                     return $this->redirectToRoute('app_line_detail', ['slug' => $line->getSlug()]);
                 }
 
@@ -402,6 +463,36 @@ final class LineCrudController extends AbstractController
         return $this->redirectToRoute('app_admin_proposals');
     }
 
+    /**
+     * Builds (but doesn't persist or attach to a Line) a LinePhoto from the form's
+     * unmapped coverPhotoFile field, normalizing it the same way as the standalone
+     * photo-upload flow (LinePhotoController::new()). Returns null when no file was
+     * uploaded. Caller is responsible for setLine() + setCoverPhoto() + persist().
+     *
+     * @throws \Throwable if the upload can't be processed — caller decides how to handle it
+     */
+    private function buildCoverPhoto(FormInterface $form, User $user, PhotoNormalizer $normalizer): ?LinePhoto
+    {
+        /** @var UploadedFile|null $upload */
+        $upload = $form->get('coverPhotoFile')->getData();
+        if ($upload === null) {
+            return null;
+        }
+
+        $normalized = $normalizer->normalize($upload->getPathname());
+
+        $photo = new LinePhoto();
+        $photo->setUploadedBy($user);
+        $photo->setFile(new UploadedFile($normalized->path, 'photo.webp', 'image/webp', null, true));
+        if ($normalized->takenAt !== null) {
+            $photo->setCreatedAt($normalized->takenAt);
+        }
+        $photo->setGps($normalized->gpsLat, $normalized->gpsLng);
+        $photo->setDimensions($normalized->width, $normalized->height);
+
+        return $photo;
+    }
+
     private function assertProposalCsrf(Request $request, LineEdit $edit, string $action): void
     {
         $token = (string) $request->request->get('_token', '');
@@ -445,6 +536,7 @@ final class LineCrudController extends AbstractController
             'type' => $h->getType()->value,
             'length' => $h->getLength(),
             'height' => $h->getHeight(),
+            'rating' => $h->getRating(),
             'point1Latitude' => $h->getPoint1Latitude(),
             'point1Longitude' => $h->getPoint1Longitude(),
             'point2Latitude' => $h->getPoint2Latitude(),
@@ -473,7 +565,8 @@ final class LineCrudController extends AbstractController
     {
         $h->setName((string) $s['name']);
         $h->setType(LineType::from((string) $s['type']));
-        $h->setHeight((int) $s['height']);
+        $h->setHeight(isset($s['height']) && $s['height'] !== null ? (int) $s['height'] : null);
+        $h->setRating(isset($s['rating']) && $s['rating'] !== null ? (int) $s['rating'] : null);
         $h->setPoint1Latitude(isset($s['point1Latitude']) ? (string) $s['point1Latitude'] : null);
         $h->setPoint1Longitude(isset($s['point1Longitude']) ? (string) $s['point1Longitude'] : null);
         $h->setPoint2Latitude(isset($s['point2Latitude']) ? (string) $s['point2Latitude'] : null);

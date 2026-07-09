@@ -58,7 +58,7 @@
 
     {% set flashes = app.flashes %}
     {% if flashes is not empty %}
-        <div class="container-fluid mt-3 d-flex flex-column gap-2">
+        <div class="container-fluid mt-2 mb-2 d-flex flex-column gap-2">
             {% for label, messages in flashes %}
                 {% for message in messages %}
                     <div class="alert alert-{{ {'error': 'danger', 'success': 'success', 'warning': 'warning', 'info': 'info'}[label]|default('info') }} alert-dismissible fade show mb-0" role="alert">

@@ -4,8 +4,13 @@ import L from 'leaflet';
 // deník, highline detail, highline form). Plain wheel scrolls the PAGE; only
 // Ctrl/⌘ + wheel zooms the map — the same convention as Google Maps. Leaflet's
 // built-in scrollWheelZoom can't gate on a modifier (it either eats every wheel
-// event or none), so we disable it and run a modifier-aware handler that mirrors
-// Leaflet's own debounced, zoom-to-cursor math for an identical feel.
+// event or none), so we disable it and run a modifier-aware handler instead.
+//
+// Zoom step: each debounced wheel gesture zooms by exactly one `zoomDelta` level,
+// the same increment the +/- buttons use, anchored under the cursor. (An earlier
+// version reproduced Leaflet's internal pixel-accumulation/sigmoid dampening —
+// tuned for smooth trackpad pinch gestures — which made a plain mouse wheel feel
+// much less responsive than the zoom buttons; this is simpler and matches them.)
 //
 // Not used on the dedicated /mapa page, where the map IS the content and plain
 // wheel-zoom is expected.
@@ -34,11 +39,8 @@ export function enableCtrlScrollZoom(map, { hint = true } = {}) {
     const performZoom = () => {
         timer = null;
         const zoom = map.getZoom();
-        const snap = map.options.zoomSnap || 0;
-        const d2 = delta / (map.options.wheelPxPerZoomLevel * 4);
-        const d3 = (4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2))))) / Math.LN2;
-        const d4 = snap ? Math.ceil(d3 / snap) * snap : d3;
-        const target = clamp(zoom + (delta > 0 ? d4 : -d4), map.getMinZoom(), map.getMaxZoom());
+        const step = map.options.zoomDelta || 1;
+        const target = clamp(zoom + (delta > 0 ? step : -step), map.getMinZoom(), map.getMaxZoom());
 
         delta = 0;
         startTime = 0;

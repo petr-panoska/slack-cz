@@ -5,9 +5,9 @@ namespace App\Form;
 use App\Entity\LineCrossing;
 use App\Enum\CrossingStyle;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -30,17 +30,11 @@ class LineCrossingForm extends AbstractType
                 'required' => false,
                 'placeholder' => '— neuvedeno —',
             ])
-            ->add('rating', ChoiceType::class, [
-                'label' => 'Hodnocení',
-                'choices' => [
-                    '★' => 1,
-                    '★★' => 2,
-                    '★★★' => 3,
-                    '★★★★' => 4,
-                    '★★★★★' => 5,
-                ],
+            // Rendered as a click-to-set star widget (rating-picker Stimulus controller,
+            // see crossing/form.html.twig) — HiddenType so form_widget() emits a plain
+            // <input type="hidden">, not a <select>.
+            ->add('rating', HiddenType::class, [
                 'required' => false,
-                'placeholder' => '— bez hodnocení —',
             ])
             ->add('comment', TextareaType::class, [
                 'label' => 'Komentář',

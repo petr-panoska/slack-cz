@@ -52,11 +52,11 @@ class RegistrationController extends AbstractController
                     ->htmlTemplate('registration/confirmation_email.html.twig')
             );
 
-            $this->addFlash('success', 'Thanks for registering! Please check your email to confirm your account.');
+            $this->addFlash('success', 'Děkujeme za registraci! Jestli chceš, můžeš o sobě uvést víc informací. Ať se daří 🍀');
 
             $security->login($user, 'form_login', 'main');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile_edit');
         }
 
         return $this->render('registration/register.html.twig', [

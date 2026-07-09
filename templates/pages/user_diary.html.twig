@@ -12,6 +12,8 @@
             <ul class="list-inline mb-0 small">
                 {% if profile.city %}<li class="list-inline-item me-4"><span class="meta-label">Město</span> {{ profile.city }}</li>{% endif %}
                 {% if profile.birthYear %}<li class="list-inline-item me-4"><span class="meta-label">Ročník</span> {{ profile.birthYear }}</li>{% endif %}
+                {# Telefon vidí jen přihlášení — komunitní sdílení kontaktu, ne veřejné. #}
+                {% if app.user and profile.phone %}<li class="list-inline-item me-4"><span class="meta-label">Telefon</span> {{ profile.phone }}</li>{% endif %}
                 {% if firstCrossingDate %}
                     <li class="list-inline-item me-4">
                         <span class="meta-label">První přechod</span>

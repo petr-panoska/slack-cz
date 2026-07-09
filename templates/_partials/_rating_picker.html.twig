@@ -1,0 +1,18 @@
+{# Klikací hvězdičkové hodnocení (celé hvězdy, žádné půlky).
+   Params:
+     field – form field (HiddenType, ?int 1–5), viz rating-picker Stimulus controller #}
+<div class="rating-picker" data-controller="rating-picker">
+    {{ form_widget(field, { attr: { 'data-rating-picker-target': 'input' } }) }}
+    <div class="rating-picker__stars">
+        {% for s in 5..1 %}
+            <button
+                type="button"
+                class="rating-picker__star{% if field.vars.value and s <= field.vars.value %} rating-picker__star--active{% endif %}"
+                data-rating-picker-target="star"
+                data-action="click->rating-picker#select"
+                data-rating-picker-value-param="{{ s }}"
+                aria-label="{{ s }} z 5 hvězd"
+            >★</button>
+        {% endfor %}
+    </div>
+</div>

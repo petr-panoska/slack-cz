@@ -1,0 +1,34 @@
+// --- Klikací hvězdičkové hodnocení (formulář lajny) -----------------------
+// Vzhled sladěný s .hl-rating-large na detailu lajny (stejné tokeny, ne
+// sdílené třídy) — jen tady navíc interaktivní.
+@use 'variables' as *;
+
+.rating-picker__stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+}
+
+.rating-picker__star {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--bs-border-color);
+    cursor: pointer;
+    transition: color 0.1s;
+}
+
+.rating-picker__star--active {
+    color: $brand;
+}
+
+// Hover preview „vyplní" hvězdy až po tu, nad kterou je kurzor — díky
+// row-reverse jsou v DOM sestupně (5..1), takže obecný sourozenecký
+// selektor chytí i ty vizuálně nalevo (nižší hodnoty).
+.rating-picker__star:hover,
+.rating-picker__star:hover ~ .rating-picker__star {
+    color: $brand;
+}

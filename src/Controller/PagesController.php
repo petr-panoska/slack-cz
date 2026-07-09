@@ -88,4 +88,10 @@ final class PagesController extends AbstractController
     {
         return $this->render('pages/intro.html.twig');
     }
+
+    #[Route('/ochrana-osobnich-udaju', name: 'app_privacy')]
+    public function privacy(): Response
+    {
+        return $this->render('pages/privacy.html.twig');
+    }
 }
