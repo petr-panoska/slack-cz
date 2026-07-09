@@ -1,10 +1,10 @@
-{# Renders a list of recent highline crossings (Bootstrap list-group,
-   meant to sit flush inside a .card).
-   Params:
-     crossings    – iterable of LineCrossing
-     show_line    – include the line name (default true). Set false on a line detail page where it's redundant.
-     show_user    – include the crossing author's name (default true). Set false on a user's own diary where it's redundant.
-     show_actions – render edit/delete buttons next to crossings owned by the current user. Set true on the user's own diary. #}
+{# Vykreslí seznam posledních přechodů (libovolný typ lajny — Bootstrap
+   list-group, má sedět zarovnaně uvnitř .card).
+   Parametry:
+     crossings    – iterovatelný seznam LineCrossing
+     show_line    – zobrazit název lajny (default true). Vypnuto na detailu lajny, kde by bylo nadbytečné.
+     show_user    – zobrazit jméno autora přechodu (default true). Vypnuto ve vlastním deníku, kde by bylo nadbytečné.
+     show_actions – vykreslit tlačítka upravit/smazat u přechodů patřících aktuálnímu userovi. Zapnuto ve vlastním deníku. #}
 {% set show_line = show_line ?? true %}
 {% set show_user = show_user ?? true %}
 {% set show_actions = show_actions ?? false %}

@@ -3,9 +3,9 @@
 namespace App\Enum;
 
 /**
- * Crossing styles, shared by highline and longline deníky. See
- * docs/crossing-styles.md for definitions. SWAMI / SOLO / KOTNIK are
- * leash/protection styles that only apply to highline — see appliesToLongline().
+ * Crossing styles, shared by the (any line type) deník and the legacy
+ * longline deník. See docs/crossing-styles.md for definitions. SWAMI / SOLO /
+ * KOTNIK are leash/protection styles that only apply to highline — see appliesToLongline().
  *
  * Important: OS_FM and OS_THEN_FM are different things — `OS, FM` (with comma)
  * means one direction OS, the other FM (clean but not first try). Don't merge them.

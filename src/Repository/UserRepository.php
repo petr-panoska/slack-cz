@@ -38,7 +38,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     /**
      * One row per active user for the public diary directory (`/denicky`):
-     * nick + name, highline & longline crossing counts, and last activity date
+     * nick + name, line & longline crossing counts, and last activity date
      * (newest of either crossing type). Already sorted for the no-JS render:
      * last activity DESC (users with no activity last), nick A→Z as tiebreak.
      *
@@ -47,7 +47,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      *     nick:?string,
      *     firstName:?string,
      *     lastName:?string,
-     *     highlineCount:int,
+     *     lineCrossingCount:int,
      *     longlineCount:int,
      *     lastActivity:?\DateTimeImmutable
      * }>
@@ -60,14 +60,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 'u.nick AS nick',
                 'u.firstName AS firstName',
                 'u.lastName AS lastName',
-                'COUNT(DISTINCT hc.id) AS highlineCount',
+                'COUNT(DISTINCT c.id) AS lineCrossingCount',
                 'COUNT(DISTINCT lc.id) AS longlineCount',
-                'MAX(hc.crossedAt) AS lastLine',
+                'MAX(c.crossedAt) AS lastLine',
                 'MAX(lc.crossedAt) AS lastLongline',
             )
             // Two collection LEFT JOINs fan out the rows — COUNT(DISTINCT) keeps the
             // counts honest, MAX is idempotent over the duplicates.
-            ->leftJoin(LineCrossing::class, 'hc', Join::WITH, 'hc.user = u')
+            ->leftJoin(LineCrossing::class, 'c', Join::WITH, 'c.user = u')
             ->leftJoin(LonglineCrossing::class, 'lc', Join::WITH, 'lc.user = u')
             ->where('u.isActive = true')
             ->groupBy('u.id') // u.id is PK → Postgres allows selecting nick/names without grouping them
@@ -92,7 +92,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 'nick' => $r['nick'],
                 'firstName' => $r['firstName'],
                 'lastName' => $r['lastName'],
-                'highlineCount' => (int) $r['highlineCount'],
+                'lineCrossingCount' => (int) $r['lineCrossingCount'],
                 'longlineCount' => (int) $r['longlineCount'],
                 'lastActivity' => $last,
             ];
