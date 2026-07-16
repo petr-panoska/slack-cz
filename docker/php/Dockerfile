@@ -9,7 +9,7 @@ RUN set -eux; \
     echo 'Acquire::AllowInsecureRepositories "true";' > /etc/apt/apt.conf.d/99allow-insecure-repos; \
     apt-get -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true update; \
     apt-get install -y --allow-unauthenticated --no-install-recommends \
-      zlib1g-dev libzip-dev libpng-dev libjpeg-dev libjpeg62-turbo-dev libfreetype6-dev unzip; \
+      zlib1g-dev libzip-dev libpng-dev libjpeg-dev libjpeg62-turbo-dev libfreetype6-dev unzip msmtp; \
     rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
