@@ -48,3 +48,8 @@ analytics.slack.cz {
 test.slack.cz {
 	reverse_proxy 127.0.0.1:8081
 }
+
+old.slack.cz {
+	# Nasměrování na Docker kontejner s legacy appkou
+	reverse_proxy 127.0.0.1:8090
+}
