@@ -2,7 +2,7 @@ services:
   php-apache:
     build: ./docker/php
     ports:
-      - 8090:80
+      - 127.0.0.1:8090:80
     links:
       - db:db
     volumes:
@@ -18,14 +18,4 @@ services:
       MYSQL_PASSWORD: 'user'
       MYSQL_ROOT_PASSWORD: 'password'
     ports:
-      - '3307:3306'
-    expose:
-      - '3306'
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    links:
-      - db:db
-    ports:
-      - 8091:80
-    environment:
-      UPLOAD_LIMIT: 3000000000
+      - '127.0.0.1:3307:3306'
