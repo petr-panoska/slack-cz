@@ -19,5 +19,5 @@ RUN a2enmod rewrite
 
 COPY --from=composer:2.2 /usr/bin/composer /usr/local/bin/composer
 
-#RUN composer install
-#RUN rm -rf temp/cache
+# Nastavení PHP, aby používalo msmtp pro odesílání mailů
+RUN echo "sendmail_path = \"/usr/bin/msmtp -t\"" > /usr/local/etc/php/conf.d/mail.ini

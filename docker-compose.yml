@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/var/www/html/
       - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./docker/php/msmtprc:/etc/msmtprc:ro
   db:
     image: mysql:5.7
     restart: always
