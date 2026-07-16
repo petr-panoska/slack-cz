@@ -43,3 +43,8 @@ analytics.slack.cz {
 	php_fastcgi unix//run/php/php8.3-fpm.sock
 	file_server
 }
+
+# Docker smoke test — hello-world kontejner (traefik/whoami), viz docs/deploy.md
+test.slack.cz {
+	reverse_proxy 127.0.0.1:8081
+}
