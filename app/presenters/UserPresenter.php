@@ -242,7 +242,7 @@ class UserPresenter extends BasePresenter
 
         $mail = new \Nette\Mail\Message();
         $mail
-            ->setFrom('Slack.cz <panda09823@gmail.com>')
+            ->setFrom('Slack.cz <no-reply@slack.cz>')
             ->addTo($user->getEmail())
             ->addBcc('panda098@centrum.cz')
             ->setSubject('Slack.cz - Obnova hesla')
