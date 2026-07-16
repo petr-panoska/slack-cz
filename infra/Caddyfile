@@ -52,4 +52,7 @@ test.slack.cz {
 old.slack.cz {
 	# Nasměrování na Docker kontejner s legacy appkou
 	reverse_proxy 127.0.0.1:8090
+
+	# Tento řádek automaticky přepíše všechny http:// assety na https:// přímo v prohlížeči
+    header Upgrade-Insecure-Requests "1"
 }
