@@ -18,10 +18,12 @@ class PhotoManager
     $fullPhotoPath = $userDir . DS . "profil_foto_full.jpg";
     $photoPath = $userDir . DS . "profil_foto.jpg";
 
-    // Zajisti, že adresář pro fotky uživatele existuje
+    // Zajisti, že adresář pro fotky uživatele existuje a má správná oprávnění
     if (!is_dir($userDir)) {
       @mkdir($userDir, 0777, true);
     }
+    // Přesune chmod na všechny existující podsložky (včetně nově vytvořené)
+    @chmod($userDir, 0777);
 
     if ($deletePrevious) {
       if (file_exists($fullPhotoPath)) {
@@ -41,7 +43,9 @@ class PhotoManager
       $image->resize(150, NULL, Image::SHRINK_ONLY);
       $image->save($photoPath);
     } catch (\Exception $e) {
-      //todo
+      // Log chybu pro debug
+      \Nette\Diagnostics\Debugger::log('Photo save failed: ' . $e->getMessage() . " | Dir: $userDir | Writable: " . (is_writable($userDir) ? 'YES' : 'NO'), \Nette\Diagnostics\Debugger::ERROR);
+      throw $e;
     }
   }
 }
