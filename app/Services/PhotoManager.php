@@ -11,6 +11,8 @@ class PhotoManager
    * @param int $userId
    * @param FileUpload $photo
    * @param bool $deletePrevious
+   * @throws \RuntimeException
+   * @throws \Exception
    */
   public function saveProfilePhoto($userId, $photo, $deletePrevious = false)
   {
@@ -18,25 +20,14 @@ class PhotoManager
     $fullPhotoPath = $userDir . DS . "profil_foto_full.jpg";
     $photoPath = $userDir . DS . "profil_foto.jpg";
 
-    \Nette\Diagnostics\Debugger::log("Cesta k adresáři: " . $userDir, \Nette\Diagnostics\Debugger::INFO);
-
-    // Zajisti, že adresář pro fotky uživatele existuje a má správná oprávnění
+    // Vytvoří adresář pro fotky uživatele, pokud neexistuje (s bezpečnými právy 0755)
     if (!is_dir($userDir)) {
-      $parentDir = dirname($userDir);
-      $mkdir_result = @mkdir($userDir, 0777, true);
-      
-      // Log výsledek mkdir pro debug
-      \Nette\Diagnostics\Debugger::log(
-        "mkdir($userDir) = " . ($mkdir_result ? 'OK' : 'FAILED') . 
-        " | Parent writable: " . (is_writable($parentDir) ? 'YES' : 'NO') . 
-        " | After: is_dir=" . (is_dir($userDir) ? 'YES' : 'NO'),
-        \Nette\Diagnostics\Debugger::INFO
-      );
+      if (!mkdir($userDir, 0755, true)) {
+        throw new \RuntimeException("Nepodařilo se vytvořit adresář pro uživatele: $userDir");
+      }
     }
-    
-    // Zkus nastavit chmod i když existuje
-    @chmod($userDir, 0777);
 
+    // Smazání předchozích fotek, pokud je vyžadováno
     if ($deletePrevious) {
       if (file_exists($fullPhotoPath)) {
         unlink($fullPhotoPath);
@@ -47,21 +38,18 @@ class PhotoManager
     }
 
     try {
+      // Uložení plné velikosti
       $imageFull = $photo->toImage();
       $imageFull->resize(900, NULL, Image::SHRINK_ONLY);
       $imageFull->save($fullPhotoPath);
 
+      // Uložení náhledu
       $image = $photo->toImage();
       $image->resize(150, NULL, Image::SHRINK_ONLY);
       $image->save($photoPath);
     } catch (\Exception $e) {
-      // Log chybu pro debug
-      \Nette\Diagnostics\Debugger::log(
-        'Photo save failed: ' . $e->getMessage() . 
-        " | Dir: $userDir | Exists: " . (is_dir($userDir) ? 'YES' : 'NO') . 
-        " | Writable: " . (is_writable($userDir) ? 'YES' : 'NO'),
-        \Nette\Diagnostics\Debugger::ERROR
-      );
+      // Logování neočekávané chyby při zpracování obrázku (např. poškozený upload)
+      \Nette\Diagnostics\Debugger::log($e, \Nette\Diagnostics\Debugger::ERROR);
       throw $e;
     }
   }
