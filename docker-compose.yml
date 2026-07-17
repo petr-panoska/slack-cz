@@ -1,6 +1,10 @@
 services:
   php-apache:
-    build: ./docker/php
+    build: 
+      context: ./docker/php
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     ports:
       - 127.0.0.1:8090:80
     links:
