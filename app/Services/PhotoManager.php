@@ -20,9 +20,19 @@ class PhotoManager
 
     // Zajisti, že adresář pro fotky uživatele existuje a má správná oprávnění
     if (!is_dir($userDir)) {
-      @mkdir($userDir, 0777, true);
+      $parentDir = dirname($userDir);
+      $mkdir_result = @mkdir($userDir, 0777, true);
+      
+      // Log výsledek mkdir pro debug
+      \Nette\Diagnostics\Debugger::log(
+        "mkdir($userDir) = " . ($mkdir_result ? 'OK' : 'FAILED') . 
+        " | Parent writable: " . (is_writable($parentDir) ? 'YES' : 'NO') . 
+        " | After: is_dir=" . (is_dir($userDir) ? 'YES' : 'NO'),
+        \Nette\Diagnostics\Debugger::INFO
+      );
     }
-    // Přesune chmod na všechny existující podsložky (včetně nově vytvořené)
+    
+    // Zkus nastavit chmod i když existuje
     @chmod($userDir, 0777);
 
     if ($deletePrevious) {
@@ -44,7 +54,12 @@ class PhotoManager
       $image->save($photoPath);
     } catch (\Exception $e) {
       // Log chybu pro debug
-      \Nette\Diagnostics\Debugger::log('Photo save failed: ' . $e->getMessage() . " | Dir: $userDir | Writable: " . (is_writable($userDir) ? 'YES' : 'NO'), \Nette\Diagnostics\Debugger::ERROR);
+      \Nette\Diagnostics\Debugger::log(
+        'Photo save failed: ' . $e->getMessage() . 
+        " | Dir: $userDir | Exists: " . (is_dir($userDir) ? 'YES' : 'NO') . 
+        " | Writable: " . (is_writable($userDir) ? 'YES' : 'NO'),
+        \Nette\Diagnostics\Debugger::ERROR
+      );
       throw $e;
     }
   }
