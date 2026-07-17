@@ -47,10 +47,10 @@ final class PublicPagesSmokeTest extends WebTestCase
         self::assertResponseIsSuccessful();
     }
 
-    public function testProfileRedirectsAnonymousUserToLogin(): void
+    public function testProfileEditRedirectsAnonymousUserToLogin(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/profil');
+        $client->request('GET', '/profil/uprava');
 
         self::assertResponseRedirects();
         self::assertStringContainsString(
