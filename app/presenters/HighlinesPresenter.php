@@ -384,6 +384,11 @@ class HighlinesPresenter extends BasePresenter
       if ($foto->isOk()) {
         $path = WWW_DIR . '/line/high/' . $this->getParam('id') . '/foto/';
 
+        // Zajisti, že adresář pro fotky lajny existuje
+        if (!is_dir($path)) {
+          @mkdir($path, 0777, true);
+        }
+
         // ulož obrazek
         $foto->move($path . $foto->getName());
 
