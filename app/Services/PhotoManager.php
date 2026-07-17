@@ -14,8 +14,14 @@ class PhotoManager
    */
   public function saveProfilePhoto($userId, $photo, $deletePrevious = false)
   {
-    $fullPhotoPath = USERS_DIR . DS . $userId . DS . "profil_foto_full.jpg";
-    $photoPath = USERS_DIR . DS . $userId . DS . "profil_foto.jpg";
+    $userDir = USERS_DIR . DS . $userId;
+    $fullPhotoPath = $userDir . DS . "profil_foto_full.jpg";
+    $photoPath = $userDir . DS . "profil_foto.jpg";
+
+    // Zajisti, že adresář pro fotky uživatele existuje
+    if (!is_dir($userDir)) {
+      @mkdir($userDir, 0777, true);
+    }
 
     if ($deletePrevious) {
       if (file_exists($fullPhotoPath)) {
