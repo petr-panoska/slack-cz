@@ -13,32 +13,39 @@
 //  vrstvy (zrcadlí kaskádu původního smíšeného stavu).
 // =====================================================================
 
-@use 'shell';
+@import "../../vendor/twbs/bootstrap/scss/functions";
+
+@import 'variables';
+
+@import '../../vendor/twbs/bootstrap/scss/bootstrap';
+
+@import 'breakpoints';
+@import 'root';
 
 // --- Porty legacy stránkových stylů (1:1, vzhled beze změny) ----------
-@use 'search';
-@use 'footer';
-@use 'intro';
-@use 'music';
-@use 'homepage';
-@use 'tv';
-@use 'photo';
-@use 'about';
-@use 'markdown';
-@use 'admin';
-@use 'proposals';
-@use 'map';
+@import 'search';
+@import 'footer';
+@import 'intro';
+@import 'music';
+@import 'homepage';
+@import 'tv';
+@import 'photo';
+@import 'about';
+@import 'markdown';
+@import 'admin';
+@import 'proposals';
+@import 'map';
 
 // --- Bootstrap theme + nové komponenty --------------------------------
-@use 'header';
-@use 'buttons';
-@use 'forms';
-@use 'line-form';
-@use 'line-detail';
-@use 'rating-picker';
-@use 'cards';
-@use 'gallery';
-@use 'tables';
-@use 'crossings';
-@use 'tabs';
-@use 'diary';
+@import 'header';
+@import 'buttons';
+@import 'forms';
+@import 'line-form';
+@import 'line-detail';
+@import 'rating-picker';
+@import 'cards';
+@import 'gallery';
+@import 'tables';
+@import 'crossings';
+@import 'tabs';
+@import 'diary';

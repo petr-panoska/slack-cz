@@ -1,0 +1,63 @@
+<?php
+
+namespace App;
+
+/**
+ * The single palette source for the account picker and map marker fallbacks.
+ */
+final class UserEmoji
+{
+    /** @var list<string> */
+    public const VALUES = [
+        // Positive faces
+        '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '🫠', '😉', '😊', '😇',
+        '🥰', '😍', '🤩', '😘', '😗', '☺️', '😚', '😙', '🥲', '😋', '😛', '😜', '🤪', '😝',
+        '🤗', '🤭', '🫢', '🤠', '🥳', '😎', '🤓',
+
+        // Living people (the neutral, unmodified forms)
+        '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧓', '👴', '👵',
+
+        // Friendly non-living characters with a face
+        '⛄', '🎃', '🤖',
+
+        // Fictional beings
+        '👻', '👽', '👾', '🤡', '👹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧌', '🧟', '🫈',
+
+        // Mammals
+        '🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝',
+        '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🫎', '🫏', '🐎', '🦄',
+        '🦓', '🦌', '🦬', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏',
+        '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁',
+        '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼',
+        '🦥', '🦦', '🦨', '🦘', '🦡',
+
+        // Living animal faces and gestures
+        '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊',
+
+        // Birds
+        '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉',
+        '🦤', '🦩', '🦚', '🦜', '🐦‍⬛', '🪿', '🐦‍🔥',
+
+        // Amphibians, reptiles and prehistoric creatures
+        '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖',
+
+        // Marine life
+        '🐳', '🐋', '🐬', '🫍', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🪸', '🪼',
+        '🦀', '🦞', '🦐', '🦑', '🦪',
+
+        // Invertebrates and microbes
+        '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🦂', '🦟',
+        '🪰', '🪱',
+    ];
+
+    /** @return array<string, string> */
+    public static function choices(): array
+    {
+        return array_combine(self::VALUES, self::VALUES);
+    }
+
+    public static function random(): string
+    {
+        return self::VALUES[array_rand(self::VALUES)];
+    }
+}

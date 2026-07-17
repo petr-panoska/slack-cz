@@ -7,6 +7,7 @@ use App\Feed\FeedFetcherInterface;
 use App\Form\UserForm;
 use App\Repository\LineCrossingRepository;
 use App\Repository\LinePhotoRepository;
+use App\UserEmoji;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,16 +26,7 @@ final class PagesController extends AbstractController
             'feed_items' => $feed->fetch(12),
             'recent_crossings' => $crossings->findRecent(),
             'recent_photos' => $photos->findRecentForHomepage(10),
-        ]);
-    }
-
-    #[Route('/profil', name: 'app_profile')]
-    public function profile(LineCrossingRepository $crossings): Response
-    {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
-        return $this->render('pages/profile.html.twig', [
-            'first_crossing_date' => $crossings->findFirstCrossingDate($this->getUser()),
+            'emoji_choices' => UserEmoji::VALUES,
         ]);
     }
 
@@ -52,7 +44,7 @@ final class PagesController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Profil byl uložen.');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_user_diary', ['id' => $user->getId()]);
         }
 
         return $this->render('pages/profile_edit.html.twig', [

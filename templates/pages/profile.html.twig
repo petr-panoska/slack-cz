@@ -11,45 +11,9 @@
 
                 <p><a href="{{ path('app_user_diary', {id: user.id}) }}">Můj deník →</a></p>
 
-                <dl class="row mb-4">
-                    <dt class="col-sm-4 text-body-secondary fw-medium">Email</dt>
-                    <dd class="col-sm-8">{{ user.email }}</dd>
+                
 
-                    {% if user.nick %}
-                        <dt class="col-sm-4 text-body-secondary fw-medium">Nick</dt>
-                        <dd class="col-sm-8">{{ user.nick }}</dd>
-                    {% endif %}
-
-                    {% if user.firstName or user.lastName %}
-                        <dt class="col-sm-4 text-body-secondary fw-medium">Jméno</dt>
-                        <dd class="col-sm-8">{{ user.firstName }} {{ user.lastName }}</dd>
-                    {% endif %}
-
-                    {% if user.city %}
-                        <dt class="col-sm-4 text-body-secondary fw-medium">Město</dt>
-                        <dd class="col-sm-8">{{ user.city }}</dd>
-                    {% endif %}
-
-                    {% if user.birthYear %}
-                        <dt class="col-sm-4 text-body-secondary fw-medium">Ročník</dt>
-                        <dd class="col-sm-8">{{ user.birthYear }}</dd>
-                    {% endif %}
-
-                    {% if user.phone %}
-                        <dt class="col-sm-4 text-body-secondary fw-medium">Telefon</dt>
-                        <dd class="col-sm-8">{{ user.phone }}</dd>
-                    {% endif %}
-
-                    {% if first_crossing_date %}
-                        <dt class="col-sm-4 text-body-secondary fw-medium">První přechod</dt>
-                        <dd class="col-sm-8">{{ first_crossing_date|date('j. n. Y') }}</dd>
-                    {% endif %}
-                </dl>
-
-                <div class="d-flex gap-2">
-                    <a class="btn btn-primary flex-fill" href="{{ path('app_profile_edit') }}">Upravit profil</a>
-                    <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_logout') }}">Odhlásit se</a>
-                </div>
+                
             </div>
         </div>
     </div>

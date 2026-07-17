@@ -7,7 +7,6 @@
 //  `navbar-expand-lg` / `d-lg-none`.
 //
 //  Použití (v .scss souborech importovaných z brand.scss):
-//      @use 'breakpoints' as *;
 //      .foo { @include media-down(md) { ... } }   // < 768px
 //      .bar { @include media-up(lg)   { ... } }   // ≥ 992px
 //

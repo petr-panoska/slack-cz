@@ -9,6 +9,7 @@ use App\Repository\LinePhotoCommentRepository;
 use App\Repository\LinePhotoLikeRepository;
 use App\Repository\LinePhotoRepository;
 use App\Repository\LineRepository;
+use App\UserEmoji;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +27,9 @@ final class LineController extends AbstractController
     #[Route('/mapa', name: 'app_line_map')]
     public function map(): Response
     {
-        return $this->render('pages/map.html.twig');
+        return $this->render('pages/map.html.twig', [
+            'emoji_choices' => UserEmoji::VALUES,
+        ]);
     }
 
     #[Route('/data-report', name: 'app_data_report', methods: ['GET'])]

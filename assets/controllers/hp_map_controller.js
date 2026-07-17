@@ -1,7 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 import { enableCtrlScrollZoom } from '../map_scroll_zoom.js';
@@ -15,7 +14,7 @@ import { enableCtrlScrollZoom } from '../map_scroll_zoom.js';
 //   data-controller="hp-map"  + canvas target
 //   each sidebar <li> = data-hp-map-target="item" with geometry data-* attrs:
 //     data-lat/lng (highline midpoint, fallback), data-p1-lat/lng, data-p2-lat/lng,
-//     data-user-id (picks the walker emoji)
+//     data-user-emoji (the user's selection; unselected users get a random fallback)
 
 const CZECH_CENTER = [49.8, 15.5];
 
@@ -32,6 +31,7 @@ const CELEBRATIONS = ['bounce', 'flip', 'spin', 'pop', 'wobble'];
 
 export default class extends Controller {
     static values = {
+        emojis: Array,
         iconUrl: String,
         iconRetinaUrl: String,
         shadowUrl: String,
@@ -135,7 +135,7 @@ export default class extends Controller {
         const p1 = coord(d.p1Lat, d.p1Lng);
         const p2 = coord(d.p2Lat, d.p2Lng);
         const mid = coord(d.lat, d.lng);
-        const emoji = emojiForUser(parseInt(d.userId, 10) || 0);
+        const emoji = emojiFor(d.userEmoji, this.emojisValue);
         const comment = d.comment || '';
 
         // Consecutive crossings on the same line share identical geometry. Flying to
@@ -278,6 +278,11 @@ function emojiIcon(emoji) {
         iconSize: [32, 32],
         iconAnchor: [16, 16],
     });
+}
+
+function emojiFor(selectedEmoji, choices) {
+    if (selectedEmoji) return selectedEmoji;
+    return choices[Math.floor(Math.random() * choices.length)];
 }
 
 function coord(lat, lng) {

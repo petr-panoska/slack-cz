@@ -3,8 +3,6 @@
 // škálované přes --ar), takže každý řádek má jednotnou výšku a fotky drží
 // přirozený poměr. ::after zhltne zbytek posledního řádku. Lišta roků je
 // sticky pod hlavičkou, aktivní rok přepíná gallery_nav_controller.
-@use 'variables' as *;
-@use 'breakpoints' as *;
 
 .gallery-years {
     position: sticky;

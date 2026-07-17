@@ -3,7 +3,9 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\UserEmoji;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -25,6 +27,16 @@ class UserForm extends AbstractType
         $phoneFormatMessage = 'Telefon zadej jako 9 nebo 12 číslic, volitelně s předvolbou + nebo 00 (např. 123456789, +420123456789).';
 
         $builder
+            ->add('emoji', ChoiceType::class, [
+                'label' => 'Emoji',
+                'choices' => UserEmoji::choices(),
+                'expanded' => true,
+                'choice_attr' => static fn (string $emoji): array => [
+                    'class' => 'emoji-picker__input',
+                    'data-emoji-picker-target' => 'input',
+                    'data-action' => 'change->emoji-picker#select',
+                ],
+            ])
             ->add('firstName', TextType::class, [
                 'label' => 'Jméno',
                 'required' => false,

@@ -1,7 +1,6 @@
 // --- Taby (Bootstrap nav-underline) ------------------------------------
 // Podtržený aktivní tab v brand barvě + linka pod celou lištou, aby
 // navázal na vzhled legacy .tabs (přepíná tabs_controller přes .active).
-@use 'variables' as *;
 
 .nav-underline {
     --bs-nav-link-color: var(--bs-secondary-color);

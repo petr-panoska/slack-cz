@@ -29,7 +29,6 @@ final class UserController extends AbstractController
         return $this->render('pages/user_diary.html.twig', [
             'profile' => $user,
             'crossings' => $crossings->findForUser($user),
-            'firstCrossingDate' => $crossings->findFirstCrossingDate($user),
             'mapLines' => $crossings->findUserLinesForMap($user),
             'longlineCrossings' => $longlines->findForUser($user),
         ]);

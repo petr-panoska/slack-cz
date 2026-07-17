@@ -6,7 +6,7 @@
 <article class="container-xl my-4">
     <header class="card mb-4">
         <div class="card-body">
-            <h1 class="h3 mb-1">{{ profile.displayName }}</h1>
+            <h1 class="h3 mb-1">{{ profile.emoji}} {{ profile.displayName }}</h1>
             {% set bits = [profile.firstName, profile.lastName]|filter(v => v)|join(' ') %}
             {% if bits %}<p class="text-body-secondary mb-3">{{ bits }}</p>{% endif %}
             <ul class="list-inline mb-0 small">
@@ -14,13 +14,14 @@
                 {% if profile.birthYear %}<li class="list-inline-item me-4"><span class="meta-label">Ročník</span> {{ profile.birthYear }}</li>{% endif %}
                 {# Telefon vidí jen přihlášení — komunitní sdílení kontaktu, ne veřejné. #}
                 {% if app.user and profile.phone %}<li class="list-inline-item me-4"><span class="meta-label">Telefon</span> {{ profile.phone }}</li>{% endif %}
-                {% if firstCrossingDate %}
-                    <li class="list-inline-item me-4">
-                        <span class="meta-label">První přechod</span>
-                        <time datetime="{{ firstCrossingDate|date('Y-m-d') }}">{{ firstCrossingDate|date('j. n. Y') }}</time>
-                    </li>
-                {% endif %}
             </ul>
+            {% if app.user and app.user.id == profile.id %}
+            <hr>
+                <p>Tohle vidíš jen Ty...</p>
+                <p>Email: {{ profile.email }}</p>
+                <a class="btn btn-primary btn-sm" href="{{ path('app_profile_edit') }}">Upravit profil</a>
+                <a class="btn btn-outline-primary btn-sm" href="#todo">Změnit heslo</a>
+            {% endif %}
         </div>
     </header>
 
@@ -31,6 +32,7 @@
         </nav>
 
         <div role="tabpanel" data-tabs-target="panel">
+            <div class="alert alert-primary" role="alert">🛈 Přechod zapíšeš v detailu konkrétní lajny. Mrkni do <a href="{{ path('app_line_map') }}">mapy</a>.</div>
             <div class="row g-4 align-items-start">
                 <div class="col-lg-6">
                     <section class="card overflow-hidden">

@@ -6,7 +6,7 @@
 <div class="form-page form-page--md">
     <div class="card">
         <div class="card-body p-4">
-            <a class="hl-back" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">← Longline deník</a>
+            <a class="hl-back mb-3" href="{{ path('app_user_diary', { id: longline.user.id }) }}#longline">← Longline deník</a>
             <h1 class="h4 mb-4">{{ mode == 'edit' ? 'Upravit longline přechod' : 'Nový longline přechod' }}</h1>
 
             {{ form_errors(form) }}

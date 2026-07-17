@@ -9,6 +9,7 @@
 <div
     class="line-map-wrapper"
     data-controller="map"
+    data-map-emojis-value="{{ emoji_choices|json_encode|e('html_attr') }}"
     data-map-data-url-value="{{ path('app_line_map_data') }}"
     data-map-users-url-value="{{ path('app_line_map_feed') }}"
     data-map-timeline-url-value="{{ path('app_line_map_timeline') }}"

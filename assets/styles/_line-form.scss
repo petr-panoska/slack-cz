@@ -2,8 +2,6 @@
 // Jen to, co Bootstrap nepokryje: overlay tlačítka nad Leafletem, výpočet
 // délky, fullscreen, panely bodů, živý URL panel. Layout/inputy řeší
 // Bootstrap (row/col, form-control) + _forms.scss.
-@use 'breakpoints' as *;
-@use 'variables' as *;
 
 .hl-form-lock {
     display: inline-block;

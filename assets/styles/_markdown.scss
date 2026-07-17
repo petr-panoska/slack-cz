@@ -1,7 +1,3 @@
-// --- Render markdown obsahu (wiki/docs) ---
-// Portnuto 1:1 z legacy app.css vrstvy (Fáze 3); vzhled beze změny.
-@use 'breakpoints' as *;
-
 /* ===== Markdown sections (/docs, /wiki) =====
    Single CSS namespace `.md-*` napříč všemi GitHub-backed MD sekcemi
    (`App\Markdown\Section\*`). Žádný per-sekci styl — vše per-class.

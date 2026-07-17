@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\RegistrationForm;
 use App\Repository\UserRepository;
 use App\Security\EmailVerifier;
+use App\UserEmoji;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,6 +29,7 @@ class RegistrationController extends AbstractController
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager): Response
     {
         $user = new User();
+        $user->setEmoji(UserEmoji::random());
         $form = $this->createForm(RegistrationForm::class, $user);
         $form->handleRequest($request);
 
@@ -93,6 +95,6 @@ class RegistrationController extends AbstractController
 
         $security->login($user, 'form_login', 'main');
 
-        return $this->redirectToRoute('app_profile');
+        return $this->redirectToRoute('app_user_diary', ['id' => $user->getId()]);
     }
 }

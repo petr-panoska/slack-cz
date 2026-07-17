@@ -1,5 +1,4 @@
 // --- Formuláře (Bootstrap form-control + bootstrap_5_layout theme) ----
-@use 'variables' as *;
 
 // Úzká formulářová stránka (login, registrace, obnova hesla…).
 // Širší varianta --md pro obsahovější formuláře (přechod, profil).
@@ -28,6 +27,136 @@
 .form-check-input:focus {
     border-color: rgba($brand, 0.5);
     box-shadow: 0 0 0 0.25rem rgba($brand, 0.15);
+}
+
+// Compact trigger on the form; the panel opens into a touch-friendly grid rather
+// than a single-column native select.
+.emoji-picker {
+    position: relative;
+    z-index: 1;
+}
+
+.emoji-picker__hint {
+    margin: 0 0 0.45rem;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+}
+
+.emoji-picker__menu[open] {
+    z-index: 2;
+}
+
+.emoji-picker__trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.75rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.55rem;
+    background: #fff;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid rgba($brand, 0.45);
+        outline-offset: 2px;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        margin-left: auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: transform 140ms ease;
+    }
+}
+
+.emoji-picker__menu[open] .emoji-picker__trigger {
+    border-color: rgba($brand, 0.6);
+    box-shadow: 0 0 0 0.25rem rgba($brand, 0.12);
+
+    svg { transform: rotate(180deg); }
+}
+
+.emoji-picker__selected {
+    display: grid;
+    width: 1.9rem;
+    height: 1.9rem;
+    place-items: center;
+    border-radius: 0.4rem;
+    background: var(--color-accent-muted);
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.emoji-picker__panel {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    width: min(100%, 28rem);
+    max-height: min(19rem, 52vh);
+    padding: 0.5rem;
+    overflow-y: auto;
+    border: 1px solid var(--color-line);
+    border-radius: 0.65rem;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(26, 26, 26, 0.16);
+}
+
+.emoji-picker__grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.emoji-picker__choice {
+    position: relative;
+}
+
+.emoji-picker__input {
+    position: absolute;
+    opacity: 0;
+}
+
+.emoji-picker__choice label {
+    display: grid;
+    min-height: 2.5rem;
+    margin: 0;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 0.45rem;
+    cursor: pointer;
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.emoji-picker__choice label:hover {
+    background: rgba($brand, 0.08);
+}
+
+.emoji-picker__input:checked + label {
+    border-color: $brand;
+    background: var(--color-accent-muted);
+}
+
+.emoji-picker__input:focus-visible + label {
+    outline: 2px solid rgba($brand, 0.45);
+    outline-offset: 1px;
+}
+
+@media (max-width: 380px) {
+    .emoji-picker__grid {
+        grid-template-columns: repeat(6, minmax(2.25rem, 1fr));
+    }
 }
 
 // Upozornění nad formulářem (proposal flow apod.) — brand akcent,

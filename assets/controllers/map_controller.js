@@ -5,7 +5,6 @@ import 'leaflet/dist/leaflet.css';
 // zoom animations — the cluster icon itself is ours (.map-cluster).
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.min.css';
-import { emojiForUser } from '../user_emoji.js';
 import { addBasemapPicker } from '../basemap.js';
 import { addFullscreenToggle } from '../map_fullscreen.js';
 import { addLocateControl } from '../map_locate.js';
@@ -46,6 +45,11 @@ function lineIcon(type) {
         iconSize: [18, 18],
         iconAnchor: [9, 9],
     });
+}
+
+function emojiFor(selectedEmoji, choices) {
+    if (selectedEmoji) return selectedEmoji;
+    return choices[Math.floor(Math.random() * choices.length)];
 }
 
 const STYLE_LABELS = {
@@ -122,6 +126,7 @@ const TIMELINE_DAYS_PER_SECOND = 30;
 
 export default class extends Controller {
     static values = {
+        emojis: Array,
         dataUrl: String,
         usersUrl: String,
         timelineUrl: String,
@@ -467,7 +472,7 @@ export default class extends Controller {
 
             list.forEach((u, i) => {
                 const offset = fanOffset(i, list.length);
-                const emoji = emojiForUser(u.userId);
+                const emoji = emojiFor(u.userEmoji, this.emojisValue);
                 const icon = L.divIcon({
                     className: 'user-circle-icon',
                     html: `<span class="user-emoji">${emoji}</span>`,
@@ -694,7 +699,7 @@ export default class extends Controller {
         const lng = parseFloat(h.longitude);
         if (Number.isNaN(lat) || Number.isNaN(lng)) return;
 
-        const emoji = emojiForUser(c.userId);
+        const emoji = emojiFor(c.userEmoji, this.emojisValue);
         const icon = L.divIcon({
             className: 'crossing-pulse-icon',
             html: `<span class="crossing-pulse-ring"></span><span class="crossing-pulse-emoji">${emoji}</span>`,

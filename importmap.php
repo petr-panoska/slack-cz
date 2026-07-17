@@ -36,21 +36,14 @@ return [
         'version' => '1.9.4',
         'type' => 'css',
     ],
-    'bootstrap' => [
-        'version' => '5.3.8',
-    ],
-    '@popperjs/core' => [
-        'version' => '2.11.8',
-    ],
-    'bootstrap/dist/css/bootstrap.min.css' => [
-        'version' => '5.3.8',
-        'type' => 'css',
-    ],
     'leaflet.markercluster' => [
         'version' => '1.5.3',
     ],
     'leaflet.markercluster/dist/MarkerCluster.min.css' => [
         'version' => '1.5.3',
         'type' => 'css',
+    ],
+    'bootstrap.bundle.js' => [
+        'path' => './vendor/twbs/bootstrap/dist/js/bootstrap.bundle.js',
     ],
 ];

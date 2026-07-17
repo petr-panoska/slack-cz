@@ -8,7 +8,7 @@
             <div class="card-body p-4">
                 <h1 class="h4 mb-4">Upravit profil</h1>
 
-                <div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+                <div class="alert alert-primary d-flex align-items-center gap-2" role="alert">
                     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="flex-shrink-0">
                         <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
                         <line x1="12" y1="11" x2="12" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -20,13 +20,32 @@
                 {{ form_errors(form) }}
 
                 {{ form_start(form) }}
+                    <div class="emoji-picker mb-4" data-controller="emoji-picker">
+                        <fieldset class="m-0 p-0 border-0">
+                            {{ form_label(form.emoji) }}
+                            <details class="emoji-picker__menu" data-emoji-picker-target="menu">
+                                <summary class="emoji-picker__trigger">
+                                    <span class="emoji-picker__selected" data-emoji-picker-target="selected">{{ form.emoji.vars.value }}</span>
+                                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5L10 12.5L15 7.5"/></svg>
+                                </summary>
+                                <div class="emoji-picker__panel">
+                                    <div class="emoji-picker__grid">
+                                        {% for choice in form.emoji %}
+                                            <div class="emoji-picker__choice">{{ form_widget(choice) }}{{ form_label(choice) }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </details>
+                            {{ form_errors(form.emoji) }}
+                        </fieldset>
+                    </div>
                     {% for field in [form.firstName, form.lastName, form.city, form.birthYear, form.phone] %}
                         {{ form_row(field) }}
                     {% endfor %}
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-fill">Uložit</button>
-                        <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_profile') }}">Zrušit</a>
+                        <a class="btn btn-outline-secondary flex-fill" href="{{ path('app_user_diary', {'id': app.user.id}) }}">Zrušit</a>
                     </div>
                 {{ form_end(form) }}
             </div>

@@ -1,7 +1,3 @@
-@use 'breakpoints' as *;
-
-/* ---------- Map page ---------- */
-
 /* Sidebar and map are isolated (no overlap): the viewport list counts lines in
    the whole visible map, so nothing may cover it. Desktop = side column + map,
    mobile = lines box on top, map below (see the media-down block). */

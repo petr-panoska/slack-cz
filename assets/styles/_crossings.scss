@@ -1,7 +1,6 @@
 // --- Seznam přechodů (Bootstrap list-group) ---------------------------
 // Sdílená komponenta: deníček, detail lajny, homepage panel. Grid drží
 // datum/styl/uživatele/hodnocení kompaktně i v úzkém sloupci na mobilu.
-@use 'variables' as *;
 
 .crossing-item {
     display: grid;

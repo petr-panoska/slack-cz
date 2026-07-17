@@ -252,8 +252,8 @@ Registrace (`RegistrationController::register()`) a doplnění profilu (`PagesCo
 
 - **`RegistrationForm`** (`/registrace`): `email`, **`nick`** (přesunuto sem z profilu — `NotBlank` + `Length(max:30)`, `UniqueEntity` na `User` hlídá kolizi), `password` (`NewPasswordType`), `agreeTerms` (checkbox se souhlasem se zpracováním osobních údajů, label s odkazem na `/ochrana-osobnich-udaju` renderovaný ručně v `register.html.twig` přes `form_row(..., {label_html: true})`, protože potřebuje `path()`).
 - **Nick se nastavuje jen při registraci a pak už ho nejde v appce změnit** — `UserForm` (druhý krok, `/profil/uprava`) ho záměrně neobsahuje. `User::nick` zůstává PHP-nullable (`?string`) i po zavedení `NotBlank` na formu — DB sloupec je pořád `NOT NULL`-free (nullable), validace na formu je jediná pojistka; legacy/importovaní useři bez nicku existují dál a `getDisplayName()` pro ně padá na email (viz níže).
-- **Po úspěšné registraci** — flash `success` s českým textem („Děkujeme za registraci! …") a **redirect rovnou na `app_profile_edit`** (dřív `app_profile`), aby user hned pokračoval k volitelným údajům. Email-verifikační flow (`verifyUserEmail()`) je beze změny (pořád anglická flash, `@TODO` v kódu, redirect na `app_profile`) — nebyl součástí téhle revize.
-- **`UserForm`** (`/profil/uprava`): firstName, lastName, city, birthYear, **phone** — všechno nepovinné, kdykoli editovatelné. Nahoře info box (Bootstrap `alert-info` + inline SVG ikonka, stejný vzor jako ostatní ručně kreslené ikony v appce) s textem „Vyplň dle libosti. Všechny údaje jsou nepovinné."
+- **Po úspěšné registraci** — flash `success` s českým textem („Děkujeme za registraci! …") a **redirect rovnou na `app_profile_edit`**, aby user hned pokračoval k volitelným údajům. Email-verifikační flow (`verifyUserEmail()`) je beze změny (pořád anglická flash, `@TODO` v kódu) — nebyl součástí téhle revize.
+- **`UserForm`** (`/profil/uprava`): firstName, lastName, city, birthYear, **phone** — všechno nepovinné, kdykoli editovatelné. Nahoře info box (Bootstrap `alert` + inline SVG ikonka, stejný vzor jako ostatní ručně kreslené ikony v appce) s textem „Vyplň dle libosti. Všechny údaje jsou nepovinné."
 - **`phone` — formát i viditelnost:** `Assert\Regex` `/^(\d{9}|(\+|00)?\d{12})$/` — buď přesně 9 číslic bez prefixu, nebo `+`/`00` + přesně 12 číslic (prefix se smí pojit **jen** s 12místným číslem). HTML `pattern` atribut zrcadlí stejný regex a `title` atribut nese stejnou hlášku jako server-side `Regex` constraint, takže i nativní „Please match the requested format" bublina prohlížeče je česky a srozumitelná. **Telefon je jediný profilový údaj, co není veřejný** — zobrazuje se jen přihlášeným uživatelům (`{% if app.user %}` na `/denik/{id}`, viz `user_diary.html.twig`); `firstName`/`lastName`/`city`/`birthYear`/`nick` jsou tam veřejně bez podmínky.
 
 ### Ochrana osobních údajů
@@ -297,7 +297,6 @@ Nová stránka `/ochrana-osobnich-udaju` (`app_privacy`, `PagesController::priva
 | `/o-projektu` | `app_about` | ✓ |
 | `/intro` | `app_intro` | ✓ splash overlay (zatím nelinkováno z nav) |
 | `/ochrana-osobnich-udaju` | `app_privacy` | ✓ GDPR shrnutí, viz § *Auth → Ochrana osobních údajů* |
-| `/profil` | `app_profile` | login required — vlastní profil (read-only) |
 | `/profil/uprava` | `app_profile_edit` | login required — formulář: jméno/příjmení/město/ročník/telefon |
 | `/prihlaseni`, `/registrace`, `/odhlaseni` | auth | ✓ — registrace je 2-krokový flow, viz § *Auth → Registrace* |
 | `/obnova-hesla`, `/obnova-hesla/zmena/{token}` | reset | ✓ |

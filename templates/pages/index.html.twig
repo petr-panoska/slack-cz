@@ -8,6 +8,7 @@
         <section
             class="card overflow-hidden"
             data-controller="hp-map"
+            data-hp-map-emojis-value="{{ emoji_choices|json_encode|e('html_attr') }}"
             data-hp-map-icon-url-value="{{ asset('images/leaflet/marker-icon.png') }}"
             data-hp-map-icon-retina-url-value="{{ asset('images/leaflet/marker-icon-2x.png') }}"
             data-hp-map-shadow-url-value="{{ asset('images/leaflet/marker-shadow.png') }}"
@@ -38,6 +39,7 @@
                             data-p2-lat="{{ c.line.point2Latitude }}"
                             data-p2-lng="{{ c.line.point2Longitude }}"
                             data-user-id="{{ c.user.id }}"
+                            data-user-emoji="{{ c.user.emoji }}"
                             data-comment="{{ c.comment }}"
                         >
                             <span class="hp-map__main">

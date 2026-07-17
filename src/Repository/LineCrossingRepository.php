@@ -70,17 +70,6 @@ class LineCrossingRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findFirstCrossingDate(User $user): ?\DateTimeImmutable
-    {
-        $value = $this->createQueryBuilder('c')
-            ->select('MIN(c.crossedAt)')
-            ->andWhere('c.user = :u')->setParameter('u', $user)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $value instanceof \DateTimeImmutable ? $value : null;
-    }
-
     /**
      * Unique lines crossed by a user — used to render the deník mini-map.
      *
@@ -128,6 +117,7 @@ class LineCrossingRepository extends ServiceEntityRepository
      *     lineId:int,
      *     userId:int,
      *     userDisplayName:string,
+     *     userEmoji:?string,
      *     crossedAt:string,
      *     rating:?int,
      *     style:?string
@@ -144,6 +134,7 @@ class LineCrossingRepository extends ServiceEntityRepository
                 'c.style AS style',
                 'u.nick AS nick',
                 'u.email AS email',
+                'u.emoji AS emoji',
             )
             ->join('c.user', 'u')
             ->orderBy('c.crossedAt', 'ASC')
@@ -156,6 +147,7 @@ class LineCrossingRepository extends ServiceEntityRepository
                 'lineId' => (int) $r['lineId'],
                 'userId' => (int) $r['userId'],
                 'userDisplayName' => $r['nick'] ?? (string) $r['email'],
+                'userEmoji' => $r['emoji'] !== null ? (string) $r['emoji'] : null,
                 'crossedAt' => $r['crossedAt']->format('Y-m-d'),
                 'rating' => $r['rating'] !== null ? (int) $r['rating'] : null,
                 'style' => $r['style'] instanceof \BackedEnum ? $r['style']->value : ($r['style'] ?? null),
@@ -180,7 +172,8 @@ class LineCrossingRepository extends ServiceEntityRepository
      *     latitude:string,
      *     longitude:string,
      *     userId:int,
-     *     userDisplayName:string
+     *     userDisplayName:string,
+     *     userEmoji:?string
      * }>
      */
     public function findRecentForJson(?int $limit = null): array
@@ -210,7 +203,8 @@ class LineCrossingRepository extends ServiceEntityRepository
      *     latitude:string,
      *     longitude:string,
      *     userId:int,
-     *     userDisplayName:string
+     *     userDisplayName:string,
+     *     userEmoji:?string
      * }>
      */
     public function findForFeedInRange(\DateTimeImmutable $from, \DateTimeImmutable $to): array
@@ -243,6 +237,7 @@ class LineCrossingRepository extends ServiceEntityRepository
                 'u.id AS userId',
                 'u.nick AS nick',
                 'u.email AS email',
+                'u.emoji AS emoji',
             )
             ->join('c.line', 'h')
             ->join('c.user', 'u');
@@ -253,7 +248,7 @@ class LineCrossingRepository extends ServiceEntityRepository
      * @return array{
      *     id:int, crossedAt:string, rating:?int, style:?string, styleLabel:?string,
      *     comment:?string, lineSlug:string, lineName:string,
-     *     latitude:string, longitude:string, userId:int, userDisplayName:string
+     *     latitude:string, longitude:string, userId:int, userDisplayName:string, userEmoji:?string
      * }
      */
     private function mapFeedRow(array $r): array
@@ -274,6 +269,7 @@ class LineCrossingRepository extends ServiceEntityRepository
             'longitude' => (string) $r['longitude'],
             'userId' => (int) $r['userId'],
             'userDisplayName' => $r['nick'] ?? (string) $r['email'],
+            'userEmoji' => $r['emoji'] !== null ? (string) $r['emoji'] : null,
         ];
     }
 }

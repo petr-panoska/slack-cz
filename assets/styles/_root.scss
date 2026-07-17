@@ -1,7 +1,3 @@
-// --- Globální shell: CSS proměnné + overflow guardy -------------------
-@use 'variables' as *;
-@use 'breakpoints' as *;
-
 :root {
     --header-height: 72px;
 
@@ -26,6 +22,8 @@
     --bs-link-color-rgb: 225, 0, 91;
     --bs-link-hover-color: #{$brand-dark};
     --bs-link-hover-color-rgb: 184, 0, 74;
+
+    --bs-alert-padding-y: 0.5rem;
 }
 
 // --- Konec bočního scrollu + prostor pod fixní hlavičkou -------------

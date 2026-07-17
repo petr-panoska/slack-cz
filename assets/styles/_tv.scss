@@ -1,7 +1,3 @@
-// --- slackTV: stránka /tv + homepage strip, slidery ---
-// Portnuto 1:1 z legacy app.css vrstvy (Fáze 3); vzhled beze změny.
-@use 'breakpoints' as *;
-
 /* slackTV teaser on the homepage — full-width horizontal scroll strip. */
 .tv-strip {
     list-style: none;

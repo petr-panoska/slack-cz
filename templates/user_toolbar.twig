@@ -43,10 +43,50 @@
             </div>
 
             {% if app.user %}
-                <a href="{{ path('app_profile') }}" class="btn btn-sm btn-outline-secondary d-none d-lg-inline-flex text-truncate" style="max-width: 14rem;">{{ app.user.email }}</a>
-                <form method="post" action="{{ path('app_logout') }}" class="d-none d-lg-block m-0">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">Odhlásit</button>
-                </form>
+                <div class="dropdown site-user-menu d-none d-lg-block">
+                    <button
+                        class="site-user-menu__toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        aria-label="Otevřít uživatelské menu"
+                    >
+                        <span class="site-user-menu__meta">
+                            <span class="site-user-menu__avatar" aria-hidden="true">{{ app.user.emoji ?? '👤' }}</span>
+                            <span class="site-user-menu__label text-truncate">{{ app.user.nick }}</span>
+                        </span>
+                        <svg class="site-user-menu__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end site-user-menu__menu">
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_user_diary', {'id': app.user.id}) }}">
+                                <span class="site-user-menu__icon" aria-hidden="true">
+                                    <svg viewBox="0 0 20 20" fill="none">
+                                        <path d="M10 10.5C8.07 10.5 6.5 8.93 6.5 7C6.5 5.07 8.07 3.5 10 3.5C11.93 3.5 13.5 5.07 13.5 7C13.5 8.93 11.93 10.5 10 10.5ZM4 15.5C4.95 13.8 6.82 12.75 10 12.75C13.18 12.75 15.05 13.8 16 15.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                                    </svg>
+                                </span>
+                                <span>Profil</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{{ path('app_logout') }}" class="m-0">
+                                <button type="submit" class="dropdown-item site-user-menu__logout">
+                                    <span class="site-user-menu__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 20 20" fill="none">
+                                            <path d="M7.5 5.5H6.25C5.56 5.5 5 6.06 5 6.75V13.25C5 13.94 5.56 14.5 6.25 14.5H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                                            <path d="M8.5 10H14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                                            <path d="M13 7.75L15.25 10L13 12.25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                    <span>Odhlásit se</span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             {% else %}
                 <a href="{{ path('app_login') }}" class="btn btn-sm btn-primary d-none d-lg-inline-flex">Přihlásit</a>
             {% endif %}
@@ -108,7 +148,7 @@
                 {% if app.user %}
                     {# Mobilní user akce (na desktopu jsou v pravém clusteru). #}
                     <div class="d-lg-none border-top pt-3 mt-3">
-                        <a href="{{ path('app_profile') }}" class="d-block mb-2 text-truncate">{{ app.user.email }}</a>
+                        <a href="{{ path('app_user_diary', {'id': app.user.id}) }}" class="d-block mb-2 text-truncate">{{ app.user.email }}</a>
                         <form method="post" action="{{ path('app_logout') }}" class="m-0">
                             <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Odhlásit</button>
                         </form>

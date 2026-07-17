@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\UserEmoji;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -144,6 +145,7 @@ final class ImportUsersCommand extends Command
             $user->setRoles($this->mapRoles((string) ($canonical['role'] ?? 'guest')));
             $user->setIsActive((int) $canonical['enabled'] === 1);
             $user->setIsVerified(true); // legacy users are considered verified
+            $user->setEmoji(UserEmoji::random());
 
             $user->setLegacyMergedIds(array_map(fn ($r) => (int) $r['id'], $dropped));
             $user->setLegacyDataSnapshot([

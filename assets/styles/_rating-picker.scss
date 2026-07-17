@@ -1,7 +1,6 @@
 // --- Klikací hvězdičkové hodnocení (formulář lajny) -----------------------
 // Vzhled sladěný s .hl-rating-large na detailu lajny (stejné tokeny, ne
 // sdílené třídy) — jen tady navíc interaktivní.
-@use 'variables' as *;
 
 .rating-picker__stars {
     display: flex;

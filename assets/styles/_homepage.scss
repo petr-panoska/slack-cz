@@ -1,7 +1,3 @@
-// --- Homepage: mapa s přechody, galerie, walker animace ---
-// Portnuto 1:1 z legacy app.css vrstvy (Fáze 3); vzhled beze změny.
-@use 'breakpoints' as *;
-
 /* ---------- Homepage map panel (merged map + crossings) ---------- */
 /* Block `.hp-map` (data-controller="hp-map"): a scrollable list of recent
    crossings driving a single-crossing Leaflet preview (walker animation).

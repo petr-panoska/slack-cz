@@ -2,8 +2,6 @@
 // Layout stránky řeší Bootstrap (row/col + vstack v šabloně); tady jen
 // věci bez Bootstrap ekvivalentu — fullscreen hero, stat dlaždice,
 // foto grid a Leaflet markery.
-@use 'breakpoints' as *;
-@use 'variables' as *;
 
 // --- Cover hero ---------------------------------------------------------
 .hl-cover {
