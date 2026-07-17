@@ -1,3 +1,18 @@
+        {% set music_tracks = [
+            { title: 'Night Train',               artist: 'Octosound',                 src: asset('audio/octosound-night-train-175993.mp3') },
+            { title: 'Dark Wave 80s Retro Vibes', artist: 'nickpanekAIassets',         src: asset('audio/nickpanekaiassets-dark-wave-80s-retro-vibes.mp3') },
+            { title: 'Neonscapes',                artist: 'FSM Team feat. <e s c p>', src: asset('audio/fsm_team-neonscapes.mp3') },
+            { title: 'Magenta Metropolis',        artist: 'FSM Team feat. <e s c p>', src: asset('audio/fsm_team-magenta-metropolis.mp3') },
+            { title: 'Strange Time',              artist: 'Artur Aravidi',             src: asset('audio/artur_aravidi_music-dark-synthwave-strange-time-317273.mp3') },
+            { title: 'Calm Space',                artist: 'Clavier',                   src: asset('audio/clavier-music-calm-space-music-312291.mp3') },
+            { title: 'Interstellar',              artist: 'Elisaveta Stoycheva',       src: asset('audio/elisaveta_stoycheva-interstellar-355703.mp3') },
+            { title: 'Cyberpunk Techno',          artist: 'HumanStudioEDM',            src: asset('audio/humanstudioedm-cyberpunk-techno-510219.mp3') },
+            { title: 'Interstellar Drip II',      artist: 'lazarosv',                  src: asset('audio/lazarosv-interstellar-drip-ii-337275.mp3') },
+            { title: '80s Retrowave',             artist: 'REDproductions',            src: asset('audio/redproductions-80s-retrowave-synthwave-retro-synthpop-futuristic-electro-pop-music-20596.mp3') },
+            { title: 'Synth Things',              artist: 'REDproductions',            src: asset('audio/redproductions-synth-things-video-film-game-tv-music-185938.mp3') },
+            { title: 'Suspense Cyberpunk',        artist: 'The Mountain',              src: asset('audio/the_mountain-suspense-cyberpunk-375986.mp3') },
+        ] %}
+        
         {# Persistent across Turbo navigations — id+turbo-permanent keeps the audio playing through page swaps. #}
         <div
             id="music-player"

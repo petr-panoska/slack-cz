@@ -43,16 +43,12 @@
             </div>
 
             {% if app.user %}
-                {# Na mobilu je profil/odhlášení v offcanvasu; tady jen na ≥lg. #}
                 <a href="{{ path('app_profile') }}" class="btn btn-sm btn-outline-secondary d-none d-lg-inline-flex text-truncate" style="max-width: 14rem;">{{ app.user.email }}</a>
                 <form method="post" action="{{ path('app_logout') }}" class="d-none d-lg-block m-0">
                     <button type="submit" class="btn btn-sm btn-outline-secondary">Odhlásit</button>
                 </form>
             {% else %}
-                {# Auth tlačítka jen na ≥lg — na mobilu je „Přihlásit" v offcanvasu
-                   (v headeru zůstává jen logo + hamburger). Registrace přes login stránku. #}
                 <a href="{{ path('app_login') }}" class="btn btn-sm btn-primary d-none d-lg-inline-flex">Přihlásit</a>
-                <a href="{{ path('app_register') }}" class="btn btn-sm btn-outline-primary d-none d-lg-inline-flex">Registrovat</a>
             {% endif %}
 
             <button
@@ -98,8 +94,8 @@
                     <li class="nav-item"><a href="{{ path('app_user_directory') }}" class="nav-link {{ route starts with 'app_user_' ? 'active' }}">Deníčky</a></li>
                     <li class="nav-item"><a href="{{ path('app_gallery') }}" class="nav-link {{ route == 'app_gallery' ? 'active' }}">Galerie</a></li>
                     <li class="nav-item"><a href="{{ path('app_tv') }}" class="nav-link {{ route == 'app_tv' ? 'active' }}">slackTV</a></li>
-                    <li class="nav-item"><a href="{{ path('app_about') }}" class="nav-link {{ route == 'app_about' ? 'active' }}">O projektu</a></li>
                     <li class="nav-item"><a href="{{ path('app_wiki_index') }}" class="nav-link {{ route starts with 'app_wiki_' ? 'active' }}">Wiki</a></li>
+                    <li class="nav-item"><a href="{{ path('app_about') }}" class="nav-link {{ route == 'app_about' ? 'active' }}">O projektu</a></li>
                     {% if app.user %}
                         <li class="nav-item"><a href="{{ path('app_line_new') }}" class="nav-link {{ route == 'app_line_new' ? 'active' }}">+ Lajna</a></li>
                     {% endif %}
@@ -127,10 +123,3 @@
         </div>
     </div>
 </nav>
-
-{# slackvibes intro splash + hudební přehrávač — DOČASNĚ VYPNUTO (použijeme později).
-   Přepni intro_enabled na true a celá feature (vstupní overlay + audio player) je zpět. #}
-{% set intro_enabled = false %}
-{% if intro_enabled %}
-    {% include '_partials/_music_player.twig' %}
-{% endif %}
