@@ -14,11 +14,11 @@ class PhotoManager
    */
   public function saveProfilePhoto($userId, $photo, $deletePrevious = false)
   {
-    \Nette\Diagnostics\Debugger::log("Cesta k adresáři: " . $userDir, \Nette\Diagnostics\Debugger::INFO);
-    
     $userDir = USERS_DIR . DS . $userId;
     $fullPhotoPath = $userDir . DS . "profil_foto_full.jpg";
     $photoPath = $userDir . DS . "profil_foto.jpg";
+
+    \Nette\Diagnostics\Debugger::log("Cesta k adresáři: " . $userDir, \Nette\Diagnostics\Debugger::INFO);
 
     // Zajisti, že adresář pro fotky uživatele existuje a má správná oprávnění
     if (!is_dir($userDir)) {
