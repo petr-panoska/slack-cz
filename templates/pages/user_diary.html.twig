@@ -32,7 +32,9 @@
         </nav>
 
         <div role="tabpanel" data-tabs-target="panel">
-            <div class="alert alert-primary" role="alert">🛈 Přechod zapíšeš v detailu konkrétní lajny. Mrkni do <a href="{{ path('app_line_map') }}">mapy</a>.</div>
+            {% if profile.id == app.user.id %}
+                <div class="alert alert-primary" role="alert">🛈 Přechod zapíšeš v detailu konkrétní lajny. Mrkni do <a href="{{ path('app_line_map') }}">mapy</a>.</div>
+            {% endif %}
             <div class="row g-4 align-items-start">
                 <div class="col-lg-6">
                     <section class="card overflow-hidden">

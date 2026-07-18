@@ -53,72 +53,11 @@
 }
 
 .site-user-menu {
-    .site-user-menu__toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.65rem;
-        max-width: 15rem;
-        min-height: 2.5rem;
-        padding: 0.3rem 0.5rem 0.3rem 0.35rem;
-        border: 1px solid var(--color-line, #e5e5e5);
-        border-radius: 0.65rem;
-        background: var(--color-header-bg, #fff);
-        color: var(--color-fg, #1a1a1a);
-        font: inherit;
-        line-height: 1;
-        cursor: pointer;
-        transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-    }
-
-    .site-user-menu__toggle:hover,
-    .site-user-menu__toggle.show {
-        border-color: rgba(225, 0, 91, 0.45);
-        box-shadow: 0 3px 10px rgba(225, 0, 91, 0.1);
-        transform: translateY(-1px);
-    }
-
-    .site-user-menu__toggle:focus-visible {
-        outline: 2px solid rgba(225, 0, 91, 0.35);
-        outline-offset: 2px;
-    }
-
-    .site-user-menu__meta {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.55rem;
-        min-width: 0;
-    }
-
-    .site-user-menu__avatar {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.85rem;
-        height: 1.85rem;
-        border-radius: 0.45rem;
-        background: var(--color-accent-muted, #fce4ef);
-        color: var(--color-fg, #1a1a1a);
-        font-size: 1.2rem;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-
-    .site-user-menu__label {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--color-fg, #1a1a1a);
-        letter-spacing: 0.01em;
-    }
-
     .site-user-menu__chevron {
-        width: 0.9rem;
-        height: 0.9rem;
+        width: 1rem;
+        height: 1rem;
         color: var(--color-muted, #6b6b6b);
         transition: transform 160ms ease;
-        flex-shrink: 0;
     }
 
     .site-user-menu__toggle.show .site-user-menu__chevron {

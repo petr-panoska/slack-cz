@@ -45,16 +45,14 @@
             {% if app.user %}
                 <div class="dropdown site-user-menu d-none d-lg-block">
                     <button
-                        class="site-user-menu__toggle"
+                        class="btn btn-sm btn-hollow site-user-menu__toggle"
                         type="button"
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
                         aria-label="Otevřít uživatelské menu"
                     >
-                        <span class="site-user-menu__meta">
-                            <span class="site-user-menu__avatar" aria-hidden="true">{{ app.user.emoji ?? '👤' }}</span>
-                            <span class="site-user-menu__label text-truncate">{{ app.user.nick }}</span>
-                        </span>
+                        <span class="site-user-menu__avatar" aria-hidden="true">{{ app.user.emoji ?? '👤' }}</span>
+                        <span class="site-user-menu__label">{{ app.user.nick }}</span>   
                         <svg class="site-user-menu__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -146,17 +144,18 @@
                 </ul>
 
                 {% if app.user %}
-                    {# Mobilní user akce (na desktopu jsou v pravém clusteru). #}
                     <div class="d-lg-none border-top pt-3 mt-3">
-                        <a href="{{ path('app_user_diary', {'id': app.user.id}) }}" class="d-block mb-2 text-truncate">{{ app.user.email }}</a>
+                        <a href="{{ path('app_user_diary', {'id': app.user.id}) }}" class="btn btn-sm btn-hollow mb-2">
+                            <span class="" aria-hidden="true">{{ app.user.emoji ?? '👤' }}</span>
+                            <span class="text-truncate">{{ app.user.nick }}</span>
+                        </a>
                         <form method="post" action="{{ path('app_logout') }}" class="m-0">
-                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Odhlásit</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Odhlásit</button>
                         </form>
                     </div>
                 {% else %}
-                    {# Mobilní přihlášení (na desktopu je v pravém clusteru). #}
                     <div class="d-lg-none border-top pt-3 mt-3">
-                        <a href="{{ path('app_login') }}" class="btn btn-primary w-100">Přihlásit</a>
+                        <a href="{{ path('app_login') }}" class="btn btn-sm btn-primary">Přihlásit</a>
                     </div>
                 {% endif %}
             </div>
