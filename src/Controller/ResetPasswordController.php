@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\ChangePasswordForm;
+use App\Form\NewPasswordType;
 use App\Form\ResetPasswordRequestForm;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -105,7 +105,7 @@ class ResetPasswordController extends AbstractController
         }
 
         // The token is valid; allow the user to change their password.
-        $form = $this->createForm(ChangePasswordForm::class);
+        $form = $this->createForm(NewPasswordType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -113,7 +113,7 @@ class ResetPasswordController extends AbstractController
             $this->resetPasswordHelper->removeResetRequest($token);
 
             /** @var string $plainPassword */
-            $plainPassword = $form->get('password')->get('plainPassword')->getData();
+            $plainPassword = $form->get('plainPassword')->getData();
 
             // Encode(hash) the plain password, and set it.
             $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
@@ -122,7 +122,7 @@ class ResetPasswordController extends AbstractController
             // The session is cleaned up after the password has been changed.
             $this->cleanSessionAfterReset();
 
-            $this->addFlash('success', 'Your password has been reset successfully!');
+            $this->addFlash('success', 'Heslo bylo úspěšně změněno!');
 
             $security->login($user);
 

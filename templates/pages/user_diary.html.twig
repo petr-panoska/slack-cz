@@ -20,7 +20,7 @@
                 <p>Tohle vidíš jen Ty...</p>
                 <p>Email: {{ profile.email }}</p>
                 <a class="btn btn-primary btn-sm" href="{{ path('app_profile_edit') }}">Upravit profil</a>
-                <a class="btn btn-outline-primary btn-sm" href="#todo">Změnit heslo</a>
+                <a class="btn btn-outline-primary btn-sm" href="{{ path('app_change_password') }}">Změnit heslo</a>
             {% endif %}
         </div>
     </header>

@@ -9,8 +9,8 @@
                 <h1 class="h4 mb-4">Nastav nové heslo</h1>
 
                 {{ form_start(resetForm) }}
-                    {{ form_row(resetForm.password.plainPassword.first, { label: 'Nové heslo' }) }}
-                    {{ form_row(resetForm.password.plainPassword.second, { label: 'Heslo znovu' }) }}
+                    {{ form_row(resetForm.plainPassword.first, { label: 'Nové heslo' }) }}
+                    {{ form_row(resetForm.plainPassword.second, { label: 'Heslo znovu' }) }}
 
                     {{ form_errors(resetForm) }}
 
