@@ -38,6 +38,47 @@
     color: var(--bs-secondary-color);
 }
 
+.registration-availability {
+    min-height: 1.25rem;
+    margin-top: 0.35rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+}
+
+.registration-availability[data-state='available'] {
+    color: var(--bs-success-text-emphasis);
+}
+
+.registration-availability[data-state='unavailable'],
+.registration-availability[data-state='invalid'] {
+    color: var(--bs-danger-text-emphasis);
+}
+
+.registration-availability__field {
+    position: relative;
+}
+
+// Browser autofill can override an input's background image. Render the
+// Bootstrap invalid glyph as a separate layer so it is reliable in both cases.
+.registration-availability__field .form-control.is-invalid {
+    background-image: none !important;
+}
+
+.registration-availability__icon {
+    display: none;
+    position: absolute;
+    right: $input-padding-x;
+    width: $input-height-inner-half;
+    height: $input-height-inner-half;
+    transform: translateY(-50%);
+    background: escape-svg($form-feedback-icon-invalid) center / contain no-repeat;
+    pointer-events: none;
+}
+
+.form-control.is-invalid ~ .registration-availability__icon {
+    display: block;
+}
+
 // Compact trigger on the form; the panel opens into a touch-friendly grid rather
 // than a single-column native select.
 .emoji-picker {

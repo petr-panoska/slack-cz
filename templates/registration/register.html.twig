@@ -14,9 +14,21 @@
 
                 {{ form_errors(registrationForm) }}
 
-                {{ form_start(registrationForm) }}
-                    {{ form_row(registrationForm.email, { label: 'Email' }) }}
-                    {{ form_row(registrationForm.nick) }}
+                {{ form_start(registrationForm, { attr: {
+                    'data-controller': 'registration-availability',
+                    'data-registration-availability-url-value': path('app_registration_availability'),
+                    'data-action': 'submit->registration-availability#submit',
+                } }) }}
+                    {{ form_row(registrationForm.email, { label: 'Email', attr: {
+                        'data-registration-availability-target': 'field',
+                        'data-registration-availability-field-param': 'email',
+                        'data-action': 'input->registration-availability#schedule blur->registration-availability#check',
+                    } }) }}
+                    {{ form_row(registrationForm.nick, { attr: {
+                        'data-registration-availability-target': 'field',
+                        'data-registration-availability-field-param': 'nick',
+                        'data-action': 'input->registration-availability#schedule blur->registration-availability#check',
+                    } }) }}
                     {{ form_row(registrationForm.password, { label: false, row_attr: { class: 'mb-0' } }) }}
                     {{ form_row(registrationForm.agreeTerms, {
                         label: 'Souhlasím se <a href="' ~ path('app_privacy') ~ '" target="_blank" rel="noopener">zpracováním osobních údajů</a>',

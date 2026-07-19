@@ -1,0 +1,22 @@
+framework:
+    rate_limiter:
+        registration_availability_burst:
+            policy: token_bucket
+            limit: 30
+            rate: { interval: '1 minute', amount: 30 }
+
+        registration_availability_sustained:
+            policy: fixed_window
+            limit: 200
+            interval: '1 hour'
+
+        registration_availability:
+            policy: compound
+            limiters:
+                - registration_availability_burst
+                - registration_availability_sustained
+
+        registration_submission:
+            policy: fixed_window
+            limit: 5
+            interval: '1 hour'
