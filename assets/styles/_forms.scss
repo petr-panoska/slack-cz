@@ -33,6 +33,11 @@
     box-shadow: 0 0 0 0.25rem rgba($brand, 0.15);
 }
 
+.password-strength {
+    margin-top: 0.5rem;
+    color: var(--bs-secondary-color);
+}
+
 // Compact trigger on the form; the panel opens into a touch-friendly grid rather
 // than a single-column native select.
 .emoji-picker {

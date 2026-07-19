@@ -25,6 +25,11 @@ class NewPasswordType extends AbstractType
                     ],
                 ],
                 'first_options' => [
+                    'attr' => [
+                        'autocomplete' => 'new-password',
+                        'data-controller' => 'password-strength',
+                        'data-action' => 'input->password-strength#update',
+                    ],
                     'constraints' => [
                         new NotBlank([
                             'message' => 'Zadej heslo.',
