@@ -1,0 +1,19 @@
+[Unit]
+Description=Encrypted offsite backup of the slack.cz legacy MySQL database
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/slack-cz-backup-legacy-db
+User=root
+Group=root
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/etc/slack-cz-backup /run/lock /var/tmp
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

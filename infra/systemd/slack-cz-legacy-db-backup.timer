@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily offsite backup of the slack.cz legacy MySQL database
+
+[Timer]
+OnCalendar=*-*-* 03:17:00 Europe/Prague
+RandomizedDelaySec=20m
+Persistent=true
+Unit=slack-cz-legacy-db-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -12,6 +12,7 @@ Je míněn primárně pro vývojáře projektu (CAS).
 - [`audio-player.md`](audio-player.md) — slackvibes 📻 přehrávač (states, storage, controller internals)
 - [`dev.md`](dev.md) — operační cheat sheet (Docker, console, DB, cache, smoke testy)
 - [`deploy.md`](deploy.md) — produkce (Hetzner VPS, Caddy, `make deploy`, `.github/workflows/deploy.yml`)
+- [`backups.md`](backups.md) — offsite zálohy, kontrola běhu a obnova
 - [`roadmap.md`](roadmap.md) — strategická rozhodnutí do budoucna (Symfony 8.x upgrade assessment)
 - [`todo.md`](todo.md) — otevřené úkoly napříč projektem
 
@@ -33,6 +34,7 @@ Je míněn primárně pro vývojáře projektu (CAS).
 | Cokoli kolem `slackvibes` audio playeru | `audio-player.md` |
 | Pochopit `App\Markdown\Section\*` (jak `/docs` a `/wiki` jedou ze stejného kódu) | `architecture.md` § *Markdown sections* |
 | Deployovat (`make deploy`, GH Actions) | `deploy.md` § *Deploy* |
+| Zkontrolovat nebo obnovit zálohu legacy DB | `backups.md` |
 | Vědět, co se má ještě udělat | `todo.md` |
 
 ## Konvence

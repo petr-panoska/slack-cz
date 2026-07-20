@@ -8,6 +8,11 @@ přeorganizované nahoru podle toho, co dává smysl dělat teď.)
 
 ## Teď — dává smysl udělat
 
+### Zálohy
+- [x] **Legacy MySQL mimo VPS** (2026-07-21) — denní `mysqldump` → gzip → age → bezplatný Google Drive přes rclone, retence 90 dní, systemd timer. Ověřen úplný restore do čistého MySQL 5.7 (46 tabulek, 254 highlines). Runbook v `backups.md`.
+- [x] **Druhá kopie privátního age recovery klíče** (2026-07-21) — uložená v rootu backup Google Drivu, mimo `slack-cz-backups`.
+- [ ] **Nová aplikace** — později doplnit PostgreSQL + `public/uploads`; teď není kritické.
+
 ### Intro
 Stránka `/intro` hotová (`app_intro` + seed citáty), ale zatím nelinkovaná z nav.
 - [ ] Rozhodnout, jak a kde Intro ukázat uživatelům (homepage onboarding? první návštěva? odkaz v menu?).

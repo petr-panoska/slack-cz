@@ -418,7 +418,7 @@ Než se `slack.cz` přepne z legacy kontejneru na novou Symfony aplikaci:
 4. **Caddyfile pro `slack.cz`** — existující blok v `infra/Caddyfile` dnes proxyuje legacy kontejner. Při cutoveru ho nahraď konfigurací Symfony webrootu/PHP-FPM analogickou k `beta.slack.cz`, zachovej foto cache matcher a rozhodni redirect `www` → apex. Pak `make deployCaddy`.
 5. **YouTube API key** — dostat reálnou hodnotu do `.env.local` (`YOUTUBE_API_KEY`) pro slackTV feed. (`/docs` + `/wiki` už žádný GitHub token nepotřebují — MD se čte z lokálního checkoutu.)
 6. **(volitelné) `unattended-upgrades`** pro automatické security patche.
-7. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.
+7. **Legacy DB backup je aktivní** — denní šifrovaný dump mimo VPS; provoz a obnova viz [`backups.md`](backups.md). Záloha PostgreSQL a uploadů nové aplikace je samostatný navazující úkol.
 
 ## Gotchas (z reálného setupu, nech tu, ať to nezblbneš znovu)
 
