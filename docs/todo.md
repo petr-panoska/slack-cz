@@ -1,6 +1,6 @@
 # TODO
 
-Otevřené úkoly napříč projektem. **Seřazeno podle priority.** (revize 2026-07-09 —
+Otevřené úkoly napříč projektem. **Seřazeno podle priority.** (revize 2026-07-20 —
 kompletní revize: hotové věci přesunuté do archivu na konci souboru, otevřené
 přeorganizované nahoru podle toho, co dává smysl dělat teď.)
 
@@ -19,7 +19,7 @@ před ostrou doménou.
 - [ ] **`MAILER_DSN` přes externí SMTP relay** (Brevo / Mailgun / Postmark) — Hetzner blokuje port 25 outbound. Dokud nejede, fallback: `bin/console app:user:reset-password <email>`. Odblokuje i admin/autor notifikace u verifikací (viz níž).
 - [ ] **Fotky na betu** — `public/uploads/line/*` jsou mimo git i mimo `pg_dump`. `make syncBetaFromLocal` veze jen DB → po lokálním importu ještě **`make syncBetaPhotos`** (rsync masterů), jinak `line_photo` řádky ukazují na neexistující soubory.
 - [ ] **DNS swap** — A pro `slack.cz` z legacy IP na `178.105.81.158` + AAAA (gray cloud, DNS-only).
-- [ ] **`slack.cz` blok do `infra/Caddyfile`** (analogický k `beta.slack.cz`) + `make deployCaddy`.
+- [x] **`slack.cz` + `www.slack.cz` blok v `infra/Caddyfile`** — zatím proxyuje legacy aplikaci na `127.0.0.1:8090`; při cutoveru se přepne na Symfony webroot/PHP-FPM.
 - [ ] Po DNS swapu přepsat `DEFAULT_URI` v `/var/www/slack-cz/.env.local` z `https://beta.slack.cz` na `https://slack.cz` + reload PHP-FPM.
 - [ ] Zkontrolovat `LineController::PRODUCTION_URL` (`https://www.slack.cz`) — používá ji `/data-report` pro proklik na legacy detail; upravit, pokud se prod host změní.
 - [ ] Nastavit reálné `YOUTUBE_API_KEY` v `.env.local` na serveru pro slackTV feed.
@@ -54,7 +54,7 @@ Vyžaduje ruční sběr materiálu, ne jen dev práci.
 
 ### Údržba / drobnosti
 - [ ] Rozšířit smoke testy o DB-backed routy (`/`, `/mapa`, `/denik/{id}`, …) — vyžaduje test DB se schématem.
-- [ ] Přidat `/registrace` (a další form-rendering routy) do smoke testů až po deprecation cleanupu — render `RegistrationForm` teď spouští přímé array-option constraint deprecations. Viz `roadmap.md` deprecation checklist.
+- [ ] Rozšířit smoke testy o `/registrace` a další form-rendering routy; registrace už má samostatné testy validace a availability endpointu, chybí ale plný render/submit smoke test.
 - [ ] Default Symfony `hello_controller.js` v `assets/controllers/` smazat až bude místo něj něco užitečného.
 - [ ] Restrikce `YOUTUBE_API_KEY` v Google Cloud Console (HTTP referrers + jen YouTube Data API v3) — teď bez restrikce. (nízká)
 - [ ] Po nasazení produkce rotovat `YOUTUBE_API_KEY`. (nízká)
@@ -139,6 +139,9 @@ Vyžaduje ruční sběr materiálu, ne jen dev práci.
 - [x] **Matomo self-hosted analytics** (2026-07-09) — `analytics.slack.cz`, native PHP+MariaDB (ne Docker, sedí na existující prod stack), cookieless tracking gated na `app.environment == 'prod'`. Provisioning v `scripts/setup-server.sh`/`check-server-env.sh` + `infra/Caddyfile`, rollout popsaný v `deploy.md` § Analytics. Cestou nalezen a opravený leak (DB credentials soubor krátce dostupný přes web — přesunuto mimo Caddy `root`). Rollout kompletně dokončen a ověřen na provozu.
 
 ### Registrace + profil + ochrana osobních údajů (2026-07-09)
+- [x] **Dostupnost emailu a nicku za běhu** (2026-07-20) — Stimulus volá `POST /registrace/dostupnost`; server znovu validuje vstup, odpovědi necachuje a compound limiter omezuje burst i hodinový provoz. Samotný submit má oddělený limit 5/h na IP.
+- [x] **Indikátor síly hesla** (2026-07-19) — `password_strength_controller.js` dává okamžitou zpětnou vazbu, serverová validace zůstává autoritativní.
+- [x] **Volba emoji účtu** (2026-07-17) — jediný zdroj palety `App\UserEmoji`; používá ho registrace, profil a mapové markery.
 - [x] **Nick přesunut do registrace** — `RegistrationForm` má nově `nick` (`NotBlank` + `Length(max:30)`, `UniqueEntity` na `User` hlídá kolizi), `UserForm` (`/profil/uprava`) ho ztratil. **Nick se dá nastavit jen při registraci a pak už ho v appce nejde změnit** — vědomé rozhodnutí, ne opomenutí.
 - [x] **Redirect po registraci → rovnou na `app_profile_edit`**, flash zpráva přepsaná z anglického Symfony-scaffold textu na český: „Děkujeme za registraci! Jestli chceš, můžeš o sobě uvést víc informací. Ať se daří 🍀". Email-verifikační flow (`verifyUserEmail()`) záměrně beze změny (mimo scope).
 - [x] **`agreeTerms` checkbox napojený na reálnou stránku** — dřív odkazoval na neexistující „podmínky používání". Přelabelováno na souhlas se zpracováním osobních údajů, link na `/ochrana-osobnich-udaju` (`form_row(..., {label_html: true})` s `path()`, ne natvrdo napsaná URL). Validační hláška přeformulovaná odpovídajícně.

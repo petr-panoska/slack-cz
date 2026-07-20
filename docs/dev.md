@@ -209,7 +209,7 @@ docker compose exec -T php sh -c '
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8000/mapa
 
 # vidět konkrétní content
-curl -s http://localhost:8000/mapa | grep -oE 'feed-item|panel-map' | sort -u
+curl -s http://localhost:8000/mapa | grep -oE 'line-feed|map-panel' | sort -u
 
 # JSON endpoint — všechny highlines pro markery
 curl -s http://localhost:8000/mapa/data | head -c 500

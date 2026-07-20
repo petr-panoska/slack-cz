@@ -1,6 +1,6 @@
 # Deploy / produkce
 
-Staging instance nové Symfony aplikace běží na **<https://beta.slack.cz>**. Cutover na `slack.cz` ještě neproběhl — legacy PHP app stále běží na starém boxu (`154.43.62.26`).
+Staging instance nové Symfony aplikace běží na **<https://beta.slack.cz>**. Cutover na `slack.cz` ještě neproběhl; veřejné `slack.cz` nyní Caddy na novém VPS proxyuje do kontejneru s legacy aplikací na `127.0.0.1:8090`.
 
 Kompletní audit setup procesu je na produkčním serveru v `/root/deploy.log` (`ssh deploy@... && sudo cat /root/deploy.log`). Tenhle dokument je high-level reference; deploy.log je ground truth co se reálně spustilo.
 
@@ -14,7 +14,7 @@ Tři prostředí:
 | **CI** | GitHub Actions (`.github/workflows/deploy.yml`) | ephemeral Ubuntu runner. Triggered push do `main` + `workflow_dispatch`. Joby: `preflight` → `deploy`. | YAML inlinuje `ssh ... 'bash -s' < scripts/<X>.sh`, žádný copy-paste z `deploy.sh` |
 
 > Repo má **druhý** workflow `.github/workflows/symfony.yml` (původně skeletonový default „Symfony" — `composer install` + `vendor/bin/phpunit` na push/PR, **SQLite**, bez migrací). Teď v něm běží `tests/Controller/PublicPagesSmokeTest.php` — smoke testy DB-free veřejných rout (`/o-projektu`, `/prihlaseni`, `/wiki`, `/wiki/{slug}`, `/docs`, `/docs/{slug}` → 200; `/profil` → redirect na login). `/wiki` + `/docs` čtou MD z lokálního checkoutu (`FilesystemFetcher`), takže žádná síť. DB-backed routy (`/`, `/mapa`) jsou schválně mimo, protože CI nemá DB schema. Rozšíření čeká na test DB se schématem + deprecation cleanup formulářů — viz `todo.md` a `roadmap.md`.
-| **Prod (beta.slack.cz)** | Hetzner CX22 (`178.105.81.158`), Ubuntu 24.04 | **Native** PHP 8.3 + Postgres 16 + Caddy + ufw + fail2ban. Žádný Docker. App v `/var/www/slack-cz` jako `deploy` user. | Skripty v `scripts/`, viz tabulka níž |
+| **Prod (beta.slack.cz)** | Hetzner CX22 (`178.105.81.158`), Ubuntu 24.04 | Symfony app: **native** PHP 8.3 + Postgres 16 + Caddy + ufw + fail2ban. App v `/var/www/slack-cz` jako `deploy` user; Docker se používá jen pro dočasně proxyovanou legacy app. | Skripty v `scripts/`, viz tabulka níž |
 
 Pět skriptů drží celou prod stranu. **Skript = spec.** Když přidáš novou závislost (PHP extension, writable dir, env klíč), updatuj patřičný skript ve stejném commitu jako kód — další deploy padne fail-fast, dokud server nedoinstaluješ.
 
@@ -84,7 +84,7 @@ ssh -i ~/.ssh/slack_cz_prod deploy@178.105.81.158
 | `fail2ban` | aktivní, default jail `sshd` (5 fails / 10 min → 10 min ban) |
 | Automatické security upgrades | dosud manuální, plánovat `unattended-upgrades` |
 
-## Stack (native, žádný Docker)
+## Stack Symfony aplikace (native, bez Dockeru)
 
 | Vrstva | Komponenta | Verze | Endpoint |
 |---|---|---|---|
@@ -227,7 +227,7 @@ records dřív než Caddy site block" níž. Postup (vše `hotovo` 2026-07-08):
 4. ~~Install wizard na `https://analytics.slack.cz/`, website „slack.cz"~~ — **hotovo**, `MATOMO_SITE_ID=1`.
 5. ~~`.env.local`: `MATOMO_URL=https://analytics.slack.cz`, `MATOMO_SITE_ID=1`~~ — **hotovo**.
 6. ~~`sudo systemctl reload php8.3-fpm`~~ — **hotovo**.
-7. **Zbývá:** appkód (tracking snippet v `base.html.twig` + twig globals) je zatím jen v tomhle commitu, na serveru ještě neběží — čeká na `make deploy`. Po deployi ověř: `curl -s https://beta.slack.cz/ | grep -c _paq` má být nenulové.
+7. ~~Nasadit appkód s tracking snippetem a Twig globals~~ — **hotovo**. Průběžná kontrola: `curl -s https://beta.slack.cz/ | grep -c _paq` má být nenulové.
 
 Tracking snippet v `templates/base.html.twig` je gated na `app.environment == 'prod'`
 a obě proměnné neprázdné — dev/test/lokál mají vždy no-op bez ohledu na to, co
@@ -406,7 +406,7 @@ sudo systemctl restart fail2ban
 
 ## Cutover na slack.cz — TODO
 
-Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
+Než se `slack.cz` přepne z legacy kontejneru na novou Symfony aplikaci:
 
 1. **Doimport legacy dat** — lokálně dotáhnout MySQL → Postgres user/highline/crossing import (částečně hotovo dle `migration.md`), pak `pg_dump` z lokálu, `pg_restore` na produkci.
    - **Fotky zvlášť:** legacy foto import (`make importLegacyPhotos`) běží **jen lokálně** (potřebuje legacy MySQL + soubory z `../old-slack-cz`, ani jedno na betě není). Výsledné WebP mastery v `public/uploads/line/*` jsou mimo `pg_dump` → po importu **`make syncBetaPhotos`** (rsync masterů na betu), jinak `line_photo` řádky (jdou přes `make syncBetaFromLocal`) ukazují na neexistující soubory. `syncBetaFromLocal` veze jen DB, `syncBetaPhotos` soubory — páruj je. (Nové user uploady na betě se normalizují přímo tam — proto tam ImageMagick + exiftool.) Sloupce `line_photo.width/height` (potřebuje je `/galerie`) přijdou s dumpem; kdyby na serveru zůstaly NULL (DB syncnutá před 2026-07-04 bez re-syncu), dorovná je jednorázově `bin/console app:photo:backfill-dimensions`.
@@ -415,7 +415,7 @@ Než se traffic přepne ze starého `154.43.62.26` na nový VPS:
    - Změnit A z legacy IP na `178.105.81.158`
    - Přidat AAAA na `2a01:4f8:1c18:6966::1`
    - Gray cloud (DNS-only) kvůli Caddy auto-HTTPS
-4. **Caddyfile pro `slack.cz`** — v `infra/Caddyfile` přidat blok analogický k `beta.slack.cz` (sdílejí `@photos` matcher). Pokud chceme `www.slack.cz` redirect na apex, přidat redir block. Pak `make deployCaddy`.
+4. **Caddyfile pro `slack.cz`** — existující blok v `infra/Caddyfile` dnes proxyuje legacy kontejner. Při cutoveru ho nahraď konfigurací Symfony webrootu/PHP-FPM analogickou k `beta.slack.cz`, zachovej foto cache matcher a rozhodni redirect `www` → apex. Pak `make deployCaddy`.
 5. **YouTube API key** — dostat reálnou hodnotu do `.env.local` (`YOUTUBE_API_KEY`) pro slackTV feed. (`/docs` + `/wiki` už žádný GitHub token nepotřebují — MD se čte z lokálního checkoutu.)
 6. **(volitelné) `unattended-upgrades`** pro automatické security patche.
 7. **(volitelné) snapshot/backup** přes Hetzner Cloud — pravidelné snapshoty disku stojí ~20 % ceny serveru.

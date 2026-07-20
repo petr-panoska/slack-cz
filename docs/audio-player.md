@@ -108,7 +108,7 @@ Default UX: většina návštěvníků klikne „Vstoupit" → tichý vstup. Kdo
 
 - `templates/user_toolbar.twig` — markup (player + login/register)
 - `assets/controllers/intro_controller.js` — Stimulus controller (~270 řádků)
-- `assets/styles/app.css` — `.music-panel`, `.music-mute`, `.music-mini`, `.music-eq`, `.music-close`, `.music-controls` etc.
+- `assets/styles/_music.scss` — styly BEM bloku `.music-panel`; načítá je manifest `assets/styles/app.scss`
 - `public/audio/*.mp3` — stopy (128 kbps stereo)
 - `var/audio-original/*.mp3` — gitignored zálohy před re-encodingem
 
