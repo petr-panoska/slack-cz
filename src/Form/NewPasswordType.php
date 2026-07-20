@@ -31,15 +31,13 @@ class NewPasswordType extends AbstractType
                         'data-action' => 'input->password-strength#update',
                     ],
                     'constraints' => [
-                        new NotBlank([
-                            'message' => 'Zadej heslo.',
-                        ]),
-                        new Length([
-                            'min' => 6,
-                            'minMessage' => 'Heslo musí mít aspoň {{ limit }} znaků.',
+                        new NotBlank(message: 'Zadej heslo.'),
+                        new Length(
+                            min: 6,
+                            minMessage: 'Heslo musí mít aspoň {{ limit }} znaků.',
                             // max length allowed by Symfony for security reasons
-                            'max' => 4096,
-                        ]),
+                            max: 4096,
+                        ),
                         // new PasswordStrength(),
                         // new NotCompromisedPassword(),
                     ],

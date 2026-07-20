@@ -16,9 +16,7 @@ class ChangePasswordForm extends AbstractType
             ->add('currentPassword', PasswordType::class, [
                 'label' => 'Aktuální heslo',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Zadej své aktuální heslo.',
-                    ]),
+                    new NotBlank(message: 'Zadej své aktuální heslo.'),
                 ],
                 'attr' => [
                     'autocomplete' => 'current-password',

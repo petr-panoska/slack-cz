@@ -42,9 +42,7 @@ class RegistrationForm extends AbstractType
                 // Twig path(), ne natvrdo napsané URL tady.
                 'mapped' => false,
                 'constraints' => [
-                    new IsTrue([
-                        'message' => 'Pro registraci musíš souhlasit se zpracováním osobních údajů.',
-                    ]),
+                    new IsTrue(message: 'Pro registraci musíš souhlasit se zpracováním osobních údajů.'),
                 ],
             ])
             ->add('password', NewPasswordType::class, [
