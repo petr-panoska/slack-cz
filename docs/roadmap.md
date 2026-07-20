@@ -65,10 +65,9 @@ Tyhle reálně potkáme; část jde uklidit hned na 7.4 jako bezriziková příp
       `'account_status'`) — ověřit `config/packages/security.yaml`.
 - [x] **Stateless CSRF** (`framework.csrf_protection.check_header: true`) — **už máme**
       (přišlo s 7.4 recepty, `config/packages/ux_turbo.yaml`), to je rovnou 8.x směr.
-- [ ] **Validator constraints: array options → named arguments** (`symfony/validator` 7.3
-      deprecation). `RegistrationForm` už používá named arguments pro email/nick,
-      ale `agreeTerms` a `NewPasswordType` stále obsahují array konstrukci; stejným
-      způsobem projít i ostatní formuláře.
+- [x] **Validator constraints: array options → named arguments** (`symfony/validator` 7.3
+      deprecation). Formuláře používají named arguments; ověřeno celým PHPUnit
+      suite bez deprecations (2026-07-21).
 
 Detekce: `php bin/phpunit --display-deprecations`. `PublicPagesSmokeTest` pokrývá
 DB-free veřejné routy; každý další smoke test form-rendering routy funguje zároveň
