@@ -3,8 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\ForgotEmailNickForm;
+use App\Form\ForgotEmailVerificationForm;
 use App\Form\NewPasswordType;
 use App\Form\ResetPasswordRequestForm;
+use App\Repository\UserRepository;
+use App\Service\EmailMasker;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,6 +16,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -51,6 +56,77 @@ class ResetPasswordController extends AbstractController
 
         return $this->render('reset_password/request.html.twig', [
             'requestForm' => $form,
+        ]);
+    }
+
+    #[Route('/zapomenuty-email', name: 'app_forgot_email')]
+    public function forgotEmail(
+        Request $request,
+        UserRepository $userRepository,
+        EmailMasker $emailMasker,
+        MailerInterface $mailer,
+        TranslatorInterface $translator,
+    ): Response {
+        $session = $request->getSession();
+        $candidateId = $session->get('forgot_email_user_id');
+        $candidate = is_int($candidateId) ? $userRepository->find($candidateId) : null;
+
+        if (!$candidate instanceof User || !$candidate->isActive()) {
+            $session->remove('forgot_email_user_id');
+            $candidate = null;
+        }
+
+        if ($request->query->has('znovu')) {
+            $session->remove('forgot_email_user_id');
+
+            return $this->redirectToRoute('app_forgot_email');
+        }
+
+        if ($candidate === null) {
+            $nickForm = $this->createForm(ForgotEmailNickForm::class);
+            $nickForm->handleRequest($request);
+
+            if ($nickForm->isSubmitted() && $nickForm->isValid()) {
+                /** @var string $nick */
+                $nick = $nickForm->get('nick')->getData();
+                $candidate = $userRepository->findActiveOneByNick($nick);
+
+                if ($candidate instanceof User) {
+                    $session->set('forgot_email_user_id', $candidate->getId());
+
+                    return $this->redirectToRoute('app_forgot_email');
+                }
+
+                $nickForm->get('nick')->addError(new FormError('Aktivní účet s tímto nickem jsme nenašli.'));
+            }
+
+            return $this->render('reset_password/forgot_email.html.twig', [
+                'nickForm' => $nickForm,
+                'emailForm' => null,
+                'maskedEmail' => null,
+            ]);
+        }
+
+        $emailForm = $this->createForm(ForgotEmailVerificationForm::class);
+        $emailForm->handleRequest($request);
+
+        if ($emailForm->isSubmitted() && $emailForm->isValid()) {
+            /** @var string $email */
+            $email = $emailForm->get('email')->getData();
+
+            if (hash_equals(mb_strtolower((string) $candidate->getEmail()), mb_strtolower(trim($email)))) {
+                $session->remove('forgot_email_user_id');
+
+                return $this->processSendingPasswordResetEmail((string) $candidate->getEmail(), $mailer, $translator);
+            }
+
+            $emailForm->get('email')->addError(new FormError('Zadaný email neodpovídá tomuto účtu.'));
+        }
+
+        return $this->render('reset_password/forgot_email.html.twig', [
+            'nickForm' => null,
+            'emailForm' => $emailForm,
+            'maskedEmail' => $emailMasker->mask((string) $candidate->getEmail()),
         ]);
     }
 

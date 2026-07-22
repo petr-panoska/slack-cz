@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Zapomenutý email{% endblock %}
+
+{% block body %}
+    <div class="form-page">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Zapomenutý email</h1>
+
+                {% if nickForm %}
+                    {{ form_start(nickForm) }}
+                        {{ form_row(nickForm.nick, { label: 'Nick' }) }}
+
+                        <p class="form-text mb-3">
+                            Zadej nick, pod kterým se zobrazuješ v seznamu deníčků.
+                        </p>
+
+                        <button type="submit" class="btn btn-primary w-100">Napovědět email</button>
+                    {{ form_end(nickForm) }}
+                {% else %}
+                    <p>Email registrovaný k tomuto nicku:</p>
+                    <p class="fs-5 fw-semibold text-center" aria-label="Maskovaný email">{{ maskedEmail }}</p>
+
+                    {{ form_start(emailForm) }}
+                        {{ form_row(emailForm.email, { label: 'Celý email' }) }}
+
+                        <p class="form-text mb-3">
+                            Pokud email zadáš správně, pošleme ti odkaz pro nastavení nového hesla.
+                        </p>
+
+                        <button type="submit" class="btn btn-primary w-100">Ověřit a poslat odkaz</button>
+                    {{ form_end(emailForm) }}
+
+                    <p class="small text-center mt-3 mb-0">
+                        <a href="{{ path('app_forgot_email', { znovu: 1 }) }}">Zkusit jiný nick</a>
+                    </p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between small mt-4 pt-3 border-top">
+                    <a href="{{ path('app_login') }}">Zpět na přihlášení</a>
+                    <a href="{{ path('app_user_directory') }}">Seznam deníčků</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

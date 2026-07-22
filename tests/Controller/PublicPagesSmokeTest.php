@@ -28,6 +28,7 @@ final class PublicPagesSmokeTest extends WebTestCase
     {
         yield 'about' => ['/o-projektu'];
         yield 'login' => ['/prihlaseni'];
+        yield 'forgot email' => ['/obnova-hesla/zapomenuty-email'];
         yield 'wiki index' => ['/wiki'];
         yield 'wiki page' => ['/wiki/bezpecnost'];
         yield 'docs index' => ['/docs'];

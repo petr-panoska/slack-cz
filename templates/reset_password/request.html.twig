@@ -18,6 +18,9 @@
                     <p class="form-text mb-3">
                         Zadej email, na který je účet registrovaný — pošleme ti odkaz pro nastavení nového hesla.
                     </p>
+                    <p>
+                        <a href="{{ path('app_forgot_email') }}">Nevím svůj email</a>
+                    </p>
 
                     <button type="submit" class="btn btn-primary w-100">Poslat odkaz</button>
                 {{ form_end(requestForm) }}

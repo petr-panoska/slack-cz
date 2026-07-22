@@ -36,6 +36,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    public function findActiveOneByNick(string $nick): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('LOWER(u.nick) = LOWER(:nick)')
+            ->andWhere('u.isActive = true')
+            ->setParameter('nick', trim($nick))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * One row per active user for the public diary directory (`/denicky`):
      * nick + name, line & longline crossing counts, and last activity date
