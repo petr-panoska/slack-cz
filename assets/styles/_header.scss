@@ -20,10 +20,8 @@
 
 .site-navbar-logo {
     display: block;
-    width: auto;
-    height: auto;
-    max-height: 40px;
-    max-width: 100%;
+    width: 296px;
+    height: 40px;
 }
 
 .site-navbar .nav-link {
@@ -150,6 +148,7 @@
 
 @include media-down(lg) {
     .site-navbar-logo {
-        max-height: 32px;
+        width: 237px;
+        height: 32px;
     }
-}   
+}
