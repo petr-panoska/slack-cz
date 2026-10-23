@@ -10,7 +10,12 @@ services:
     links:
       - db:db
     volumes:
-      - .:/var/www/html/
+      # Webroot read-only (php2shell — PHP 5.6 bez patche): kontejner nesmí
+      # přepsat .git/hooks ani tenhle compose na hostu. Zápis jen tam, kde ho
+      # appka za běhu potřebuje.
+      - .:/var/www/html/:ro
+      - ./temp:/var/www/html/temp
+      - ./log:/var/www/html/log
       - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
       - ./docker/php/msmtprc:/etc/msmtprc:ro
   db:
