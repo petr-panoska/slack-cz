@@ -50,6 +50,12 @@ test.slack.cz {
 }
 
 slack.cz, www.slack.cz {
+	# Legacy (PHP 5.6) je zranitelná na php2shell (CVE-2026-109618/109619)
+	# a patch nedostane — do cutoveru jen pro čtení. Všechny známé exploit
+	# vektory jsou POSTy, takže pouštíme jen GET/HEAD.
+	@write not method GET HEAD
+	respond @write "Web slack.cz je do přechodu na novou verzi pouze pro čtení – přihlášení ani registrace nefungují." 403
+
 	# Nasměrování na Docker kontejner s legacy appkou
 	reverse_proxy 127.0.0.1:8090
 
